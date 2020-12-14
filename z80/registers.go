@@ -5,6 +5,14 @@ const (
 	r_DE = 0b01
 	r_HL = 0b10
 	r_SP = 0b11
+
+	r_B = 0b000
+	r_C = 0b001
+	r_D = 0b010
+	r_E = 0b011
+	r_H = 0b100
+	r_L = 0b101
+	r_A = 0b111
 )
 
 // The Flag registers, F and F', supply information to the user about the status of the Z80
@@ -59,13 +67,13 @@ type registers struct {
 func newRegisters() *registers {
 	r := &registers{}
 	r.regs8 = map[byte]*byte{
-		0b000: &r.B,
-		0b001: &r.C,
-		0b010: &r.D,
-		0b011: &r.E,
-		0b100: &r.H,
-		0b101: &r.L,
-		0b111: &r.A,
+		r_A: &r.A,
+		r_B: &r.B,
+		r_C: &r.C,
+		r_D: &r.D,
+		r_E: &r.E,
+		r_H: &r.H,
+		r_L: &r.L,
 	}
 
 	return r

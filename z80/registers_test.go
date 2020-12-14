@@ -1,21 +1,28 @@
 package z80
 
-// func TestBC(t *testing.T) {
-// 	r := registers{}
-// 	assert.Equal(t, word(0x0000), r.BC())
+import (
+	"testing"
 
-// 	r = registers{C: 0x01}
-// 	assert.Equal(t, word(0x0001), r.BC())
+	"github.com/stretchr/testify/assert"
+)
 
-// 	r = registers{B: 0x01}
-// 	assert.Equal(t, word(0x0100), r.BC())
+func Test_getR(t *testing.T) {
+	r := newRegisters()
+	r.A, r.B, r.C, r.D, r.E, r.H, r.L = 1, 2, 3, 4, 5, 6, 7
+	assert.Equal(t, &r.A, r.getR(r_A))
+	assert.Equal(t, &r.B, r.getR(r_B))
+	assert.Equal(t, &r.C, r.getR(r_C))
+	assert.Equal(t, &r.D, r.getR(r_D))
+	assert.Equal(t, &r.E, r.getR(r_E))
+	assert.Equal(t, &r.H, r.getR(r_H))
+	assert.Equal(t, &r.L, r.getR(r_L))
+}
 
-// 	r = registers{B: 0xFF}
-// 	assert.Equal(t, word(0xFF00), r.BC())
+func Test_getRR(t *testing.T) {
+	r := newRegisters()
+	r.B, r.C, r.D, r.E, r.H, r.L = 2, 3, 4, 5, 6, 7
 
-// 	r = registers{C: 0xFF}
-// 	assert.Equal(t, word(0x00FF), r.BC())
-
-// 	r = registers{B: 0x12, C: 0xF7}
-// 	assert.Equal(t, word(0x12F7), r.BC())
-// }
+	assert.Equal(t, word(0x0203), r.getRR(r_BC))
+	assert.Equal(t, word(0x0405), r.getRR(r_DE))
+	assert.Equal(t, word(0x0607), r.getRR(r_HL))
+}

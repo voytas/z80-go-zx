@@ -68,10 +68,42 @@ func (c *CPU) Run() {
 			c.r.F |= a7
 			c.r.A = c.r.A>>1 | a7<<7
 			t = 4
+		case RLA:
+			fc := c.r.F & f_C
+			c.r.F &= ^(f_H | f_N | f_C)
+			a7 := c.r.A >> 7
+			c.r.A = c.r.A<<1 | fc
+			c.r.F |= a7
+			t = 4
+		case RRA:
+			fc := c.r.F & f_C
+			c.r.F &= ^(f_H | f_N | f_C)
+			a0 := c.r.A & 0x01
+			c.r.A = c.r.A>>1 | fc<<7
+			c.r.F |= a0
+			t = 4
 		case EX_AF_AF:
 			c.r.A, c.r.A_ = c.r.A_, c.r.A
 			c.r.F, c.r.F_ = c.r.F_, c.r.F
 			t = 4
+		case ADD_A_n:
+			c.r.F &= f_NONE
+			n := c.readByte()
+			sum := c.r.A + n
+			if sum > 0x7F {
+				c.r.F |= f_S
+			} else if sum == 0x00 {
+				c.r.F |= f_Z
+			}
+			c.r.F |= (c.r.A ^ n ^ sum) & f_H
+			if (c.r.A^n)&0x80 == 0 && (c.r.A^sum)&0x80 > 0 {
+				c.r.F |= f_PV
+			}
+			if sum < c.r.A {
+				c.r.F |= f_C
+			}
+			c.r.A = sum
+			t = 7
 		case ADD_HL_BC, ADD_HL_DE, ADD_HL_HL, ADD_HL_SP:
 			hl := c.r.getRR(r_HL)
 			rr := c.r.getRR(opcode & 0b00110000 >> 4)
@@ -87,14 +119,32 @@ func (c *CPU) Run() {
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			*r = c.readByte()
 			t = 7
+		case
+			LD_A_A, LD_A_B, LD_A_C, LD_A_D, LD_A_E, LD_A_H, LD_A_L,
+			LD_B_A, LD_B_B, LD_B_C, LD_B_D, LD_B_E, LD_B_H, LD_B_L,
+			LD_C_A, LD_C_B, LD_C_C, LD_C_D, LD_C_E, LD_C_H, LD_C_L,
+			LD_D_A, LD_D_B, LD_D_C, LD_D_D, LD_D_E, LD_D_H, LD_D_L,
+			LD_E_A, LD_E_B, LD_E_C, LD_E_D, LD_E_E, LD_E_H, LD_E_L,
+			LD_H_A, LD_H_B, LD_H_C, LD_H_D, LD_H_E, LD_H_H, LD_H_L,
+			LD_L_A, LD_L_B, LD_L_C, LD_L_D, LD_L_E, LD_L_H, LD_L_L:
+			rs := c.r.getR(opcode & 0b00000111)
+			rd := c.r.getR(opcode & 0b00111000 >> 3)
+			*rd = *rs
+			t = 4
 		case LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn:
 			c.r.setRRnn(opcode&0b00110000>>4, c.readByte(), c.readByte())
 			t = 10
 		case LD_BC_A:
 			c.writeByte(c.r.getRR(r_BC), c.r.A)
 			t = 7
+		case LD_DE_A:
+			c.writeByte(c.r.getRR(r_DE), c.r.A)
+			t = 7
 		case LD_A_BC:
 			c.r.A = c.readAddr(c.r.getRR(r_BC))
+			t = 7
+		case LD_A_DE:
+			c.r.A = c.readAddr(c.r.getRR(r_DE))
 			t = 7
 		case INC_A, INC_B, INC_C, INC_D, INC_E, INC_H, INC_L:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
@@ -106,6 +156,27 @@ func (c *CPU) Run() {
 				c.r.F |= f_H
 			}
 			*r += 1
+			if *r > 0x7F {
+				c.r.F |= f_S
+			}
+			if *r == 0 {
+				c.r.F |= f_Z
+			}
+			t = 4
+		case INC_BC, INC_DE, INC_HL, INC_SP:
+			reg := opcode & 0b00110000 >> 4
+			c.r.setRRn(reg, c.r.getRR(reg)+1)
+			t = 6
+		case DEC_A, DEC_B, DEC_C, DEC_D, DEC_E, DEC_H, DEC_L:
+			r := c.r.getR(opcode & 0b00111000 >> 3)
+			c.r.F = c.r.F & ^(f_S|f_Z|f_H|f_PV) | f_N
+			if *r == 0x80 {
+				c.r.F |= f_PV
+			}
+			if *r&0x0F == 0 {
+				c.r.F |= f_H
+			}
+			*r -= 1
 			if *r > 0x7F {
 				c.r.F |= f_S
 			}
@@ -125,6 +196,54 @@ func (c *CPU) Run() {
 				c.PC -= word(^o + 1)
 			}
 			t = 12
+		case JR_Z:
+			o := c.readByte()
+			if c.r.F&f_Z == f_Z {
+				if o&0x80 == 0 {
+					c.PC += word(o)
+				} else {
+					c.PC -= word(^o + 1)
+				}
+				t = 12
+			} else {
+				t = 7
+			}
+		case JR_NZ:
+			o := c.readByte()
+			if c.r.F&f_Z == 0 {
+				if o&0x80 == 0 {
+					c.PC += word(o)
+				} else {
+					c.PC -= word(^o + 1)
+				}
+				t = 12
+			} else {
+				t = 7
+			}
+		case JR_C:
+			o := c.readByte()
+			if c.r.F&f_C == f_C {
+				if o&0x80 == 0 {
+					c.PC += word(o)
+				} else {
+					c.PC -= word(^o + 1)
+				}
+				t = 12
+			} else {
+				t = 7
+			}
+		case JR_NC:
+			o := c.readByte()
+			if c.r.F&f_C == 0 {
+				if o&0x80 == 0 {
+					c.PC += word(o)
+				} else {
+					c.PC -= word(^o + 1)
+				}
+				t = 12
+			} else {
+				t = 7
+			}
 		case DJNZ:
 			o := c.readByte()
 			c.r.B -= 1
