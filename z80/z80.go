@@ -27,6 +27,12 @@ func (c *CPU) readByte() byte {
 	return b
 }
 
+func (c *CPU) readWord() word {
+	w := word(c.mem.Cells[c.PC]) + word(c.mem.Cells[c.PC+1])<<8
+	c.PC += 2
+	return w
+}
+
 func (c *CPU) readAddr(addr word) byte {
 	return c.mem.Cells[addr]
 }
@@ -82,6 +88,46 @@ func (c *CPU) Run() {
 			c.r.A = c.r.A>>1 | fc<<7
 			c.r.F |= a0
 			t = 4
+		case DAA:
+			c.r.F &= ^(f_S | f_Z | f_PV)
+			a := c.r.A
+			if a&0xF > 9 || c.r.F&f_H != 0 {
+				if c.r.F&f_N > 0 {
+					a -= 0x06
+				} else {
+					a += 0x06
+				}
+			}
+			if a > 0x99 || c.r.F&f_C != 0 {
+				if c.r.F&f_N > 0 {
+					a -= 0x60
+				} else {
+					a += 0x60
+				}
+			}
+			c.r.F |= a & f_S
+			if a == 0 {
+				c.r.F |= f_Z
+			}
+			if c.r.F&f_N > 0 {
+				if c.r.F&f_H > 0 && c.r.A&0xF < 6 {
+					c.r.F |= f_H
+				} else {
+					c.r.F &= ^f_H
+				}
+			} else {
+				if c.r.A&0xF > 9 {
+					c.r.F |= f_H
+				} else {
+					c.r.F &= ^f_H
+				}
+			}
+			c.r.F |= parity[a]
+			if c.r.A > 0x99 {
+				c.r.F |= f_C
+			}
+			c.r.A = a
+			t = 4
 		case EX_AF_AF:
 			c.r.A, c.r.A_ = c.r.A_, c.r.A
 			c.r.F, c.r.F_ = c.r.F_, c.r.F
@@ -92,7 +138,7 @@ func (c *CPU) Run() {
 			sum := c.r.A + n
 			if sum > 0x7F {
 				c.r.F |= f_S
-			} else if sum == 0x00 {
+			} else if sum == 0 {
 				c.r.F |= f_Z
 			}
 			c.r.F |= (c.r.A ^ n ^ sum) & f_H
@@ -106,15 +152,35 @@ func (c *CPU) Run() {
 			t = 7
 		case ADD_HL_BC, ADD_HL_DE, ADD_HL_HL, ADD_HL_SP:
 			hl := c.r.getRR(r_HL)
-			rr := c.r.getRR(opcode & 0b00110000 >> 4)
-			sum := hl + rr
+			nn := c.r.getRR(opcode & 0b00110000 >> 4)
+			sum := hl + nn
 			c.r.setRRn(r_HL, sum)
 			c.r.F &= ^(f_H | f_N | f_C)
 			if sum < hl {
 				c.r.F |= f_C
 			}
-			c.r.F |= byte((hl^rr^sum)>>8) & f_H
+			c.r.F |= byte((hl^nn^sum)>>8) & f_H
 			t = 11
+		case SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L:
+			a := c.r.A
+			n := *c.r.getR(opcode & 0b00000111)
+			c.r.A -= n
+			c.r.F &= ^(f_S | f_Z | f_H | f_PV | f_C)
+			if c.r.A&0x80 > 0 {
+				c.r.F |= f_S
+			}
+			if c.r.A == 0 {
+				c.r.F |= f_Z
+			}
+			c.r.F |= byte(a^n^c.r.A) & f_H
+			if (a^n)&0x80 > 0 && (a^c.r.A)&0x80 > 0 {
+				c.r.F |= f_PV
+			}
+			c.r.F |= f_N
+			if c.r.A > a {
+				c.r.F |= f_C
+			}
+			t = 4
 		case LD_A_n, LD_B_n, LD_C_n, LD_D_n, LD_E_n, LD_H_n, LD_L_n:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			*r = c.readByte()
@@ -134,6 +200,11 @@ func (c *CPU) Run() {
 		case LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn:
 			c.r.setRRnn(opcode&0b00110000>>4, c.readByte(), c.readByte())
 			t = 10
+		case LD_nn_HL:
+			w := c.readWord()
+			c.mem.Cells[w] = c.r.L
+			c.mem.Cells[w+1] = c.r.H
+			t = 16
 		case LD_BC_A:
 			c.writeByte(c.r.getRR(r_BC), c.r.A)
 			t = 7

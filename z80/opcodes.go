@@ -35,12 +35,15 @@ const (
 	RRA       = 0x1F // rra
 	JR_NZ     = 0x20 // jr nz,o
 	LD_HL_nn  = 0x21 // ld hl,nn
+	LD_nn_HL  = 0x22 // ld (nn),hl
 	INC_HL    = 0x23 // inc hl
 	INC_H     = 0x24 // inc h
 	DEC_H     = 0x25 // dec h
 	LD_H_n    = 0x26 // ld h,n
+	DAA       = 0x27 // daa
 	JR_Z      = 0x28 // jr z,o
 	ADD_HL_HL = 0x29 // add hl,hl
+	//LD_HL_mm  = 0x2A // ld hl,(nn)
 	DEC_HL    = 0x2B // dec hl
 	INC_L     = 0x2C // inc l
 	DEC_L     = 0x2D // dec l
@@ -104,5 +107,12 @@ const (
 	LD_A_H    = 0x7C // ld a,h
 	LD_A_L    = 0x7D // ld a,l
 	LD_A_A    = 0x7F // ld a,a
+	SUB_B     = 0x90 // sub b
+	SUB_C     = 0x91 // sub c
+	SUB_D     = 0x92 // sub d
+	SUB_E     = 0x93 // sub e
+	SUB_H     = 0x94 // sub h
+	SUB_L     = 0x95 // sub l
+	SUB_A     = 0x97 // sub a
 	ADD_A_n   = 0xC6 // add a.n
 )
