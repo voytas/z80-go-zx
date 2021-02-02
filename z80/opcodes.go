@@ -48,6 +48,7 @@ const (
 	INC_L     = 0x2C // inc l
 	DEC_L     = 0x2D // dec l
 	LD_L_n    = 0x2E // ld l,n
+	CPL       = 0x2F // cpl
 	JR_NC     = 0x30 // jr nc,o
 	LD_SP_nn  = 0x31 // ld sp,nn
 	INC_SP    = 0x33 // inc sp

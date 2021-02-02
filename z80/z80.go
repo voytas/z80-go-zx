@@ -62,6 +62,10 @@ func (c *CPU) Run() {
 			c.wait(t)
 			c.halt = true
 			return
+		case CPL:
+			c.r.A = ^c.r.A
+			c.r.F |= f_H | f_N
+			t = 4
 		case RLCA:
 			c.r.F &= ^(f_H | f_N | f_C)
 			a7 := c.r.A >> 7
