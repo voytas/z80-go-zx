@@ -144,9 +144,16 @@ func (c *CPU) Run() {
 			c.r.A, c.r.A_ = c.r.A_, c.r.A
 			c.r.F, c.r.F_ = c.r.F_, c.r.F
 			t = 4
-		case ADD_A_n:
+		case ADD_A_n, ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L:
 			c.r.F &= f_NONE
-			n := c.readByte()
+			var n byte
+			if opcode == ADD_A_n {
+				n = c.readByte()
+				t = 7
+			} else {
+				n = *c.r.getR(opcode & 0b00000111)
+				t = 4
+			}
 			sum := c.r.A + n
 			if sum > 0x7F {
 				c.r.F |= f_S
@@ -161,7 +168,6 @@ func (c *CPU) Run() {
 				c.r.F |= f_C
 			}
 			c.r.A = sum
-			t = 7
 		case ADD_HL_BC, ADD_HL_DE, ADD_HL_HL, ADD_HL_SP:
 			hl := c.r.getRR(r_HL)
 			nn := c.r.getRR(opcode & 0b00110000 >> 4)

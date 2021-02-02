@@ -129,6 +129,13 @@ const (
 	LD_A_L    byte = 0x7D // ld a,l
 	LD_A_HL   byte = 0x7E // ld a,(hl)
 	LD_A_A    byte = 0x7F // ld a,a
+	ADD_A_B   byte = 0x80 // add a,b
+	ADD_A_C   byte = 0x81 // add a,c
+	ADD_A_D   byte = 0x82 // add a,d
+	ADD_A_E   byte = 0x83 // add a,e
+	ADD_A_H   byte = 0x84 // add a,h
+	ADD_A_L   byte = 0x85 // add a,l
+	ADD_A_A   byte = 0x87 // add a,a
 	SUB_B     byte = 0x90 // sub b
 	SUB_C     byte = 0x91 // sub c
 	SUB_D     byte = 0x92 // sub d
