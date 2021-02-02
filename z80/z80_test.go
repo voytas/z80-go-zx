@@ -294,7 +294,7 @@ func Test_LD_mm_HL(t *testing.T) {
 
 func Test_LD_HL_mm(t *testing.T) {
 	mem := &Memory{
-		Cells: []byte{LD_HL_mm, 0x03, 0x00, 0x34, 0x12, HALT},
+		Cells: []byte{LD_HL_mm, 0x04, 0x00, HALT, 0x34, 0x12},
 	}
 	cpu := NewCPU(mem)
 	cpu.Run()
