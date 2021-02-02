@@ -203,6 +203,7 @@ func Test_INC_mHL(t *testing.T) {
 	cpu := NewCPU(mem)
 	cpu.r.F = f_S | f_PV | f_N | f_C
 	cpu.Run()
+
 	assert.Equal(t, byte(0x00), mem.Cells[5])
 	assert.Equal(t, f_Z|f_H|f_C, cpu.r.F)
 
@@ -261,6 +262,32 @@ func Test_DEC_RR(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, word(0x1233), cpu.r.getRR(r_BC))
+}
+
+func Test_DEC_mHL(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_HL_nn, 0x05, 0x00, DEC_mHL, HALT, 0x00},
+	}
+	cpu := NewCPU(mem)
+	cpu.r.F = f_C
+	cpu.Run()
+
+	assert.Equal(t, byte(0xFF), mem.Cells[5])
+	assert.Equal(t, f_S|f_H|f_N|f_C, cpu.r.F)
+
+	cpu.Reset()
+	mem.Cells[5] = 0x01
+	cpu.Run()
+
+	assert.Equal(t, byte(0x00), mem.Cells[5])
+	assert.Equal(t, f_Z|f_N, cpu.r.F)
+
+	cpu.Reset()
+	mem.Cells[5] = 0x80
+	cpu.Run()
+
+	assert.Equal(t, byte(0x7F), mem.Cells[5])
+	assert.Equal(t, f_PV|f_H|f_N, cpu.r.F)
 }
 
 func Test_LD_RR_nn(t *testing.T) {
