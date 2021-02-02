@@ -70,6 +70,10 @@ func (c *CPU) Run() {
 			c.r.F &= ^(f_H | f_N)
 			c.r.F |= f_C
 			t = 4
+		case CCF:
+			c.r.F &= ^(f_N)
+			c.r.F ^= f_H | f_C
+			t = 4
 		case RLCA:
 			c.r.F &= ^(f_H | f_N | f_C)
 			a7 := c.r.A >> 7

@@ -64,6 +64,7 @@ const (
 	INC_A     byte = 0x3C // inc a
 	DEC_A     byte = 0x3D // dec a
 	LD_A_n    byte = 0x3E // ld a,n
+	CCF       byte = 0x3F // ccf
 	LD_B_B    byte = 0x40 // ld b,b
 	LD_B_C    byte = 0x41 // ld b,c
 	LD_B_D    byte = 0x42 // ld b,d
