@@ -113,7 +113,14 @@ const (
 	LD_L_L    byte = 0x6D // ld l,l
 	LD_L_HL   byte = 0x6E // ld l,(hl)
 	LD_L_A    byte = 0x6F // ld l,a
+	LD_HL_B   byte = 0x70 // ld (hl),b
+	LD_HL_C   byte = 0x71 // ld (hl),c
+	LD_HL_D   byte = 0x72 // ld (hl),d
+	LD_HL_E   byte = 0x73 // ld (hl),e
+	LD_HL_H   byte = 0x74 // ld (hl),h
+	LD_HL_L   byte = 0x75 // ld (hl),l
 	HALT      byte = 0x76 // halt
+	LD_HL_A   byte = 0x77 // ld (hl),a
 	LD_A_B    byte = 0x78 // ld a,b
 	LD_A_C    byte = 0x79 // ld a,c
 	LD_A_D    byte = 0x7A // ld a,d

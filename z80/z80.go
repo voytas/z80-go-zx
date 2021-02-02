@@ -249,6 +249,10 @@ func (c *CPU) Run() {
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			*r = c.mem.Cells[c.r.getRR(r_HL)]
 			t = 7
+		case LD_HL_A, LD_HL_B, LD_HL_C, LD_HL_D, LD_HL_E, LD_HL_H, LD_HL_L:
+			r := c.r.getR(opcode & 0b00000111)
+			c.mem.Cells[c.r.getRR(r_HL)] = *r
+			t = 7
 		case INC_A, INC_B, INC_C, INC_D, INC_E, INC_H, INC_L:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			c.r.F &= ^(f_S | f_Z | f_H | f_PV | f_N)
