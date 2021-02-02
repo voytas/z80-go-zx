@@ -145,7 +145,7 @@ func (c *CPU) Run() {
 			c.r.F, c.r.F_ = c.r.F_, c.r.F
 			t = 4
 		case ADD_A_n, ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L, ADD_A_HL:
-			c.r.F &= f_NONE
+			c.r.F = f_NONE
 			var n byte
 			if opcode == ADD_A_n {
 				n = c.readByte()
@@ -171,6 +171,26 @@ func (c *CPU) Run() {
 				c.r.F |= f_C
 			}
 			c.r.A = sum
+		case ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L:
+			n := *c.r.getR(opcode & 0b00000111)
+			cf := c.r.F & f_C
+			c.r.F = f_NONE
+			sum_w := word(c.r.A) + word(n) + word(cf)
+			sum_b := byte(sum_w)
+			if sum_b > 0x7F {
+				c.r.F |= f_S
+			} else if sum_b == 0 {
+				c.r.F |= f_Z
+			}
+			c.r.F |= (c.r.A ^ n ^ sum_b) & f_H
+			if (c.r.A^n)&0x80 == 0 && (c.r.A^sum_b)&0x80 > 0 {
+				c.r.F |= f_PV
+			}
+			if sum_w > 0xff {
+				c.r.F |= f_C
+			}
+			c.r.A = sum_b
+			t = 4
 		case ADD_HL_BC, ADD_HL_DE, ADD_HL_HL, ADD_HL_SP:
 			hl := c.r.getRR(r_HL)
 			nn := c.r.getRR(opcode & 0b00110000 >> 4)
