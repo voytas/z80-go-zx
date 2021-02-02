@@ -118,17 +118,6 @@ func Test_ADD_HL_RR(t *testing.T) {
 	assert.Equal(t, f_S|f_Z|f_PV, cpu.r.F)
 }
 
-func Test_LD_HL_mm(t *testing.T) {
-	mem := &Memory{
-		Cells: []byte{LD_HL_mm, 0x03, 0x00, 0x34, 0x12, HALT},
-	}
-	cpu := NewCPU(mem)
-	cpu.Run()
-
-	assert.Equal(t, byte(0x12), cpu.r.H)
-	assert.Equal(t, byte(0x34), cpu.r.L)
-}
-
 func Test_SUB_R(t *testing.T) {
 	mem := &Memory{
 		Cells: []byte{LD_A_n, 0, LD_B_n, 0x01, SUB_B, HALT},
@@ -268,15 +257,36 @@ func Test_LD_RR_nn(t *testing.T) {
 	assert.Equal(t, word(0x1234), cpu.r.getRR(r_SP))
 }
 
-func Test_LD_nn_HL(t *testing.T) {
+func Test_LD_mm_HL(t *testing.T) {
 	mem := &Memory{
-		Cells: []byte{LD_HL_nn, 0x3A, 0x48, LD_nn_HL, 0x07, 0x00, HALT, 0, 0},
+		Cells: []byte{LD_HL_nn, 0x3A, 0x48, LD_mm_HL, 0x07, 0x00, HALT, 0, 0},
 	}
 	cpu := NewCPU(mem)
 	cpu.Run()
 
 	assert.Equal(t, cpu.r.H, mem.Cells[8])
 	assert.Equal(t, cpu.r.L, mem.Cells[7])
+}
+
+func Test_LD_HL_mm(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_HL_mm, 0x03, 0x00, 0x34, 0x12, HALT},
+	}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x12), cpu.r.H)
+	assert.Equal(t, byte(0x34), cpu.r.L)
+}
+
+func Test_LD_mm_A(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_A_n, 0x9F, LD_mm_A, 0x05, 0x00, 0x00, HALT},
+	}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, cpu.r.A, mem.Cells[5])
 }
 
 func Test_LD_BC_A(t *testing.T) {

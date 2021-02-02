@@ -35,7 +35,7 @@ const (
 	RRA       = 0x1F // rra
 	JR_NZ     = 0x20 // jr nz,o
 	LD_HL_nn  = 0x21 // ld hl,nn
-	LD_nn_HL  = 0x22 // ld (nn),hl
+	LD_mm_HL  = 0x22 // ld (nn),hl
 	INC_HL    = 0x23 // inc hl
 	INC_H     = 0x24 // inc h
 	DEC_H     = 0x25 // dec h
@@ -51,6 +51,7 @@ const (
 	CPL       = 0x2F // cpl
 	JR_NC     = 0x30 // jr nc,o
 	LD_SP_nn  = 0x31 // ld sp,nn
+	LD_mm_A   = 0x32 // ld (nn),A
 	INC_SP    = 0x33 // inc sp
 	JR_C      = 0x38 // jr c, o
 	ADD_HL_SP = 0x39 // add hl,sp
