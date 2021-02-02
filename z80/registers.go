@@ -27,12 +27,12 @@ const (
 	f_C    byte = 0x01
 	f_N    byte = 0x02
 	f_PV   byte = 0x04
-	// f_X3   byte = 0x08 // Undocumented, not implemented yet
-	f_H byte = 0x10
-	// f_X5   byte = 0x20 // Undocumented, not implemented yet
-	f_Z   byte = 0x40
-	f_S   byte = 0x80
-	f_ALL      = f_S | f_Z | f_H | f_PV | f_N | f_C
+	f_X3   byte = 0x08
+	f_H    byte = 0x10
+	f_X5   byte = 0x20
+	f_Z    byte = 0x40
+	f_S    byte = 0x80
+	f_ALL       = f_S | f_Z | f_H | f_PV | f_N | f_C
 )
 
 type registers struct {

@@ -438,6 +438,17 @@ func Test_CPL(t *testing.T) {
 	assert.Equal(t, f_H|f_N, cpu.r.F)
 }
 
+func Test_SCF(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{SCF, HALT},
+	}
+	cpu := NewCPU(mem)
+	cpu.r.F = f_S | f_Z | f_H | f_PV | f_N
+	cpu.Run()
+
+	assert.Equal(t, f_S|f_Z|f_PV|f_C, cpu.r.F)
+}
+
 func Test_RLCA(t *testing.T) {
 	mem := &Memory{
 		Cells: []byte{LD_A_n, 0x55, RLCA, HALT},
