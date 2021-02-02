@@ -153,5 +153,12 @@ const (
 	SUB_L     byte = 0x95 // sub l
 	SUB_HL    byte = 0x96 // sub (hl)
 	SUB_A     byte = 0x97 // sub a
+	SBC_A_B   byte = 0x98 // sbc a,b
+	SBC_A_C   byte = 0x99 // sbc a,c
+	SBC_A_D   byte = 0x9A // sbc a,d
+	SBC_A_E   byte = 0x9B // sbc a,e
+	SBC_A_H   byte = 0x9C // sbc a,h
+	SBC_A_L   byte = 0x9D // sbc a,l
+	SBC_A_A   byte = 0x9F // sbc a,a
 	ADD_A_n   byte = 0xC6 // add a.n
 )

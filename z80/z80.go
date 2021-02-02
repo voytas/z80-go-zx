@@ -184,9 +184,8 @@ func (c *CPU) Run() {
 			c.r.F = f_NONE
 			sum_w := word(c.r.A) + word(n) + word(cf)
 			sum_b := byte(sum_w)
-			if sum_b > 0x7F {
-				c.r.F |= f_S
-			} else if sum_b == 0 {
+			c.r.F |= f_S & sum_b
+			if sum_b == 0 {
 				c.r.F |= f_Z
 			}
 			c.r.F |= (c.r.A ^ n ^ sum_b) & f_H
@@ -219,10 +218,8 @@ func (c *CPU) Run() {
 				t = 4
 			}
 			c.r.A -= n
-			c.r.F &= ^(f_S | f_Z | f_H | f_PV | f_C)
-			if c.r.A&0x80 > 0 {
-				c.r.F |= f_S
-			}
+			c.r.F = f_N
+			c.r.F |= f_S & c.r.A
 			if c.r.A == 0 {
 				c.r.F |= f_Z
 			}
@@ -230,10 +227,28 @@ func (c *CPU) Run() {
 			if (a^n)&0x80 > 0 && (a^c.r.A)&0x80 > 0 {
 				c.r.F |= f_PV
 			}
-			c.r.F |= f_N
 			if c.r.A > a {
 				c.r.F |= f_C
 			}
+		case SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L:
+			n := *c.r.getR(opcode & 0b00000111)
+			cf := c.r.F & f_C
+			c.r.F = f_N
+			sub_w := word(c.r.A) - word(n) - word(cf)
+			sub_b := byte(sub_w)
+			c.r.F |= f_S & sub_b
+			if sub_b == 0 {
+				c.r.F |= f_Z
+			}
+			c.r.F |= byte(c.r.A^n^sub_b) & f_H
+			if (c.r.A^n)&0x80 > 0 && (sub_b^c.r.A)&0x80 > 0 {
+				c.r.F |= f_PV
+			}
+			if sub_w > 0xff {
+				c.r.F |= f_C
+			}
+			c.r.A = sub_b
+			t = 4
 		case LD_A_n, LD_B_n, LD_C_n, LD_D_n, LD_E_n, LD_H_n, LD_L_n:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			*r = c.readByte()
