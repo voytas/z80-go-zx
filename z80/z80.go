@@ -144,11 +144,14 @@ func (c *CPU) Run() {
 			c.r.A, c.r.A_ = c.r.A_, c.r.A
 			c.r.F, c.r.F_ = c.r.F_, c.r.F
 			t = 4
-		case ADD_A_n, ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L:
+		case ADD_A_n, ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L, ADD_A_HL:
 			c.r.F &= f_NONE
 			var n byte
 			if opcode == ADD_A_n {
 				n = c.readByte()
+				t = 7
+			} else if opcode == ADD_A_HL {
+				n = c.mem.Cells[c.r.getRR(r_HL)]
 				t = 7
 			} else {
 				n = *c.r.getR(opcode & 0b00000111)

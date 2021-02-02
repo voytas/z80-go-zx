@@ -135,6 +135,7 @@ const (
 	ADD_A_E   byte = 0x83 // add a,e
 	ADD_A_H   byte = 0x84 // add a,h
 	ADD_A_L   byte = 0x85 // add a,l
+	ADD_A_HL  byte = 0x86 // add a,(hl)
 	ADD_A_A   byte = 0x87 // add a,a
 	SUB_B     byte = 0x90 // sub b
 	SUB_C     byte = 0x91 // sub c
