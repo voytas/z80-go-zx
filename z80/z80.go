@@ -200,6 +200,11 @@ func (c *CPU) Run() {
 		case LD_BC_nn, LD_DE_nn, LD_HL_nn, LD_SP_nn:
 			c.r.setRRnn(opcode&0b00110000>>4, c.readByte(), c.readByte())
 			t = 10
+		case LD_HL_mm:
+			w := c.readWord()
+			c.r.L = c.mem.Cells[w]
+			c.r.H = c.mem.Cells[w+1]
+			t = 16
 		case LD_nn_HL:
 			w := c.readWord()
 			c.mem.Cells[w] = c.r.L

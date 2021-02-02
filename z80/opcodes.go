@@ -43,7 +43,7 @@ const (
 	DAA       = 0x27 // daa
 	JR_Z      = 0x28 // jr z,o
 	ADD_HL_HL = 0x29 // add hl,hl
-	//LD_HL_mm  = 0x2A // ld hl,(nn)
+	LD_HL_mm  = 0x2A // ld hl,(nn)
 	DEC_HL    = 0x2B // dec hl
 	INC_L     = 0x2C // inc l
 	DEC_L     = 0x2D // dec l
