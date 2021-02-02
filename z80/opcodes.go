@@ -53,6 +53,7 @@ const (
 	LD_SP_nn  = 0x31 // ld sp,nn
 	LD_mm_A   = 0x32 // ld (nn),A
 	INC_SP    = 0x33 // inc sp
+	INC_mHL   = 0x34 // inc (hl)
 	JR_C      = 0x38 // jr c, o
 	ADD_HL_SP = 0x39 // add hl,sp
 	DEC_SP    = 0x3B // dec sp

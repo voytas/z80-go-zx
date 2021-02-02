@@ -251,6 +251,25 @@ func (c *CPU) Run() {
 			reg := opcode & 0b00110000 >> 4
 			c.r.setRRn(reg, c.r.getRR(reg)+1)
 			t = 6
+		case INC_mHL:
+			mm := c.r.getRR(r_HL)
+			b := c.mem.Cells[mm]
+			c.r.F &= ^(f_S | f_Z | f_PV | f_N)
+			if b == 0x7F {
+				c.r.F |= f_PV
+			}
+			if b&0x0F == 0x0F {
+				c.r.F |= f_H
+			}
+			b += 1
+			if b == 0x00 {
+				c.r.F |= f_Z
+			}
+			if b > 0x7F {
+				c.r.F |= f_S
+			}
+			c.mem.Cells[mm] = b
+			t = 11
 		case DEC_A, DEC_B, DEC_C, DEC_D, DEC_E, DEC_H, DEC_L:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			c.r.F = c.r.F & ^(f_S|f_Z|f_H|f_PV) | f_N

@@ -191,10 +191,34 @@ func Test_INC_RR(t *testing.T) {
 		Cells: []byte{LD_BC_nn, 0x34, 0x12, INC_BC, HALT},
 	}
 	cpu := NewCPU(mem)
-	cpu.r.F = f_ALL
 	cpu.Run()
 
 	assert.Equal(t, word(0x1235), cpu.r.getRR(r_BC))
+}
+
+func Test_INC_mHL(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_HL_nn, 0x05, 0x00, INC_mHL, HALT, 0xFF},
+	}
+	cpu := NewCPU(mem)
+	cpu.r.F = f_S | f_PV | f_N | f_C
+	cpu.Run()
+	assert.Equal(t, byte(0x00), mem.Cells[5])
+	assert.Equal(t, f_Z|f_H|f_C, cpu.r.F)
+
+	cpu.Reset()
+	mem.Cells[5] = 0x7F
+	cpu.Run()
+
+	assert.Equal(t, byte(0x80), mem.Cells[5])
+	assert.Equal(t, f_S|f_H|f_PV, cpu.r.F)
+
+	cpu.Reset()
+	mem.Cells[5] = 0x20
+	cpu.Run()
+
+	assert.Equal(t, byte(0x21), mem.Cells[5])
+	assert.Equal(t, f_NONE, cpu.r.F)
 }
 
 func Test_DEC_R(t *testing.T) {
