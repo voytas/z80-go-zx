@@ -245,6 +245,10 @@ func (c *CPU) Run() {
 		case LD_A_DE:
 			c.r.A = c.readAddr(c.r.getRR(r_DE))
 			t = 7
+		case LD_A_HL, LD_B_HL, LD_C_HL, LD_D_HL, LD_E_HL, LD_H_HL, LD_L_HL:
+			r := c.r.getR(opcode & 0b00111000 >> 3)
+			*r = c.mem.Cells[c.r.getRR(r_HL)]
+			t = 7
 		case INC_A, INC_B, INC_C, INC_D, INC_E, INC_H, INC_L:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			c.r.F &= ^(f_S | f_Z | f_H | f_PV | f_N)
@@ -263,8 +267,8 @@ func (c *CPU) Run() {
 			}
 			t = 4
 		case INC_BC, INC_DE, INC_HL, INC_SP:
-			reg := opcode & 0b00110000 >> 4
-			c.r.setRRn(reg, c.r.getRR(reg)+1)
+			rr := opcode & 0b00110000 >> 4
+			c.r.setRRn(rr, c.r.getRR(rr)+1)
 			t = 6
 		case INC_mHL:
 			mm := c.r.getRR(r_HL)
@@ -303,8 +307,8 @@ func (c *CPU) Run() {
 			}
 			t = 4
 		case DEC_BC, DEC_DE, DEC_HL, DEC_SP:
-			reg := opcode & 0b00110000 >> 4
-			c.r.setRRn(reg, c.r.getRR(reg)-1)
+			rr := opcode & 0b00110000 >> 4
+			c.r.setRRn(rr, c.r.getRR(rr)-1)
 			t = 6
 		case DEC_mHL:
 			mm := c.r.getRR(r_HL)

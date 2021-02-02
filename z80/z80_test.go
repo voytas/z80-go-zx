@@ -437,6 +437,17 @@ func Test_LD_R_R(t *testing.T) {
 	assert.Equal(t, byte(0x56), cpu.r.L)
 }
 
+func Test_LD_R_HL(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_HL_nn, 0x06, 0x00, LD_A_HL, LD_L_HL, HALT, 0xA7},
+	}
+
+	cpu := NewCPU(mem)
+	cpu.Run()
+	assert.Equal(t, byte(0xA7), cpu.r.A)
+	assert.Equal(t, byte(0xA7), cpu.r.L)
+}
+
 func Test_CPL(t *testing.T) {
 	mem := &Memory{
 		Cells: []byte{LD_A_n, 0x5B, CPL, HALT},

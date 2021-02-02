@@ -71,6 +71,7 @@ const (
 	LD_B_E    byte = 0x43 // ld b,e
 	LD_B_H    byte = 0x44 // ld b,h
 	LD_B_L    byte = 0x45 // ld b,l
+	LD_B_HL   byte = 0x46 // ld b,(hl)
 	LD_B_A    byte = 0x47 // ld b,a
 	LD_C_B    byte = 0x48 // ld c,b
 	LD_C_C    byte = 0x49 // ld c,c
@@ -78,6 +79,7 @@ const (
 	LD_C_E    byte = 0x4B // ld c,e
 	LD_C_H    byte = 0x4C // ld c,h
 	LD_C_L    byte = 0x4D // ld c,l
+	LD_C_HL   byte = 0x4E // ld c,(hl)
 	LD_C_A    byte = 0x4F // ld c,a
 	LD_D_B    byte = 0x50 // ld d,b
 	LD_D_C    byte = 0x51 // ld d,c
@@ -85,6 +87,7 @@ const (
 	LD_D_E    byte = 0x53 // ld d,e
 	LD_D_H    byte = 0x54 // ld d,h
 	LD_D_L    byte = 0x55 // ld d,l
+	LD_D_HL   byte = 0x56 // ld d,(hl)
 	LD_D_A    byte = 0x57 // ld d,a
 	LD_E_B    byte = 0x58 // ld e,b
 	LD_E_C    byte = 0x59 // ld e,c
@@ -92,6 +95,7 @@ const (
 	LD_E_E    byte = 0x5B // ld e,e
 	LD_E_H    byte = 0x5C // ld e,h
 	LD_E_L    byte = 0x5D // ld e,l
+	LD_E_HL   byte = 0x5E // ld e,(hl)
 	LD_E_A    byte = 0x5F // ld e,a
 	LD_H_B    byte = 0x60 // ld h,b
 	LD_H_C    byte = 0x61 // ld h,c
@@ -99,6 +103,7 @@ const (
 	LD_H_E    byte = 0x63 // ld h,e
 	LD_H_H    byte = 0x64 // ld h,h
 	LD_H_L    byte = 0x65 // ld h,l
+	LD_H_HL   byte = 0x66 // ld h,(hl)
 	LD_H_A    byte = 0x67 // ld h,a
 	LD_L_B    byte = 0x68 // ld l,b
 	LD_L_C    byte = 0x69 // ld l,c
@@ -106,6 +111,7 @@ const (
 	LD_L_E    byte = 0x6B // ld l,e
 	LD_L_H    byte = 0x6C // ld l,h
 	LD_L_L    byte = 0x6D // ld l,l
+	LD_L_HL   byte = 0x6E // ld l,(hl)
 	LD_L_A    byte = 0x6F // ld l,a
 	HALT      byte = 0x76 // halt
 	LD_A_B    byte = 0x78 // ld a,b
@@ -114,6 +120,7 @@ const (
 	LD_A_E    byte = 0x7B // ld a,e
 	LD_A_H    byte = 0x7C // ld a,h
 	LD_A_L    byte = 0x7D // ld a,l
+	LD_A_HL   byte = 0x7E // ld a,(hl)
 	LD_A_A    byte = 0x7F // ld a,a
 	SUB_B     byte = 0x90 // sub b
 	SUB_C     byte = 0x91 // sub c
