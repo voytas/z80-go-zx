@@ -55,6 +55,7 @@ const (
 	INC_SP    byte = 0x33 // inc sp
 	INC_mHL   byte = 0x34 // inc (hl)
 	DEC_mHL   byte = 0x35 // dec (hl)
+	LD_mHL_n  byte = 0x36 // ld (hl),n
 	JR_C      byte = 0x38 // jr c, o
 	ADD_HL_SP byte = 0x39 // add hl,sp
 	DEC_SP    byte = 0x3B // dec sp

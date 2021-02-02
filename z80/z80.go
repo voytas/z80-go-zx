@@ -214,6 +214,9 @@ func (c *CPU) Run() {
 			c.mem.Cells[w] = c.r.L
 			c.mem.Cells[w+1] = c.r.H
 			t = 16
+		case LD_mHL_n:
+			c.mem.Cells[c.r.getRR(r_HL)] = c.readByte()
+			t = 10
 		case LD_mm_A:
 			w := c.readWord()
 			c.mem.Cells[w] = c.r.A
