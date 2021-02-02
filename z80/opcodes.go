@@ -59,6 +59,7 @@ const (
 	SCF       byte = 0x37 // scf
 	JR_C      byte = 0x38 // jr c, o
 	ADD_HL_SP byte = 0x39 // add hl,sp
+	LD_A_mm   byte = 0x3A // ld a,(nn)
 	DEC_SP    byte = 0x3B // dec sp
 	INC_A     byte = 0x3C // inc a
 	DEC_A     byte = 0x3D // dec a

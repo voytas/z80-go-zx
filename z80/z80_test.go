@@ -350,6 +350,16 @@ func Test_LD_mm_A(t *testing.T) {
 	assert.Equal(t, cpu.r.A, mem.Cells[5])
 }
 
+func Test_LD_A_mm(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_A_mm, 0x04, 0x00, HALT, 0xDE},
+	}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0xDE), cpu.r.A)
+}
+
 func Test_LD_BC_A(t *testing.T) {
 	var n byte = 0x76
 	mem := &Memory{

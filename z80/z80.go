@@ -225,6 +225,10 @@ func (c *CPU) Run() {
 			w := c.readWord()
 			c.mem.Cells[w] = c.r.A
 			t = 13
+		case LD_A_mm:
+			w := c.readWord()
+			c.r.A = c.mem.Cells[w]
+			t = 13
 		case LD_BC_A:
 			c.writeByte(c.r.getRR(r_BC), c.r.A)
 			t = 7
