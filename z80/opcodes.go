@@ -143,6 +143,7 @@ const (
 	ADC_A_E   byte = 0x8B // adc a,e
 	ADC_A_H   byte = 0x8C // adc a,h
 	ADC_A_L   byte = 0x8D // adc a,l
+	ADC_A_HL  byte = 0x8E // adc a,(hl)
 	ADC_A_A   byte = 0x8F // adc a,a
 	SUB_B     byte = 0x90 // sub b
 	SUB_C     byte = 0x91 // sub c

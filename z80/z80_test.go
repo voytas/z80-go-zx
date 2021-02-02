@@ -117,7 +117,7 @@ func Test_ADC_A_x(t *testing.T) {
 	assert.Equal(t, f_H, cpu.r.F)
 
 	mem = &Memory{
-		Cells: []byte{LD_A_n, 0x0F, LD_B_n, 0x70, ADC_A_B, HALT},
+		Cells: []byte{LD_A_n, 0x0F, LD_L_n, 0x06, ADC_A_HL, HALT, 0x70},
 	}
 	cpu = NewCPU(mem)
 	cpu.r.F = f_C

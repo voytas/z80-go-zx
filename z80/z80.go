@@ -145,7 +145,6 @@ func (c *CPU) Run() {
 			c.r.F, c.r.F_ = c.r.F_, c.r.F
 			t = 4
 		case ADD_A_n, ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L, ADD_A_HL:
-			c.r.F = f_NONE
 			var n byte
 			if opcode == ADD_A_n {
 				n = c.readByte()
@@ -157,6 +156,7 @@ func (c *CPU) Run() {
 				n = *c.r.getR(opcode & 0b00000111)
 				t = 4
 			}
+			c.r.F = f_NONE
 			sum := c.r.A + n
 			if sum > 0x7F {
 				c.r.F |= f_S
@@ -171,8 +171,15 @@ func (c *CPU) Run() {
 				c.r.F |= f_C
 			}
 			c.r.A = sum
-		case ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L:
-			n := *c.r.getR(opcode & 0b00000111)
+		case ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L, ADC_A_HL:
+			var n byte
+			if opcode == ADC_A_HL {
+				n = c.mem.Cells[c.r.getRR(r_HL)]
+				t = 7
+			} else {
+				n = *c.r.getR(opcode & 0b00000111)
+				t = 4
+			}
 			cf := c.r.F & f_C
 			c.r.F = f_NONE
 			sum_w := word(c.r.A) + word(n) + word(cf)
@@ -190,7 +197,6 @@ func (c *CPU) Run() {
 				c.r.F |= f_C
 			}
 			c.r.A = sum_b
-			t = 4
 		case ADD_HL_BC, ADD_HL_DE, ADD_HL_HL, ADD_HL_SP:
 			hl := c.r.getRR(r_HL)
 			nn := c.r.getRR(opcode & 0b00110000 >> 4)
