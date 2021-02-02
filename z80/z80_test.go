@@ -179,7 +179,7 @@ func Test_ADD_HL_RR(t *testing.T) {
 	assert.Equal(t, f_S|f_Z|f_PV, cpu.r.F)
 }
 
-func Test_SUB_R(t *testing.T) {
+func Test_SUB_x(t *testing.T) {
 	mem := &Memory{
 		Cells: []byte{LD_A_n, 0, LD_B_n, 0x01, SUB_B, HALT},
 	}
@@ -208,6 +208,15 @@ func Test_SUB_R(t *testing.T) {
 
 	assert.Equal(t, byte(0x70), cpu.r.A)
 	assert.Equal(t, f_PV|f_N, cpu.r.F)
+
+	mem = &Memory{
+		Cells: []byte{LD_A_n, 0x7F, LD_L_n, 0x06, SUB_HL, HALT, 0x80},
+	}
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0xFF), cpu.r.A)
+	assert.Equal(t, f_S|f_PV|f_N|f_C, cpu.r.F)
 }
 
 func Test_INC_R(t *testing.T) {

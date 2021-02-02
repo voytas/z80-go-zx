@@ -151,6 +151,7 @@ const (
 	SUB_E     byte = 0x93 // sub e
 	SUB_H     byte = 0x94 // sub h
 	SUB_L     byte = 0x95 // sub l
+	SUB_HL    byte = 0x96 // sub (hl)
 	SUB_A     byte = 0x97 // sub a
 	ADD_A_n   byte = 0xC6 // add a.n
 )

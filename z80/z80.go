@@ -208,9 +208,16 @@ func (c *CPU) Run() {
 			}
 			c.r.F |= byte((hl^nn^sum)>>8) & f_H
 			t = 11
-		case SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L:
+		case SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L, SUB_HL:
 			a := c.r.A
-			n := *c.r.getR(opcode & 0b00000111)
+			var n byte
+			if opcode == SUB_HL {
+				n = c.mem.Cells[c.r.getRR(r_HL)]
+				t = 7
+			} else {
+				n = *c.r.getR(opcode & 0b00000111)
+				t = 4
+			}
 			c.r.A -= n
 			c.r.F &= ^(f_S | f_Z | f_H | f_PV | f_C)
 			if c.r.A&0x80 > 0 {
@@ -227,7 +234,6 @@ func (c *CPU) Run() {
 			if c.r.A > a {
 				c.r.F |= f_C
 			}
-			t = 4
 		case LD_A_n, LD_B_n, LD_C_n, LD_D_n, LD_E_n, LD_H_n, LD_L_n:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			*r = c.readByte()
