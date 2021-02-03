@@ -193,5 +193,13 @@ const (
 	CP_L      byte = 0xBD // cp l
 	CP_HL     byte = 0xBE // cp (hl)
 	CP_A      byte = 0xBF // cp a
+	RET_NZ    byte = 0xC0 // ret nz
 	ADD_A_n   byte = 0xC6 // add a.n
+	RET_Z     byte = 0xC8 // ret z
+	RET_NC    byte = 0xD0 // ret nc
+	RET_C     byte = 0xD8 // ret c
+	RET_PO    byte = 0xE0 // ret po
+	RET_PE    byte = 0xE8 // ret pe
+	RET_P     byte = 0xF0 // ret p
+	RET_M     byte = 0xF8 // ret m
 )

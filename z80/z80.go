@@ -535,6 +535,35 @@ func (c *CPU) Run() {
 				}
 				t = 13
 			}
+		case RET_C, RET_M, RET_NC, RET_NZ, RET_P, RET_PE, RET_PO, RET_Z:
+			var jump bool
+			switch opcode {
+			case RET_C:
+				jump = c.r.F&f_C != 0
+			case RET_NC:
+				jump = c.r.F&f_C == 0
+			case RET_M:
+				jump = c.r.F&f_S != 0
+			case RET_P:
+				jump = c.r.F&f_S == 0
+			case RET_Z:
+				jump = c.r.F&f_Z != 0
+			case RET_NZ:
+				jump = c.r.F&f_Z == 0
+			case RET_PE:
+				jump = c.r.F&f_P != 0
+			case RET_PO:
+				jump = c.r.F&f_P == 0
+			}
+			if jump {
+				sp := c.r.getRR(r_SP)
+				c.PC = word(c.mem.Cells[sp+1])<<8 | word(c.mem.Cells[sp])
+				c.r.setRRn(r_SP, sp+2)
+				t = 11
+			} else {
+				t = 5
+			}
+
 		}
 
 		c.wait(t)

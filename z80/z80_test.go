@@ -1069,3 +1069,32 @@ func Test_JR_NC(t *testing.T) {
 
 	assert.Equal(t, byte(0), cpu.r.A)
 }
+
+func Test_RET_x(t *testing.T) {
+	var tests = []struct {
+		opcode   byte
+		flag     byte
+		expected byte
+	}{
+		{RET_C, f_C, 0x55},
+		{RET_NC, f_NONE, 0x55},
+		{RET_Z, f_Z, 0x55},
+		{RET_NZ, f_NONE, 0x55},
+		{RET_M, f_S, 0x55},
+		{RET_P, f_NONE, 0x55},
+		{RET_PE, f_P, 0x55},
+		{RET_PO, f_NONE, 0x55},
+		{RET_PO, f_P, 0xAA},
+	}
+
+	for _, test := range tests {
+		mem := &Memory{
+			Cells: []byte{LD_SP_nn, 0x0A, 0x00, test.opcode, LD_A_n, 0xAA, HALT, LD_A_n, 0x55, HALT, 0x07, 0x00},
+		}
+		cpu := NewCPU(mem)
+		cpu.r.F = test.flag
+		cpu.Run()
+
+		assert.Equal(t, byte(test.expected), cpu.r.A)
+	}
+}
