@@ -161,5 +161,12 @@ const (
 	SBC_A_L   byte = 0x9D // sbc a,l
 	SBC_A_HL  byte = 0x9E // sbc a,(hl)
 	SBC_A_A   byte = 0x9F // sbc a,a
+	AND_B     byte = 0xA0 // and b
+	AND_C     byte = 0xA1 // and c
+	AND_D     byte = 0xA2 // and d
+	AND_E     byte = 0xA3 // and e
+	AND_H     byte = 0xA4 // and h
+	AND_L     byte = 0xA5 // and l
+	AND_A     byte = 0xA7 // and a
 	ADD_A_n   byte = 0xC6 // add a.n
 )
