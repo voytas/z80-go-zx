@@ -307,7 +307,7 @@ func Test_XOR_x(t *testing.T) {
 	assert.Equal(t, f_Z|f_P, cpu.r.F)
 
 	mem = &Memory{
-		Cells: []byte{LD_A_n, 0x1F, LD_H_n, 0x8F, XOR_H, HALT},
+		Cells: []byte{LD_A_n, 0x1F, LD_L_n, 0x06, XOR_HL, HALT, 0x8F},
 	}
 
 	cpu = NewCPU(mem)

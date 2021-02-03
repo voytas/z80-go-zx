@@ -175,6 +175,7 @@ const (
 	XOR_E     byte = 0xAB // xor e
 	XOR_H     byte = 0xAC // xor h
 	XOR_L     byte = 0xAD // xor l
+	XOR_HL    byte = 0xAE // xor (hl)
 	XOR_A     byte = 0xAF // xor a
 	ADD_A_n   byte = 0xC6 // add a.n
 )
