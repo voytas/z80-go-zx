@@ -294,6 +294,29 @@ func Test_AND_x(t *testing.T) {
 	assert.Equal(t, f_S|f_H|f_P, cpu.r.F)
 }
 
+func Test_XOR_x(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_A_n, 0x1F, LD_B_n, 0x1F, XOR_B, HALT},
+	}
+
+	cpu := NewCPU(mem)
+	cpu.r.F = f_H | f_N | f_C
+	cpu.Run()
+
+	assert.Equal(t, byte(0), cpu.r.A)
+	assert.Equal(t, f_Z|f_P, cpu.r.F)
+
+	mem = &Memory{
+		Cells: []byte{LD_A_n, 0x1F, LD_H_n, 0x8F, XOR_H, HALT},
+	}
+
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x90), cpu.r.A)
+	assert.Equal(t, f_S|f_P, cpu.r.F)
+}
+
 func Test_INC_R(t *testing.T) {
 	mem := &Memory{
 		Cells: []byte{LD_A_n, 0, INC_A, HALT},
