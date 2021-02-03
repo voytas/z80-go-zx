@@ -282,6 +282,16 @@ func Test_AND_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x83), cpu.r.A)
 	assert.Equal(t, f_S|f_H, cpu.r.F)
+
+	mem = &Memory{
+		Cells: []byte{LD_A_n, 0xFF, LD_L_n, 0x06, AND_HL, HALT, 0x81},
+	}
+
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x81), cpu.r.A)
+	assert.Equal(t, f_S|f_H|f_P, cpu.r.F)
 }
 
 func Test_INC_R(t *testing.T) {

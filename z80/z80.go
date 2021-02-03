@@ -255,9 +255,16 @@ func (c *CPU) Run() {
 				c.r.F |= f_C
 			}
 			c.r.A = sub_b
-		case AND_A, AND_B, AND_C, AND_D, AND_E, AND_H, AND_L:
+		case AND_A, AND_B, AND_C, AND_D, AND_E, AND_H, AND_L, AND_HL:
 			a := c.r.A
-			n := *c.r.getR(opcode & 0b00000111)
+			var n byte
+			if opcode == AND_HL {
+				n = c.mem.Cells[c.r.getRR(r_HL)]
+				t = 7
+			} else {
+				n = *c.r.getR(opcode & 0b00000111)
+				t = 4
+			}
 			c.r.F = f_H
 			c.r.A = a & n
 			c.r.F |= f_S & c.r.A
@@ -265,7 +272,7 @@ func (c *CPU) Run() {
 				c.r.F |= f_Z
 			}
 			c.r.F |= parity[c.r.A]
-			t = 4
+
 		case LD_A_n, LD_B_n, LD_C_n, LD_D_n, LD_E_n, LD_H_n, LD_L_n:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			*r = c.readByte()

@@ -167,6 +167,7 @@ const (
 	AND_E     byte = 0xA3 // and e
 	AND_H     byte = 0xA4 // and h
 	AND_L     byte = 0xA5 // and l
+	AND_HL    byte = 0xA6 // and (hl)
 	AND_A     byte = 0xA7 // and a
 	ADD_A_n   byte = 0xC6 // add a.n
 )
