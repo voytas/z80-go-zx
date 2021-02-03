@@ -183,6 +183,7 @@ const (
 	OR_E      byte = 0xB3 // or e
 	OR_H      byte = 0xB4 // or h
 	OR_L      byte = 0xB5 // or l
+	OR_HL     byte = 0xB6 // or (hl)
 	OR_A      byte = 0xB7 // or a
 	ADD_A_n   byte = 0xC6 // add a.n
 )

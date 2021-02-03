@@ -271,8 +271,15 @@ func (c *CPU) Run() {
 				c.r.F |= f_Z
 			}
 			c.r.F |= parity[c.r.A]
-		case OR_A, OR_B, OR_C, OR_D, OR_E, OR_H, OR_L:
-			n := *c.r.getR(opcode & 0b00000111)
+		case OR_A, OR_B, OR_C, OR_D, OR_E, OR_H, OR_L, OR_HL:
+			var n byte
+			if opcode == OR_HL {
+				n = c.mem.Cells[c.r.getRR(r_HL)]
+				t = 7
+			} else {
+				t = 4
+				n = *c.r.getR(opcode & 0b00000111)
+			}
 			c.r.F = f_NONE
 			c.r.A |= n
 			c.r.F |= f_S & c.r.A
@@ -280,7 +287,6 @@ func (c *CPU) Run() {
 				c.r.F |= f_Z
 			}
 			c.r.F |= parity[c.r.A]
-			t = 4
 		case XOR_A, XOR_B, XOR_C, XOR_D, XOR_E, XOR_H, XOR_L, XOR_HL:
 			var n byte
 			if opcode == XOR_HL {
