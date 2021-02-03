@@ -101,7 +101,7 @@ func (c *CPU) Run() {
 			c.r.F |= a0
 			t = 4
 		case DAA:
-			c.r.F &= ^(f_S | f_Z | f_PV)
+			c.r.F &= ^(f_S | f_Z | f_P)
 			a := c.r.A
 			if a&0xF > 9 || c.r.F&f_H != 0 {
 				if c.r.F&f_N > 0 {
@@ -165,7 +165,7 @@ func (c *CPU) Run() {
 			}
 			c.r.F |= (c.r.A ^ n ^ sum) & f_H
 			if (c.r.A^n)&0x80 == 0 && (c.r.A^sum)&0x80 > 0 {
-				c.r.F |= f_PV
+				c.r.F |= f_P
 			}
 			if sum < c.r.A {
 				c.r.F |= f_C
@@ -190,7 +190,7 @@ func (c *CPU) Run() {
 			}
 			c.r.F |= (c.r.A ^ n ^ sum_b) & f_H
 			if (c.r.A^n)&0x80 == 0 && (c.r.A^sum_b)&0x80 > 0 {
-				c.r.F |= f_PV
+				c.r.F |= f_P
 			}
 			if sum_w > 0xff {
 				c.r.F |= f_C
@@ -225,7 +225,7 @@ func (c *CPU) Run() {
 			}
 			c.r.F |= byte(a^n^c.r.A) & f_H
 			if (a^n)&0x80 > 0 && (a^c.r.A)&0x80 > 0 {
-				c.r.F |= f_PV
+				c.r.F |= f_P
 			}
 			if c.r.A > a {
 				c.r.F |= f_C
@@ -249,7 +249,7 @@ func (c *CPU) Run() {
 			}
 			c.r.F |= byte(c.r.A^n^sub_b) & f_H
 			if (c.r.A^n)&0x80 > 0 && (sub_b^c.r.A)&0x80 > 0 {
-				c.r.F |= f_PV
+				c.r.F |= f_P
 			}
 			if sub_w > 0xff {
 				c.r.F |= f_C
@@ -328,9 +328,9 @@ func (c *CPU) Run() {
 			t = 7
 		case INC_A, INC_B, INC_C, INC_D, INC_E, INC_H, INC_L:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
-			c.r.F &= ^(f_S | f_Z | f_H | f_PV | f_N)
+			c.r.F &= ^(f_S | f_Z | f_H | f_P | f_N)
 			if *r == 0x7F {
-				c.r.F |= f_PV
+				c.r.F |= f_P
 			}
 			if *r&0x0F == 0x0F {
 				c.r.F |= f_H
@@ -350,9 +350,9 @@ func (c *CPU) Run() {
 		case INC_mHL:
 			mm := c.r.getRR(r_HL)
 			b := c.mem.Cells[mm]
-			c.r.F &= ^(f_S | f_Z | f_PV | f_N)
+			c.r.F &= ^(f_S | f_Z | f_P | f_N)
 			if b == 0x7F {
-				c.r.F |= f_PV
+				c.r.F |= f_P
 			}
 			if b&0x0F == 0x0F {
 				c.r.F |= f_H
@@ -368,9 +368,9 @@ func (c *CPU) Run() {
 			t = 11
 		case DEC_A, DEC_B, DEC_C, DEC_D, DEC_E, DEC_H, DEC_L:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
-			c.r.F = c.r.F & ^(f_S|f_Z|f_H|f_PV) | f_N
+			c.r.F = c.r.F & ^(f_S|f_Z|f_H|f_P) | f_N
 			if *r == 0x80 {
-				c.r.F |= f_PV
+				c.r.F |= f_P
 			}
 			if *r&0x0F == 0 {
 				c.r.F |= f_H
@@ -390,10 +390,10 @@ func (c *CPU) Run() {
 		case DEC_mHL:
 			mm := c.r.getRR(r_HL)
 			b := c.mem.Cells[mm]
-			c.r.F &= ^(f_S | f_Z | f_PV)
+			c.r.F &= ^(f_S | f_Z | f_P)
 			c.r.F |= f_N
 			if b == 0x80 {
-				c.r.F |= f_PV
+				c.r.F |= f_P
 			}
 			if b&0x0F == 0 {
 				c.r.F |= f_H
