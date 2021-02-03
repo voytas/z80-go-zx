@@ -185,5 +185,13 @@ const (
 	OR_L      byte = 0xB5 // or l
 	OR_HL     byte = 0xB6 // or (hl)
 	OR_A      byte = 0xB7 // or a
+	CP_B      byte = 0xB8 // cp b
+	CP_C      byte = 0xB9 // cp c
+	CP_D      byte = 0xBA // cp d
+	CP_E      byte = 0xBB // cp e
+	CP_H      byte = 0xBC // cp h
+	CP_L      byte = 0xBD // cp l
+	CP_HL     byte = 0xBE // cp (hl)
+	CP_A      byte = 0xBF // cp a
 	ADD_A_n   byte = 0xC6 // add a.n
 )

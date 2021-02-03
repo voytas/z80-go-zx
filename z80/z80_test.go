@@ -219,6 +219,46 @@ func Test_SUB_x(t *testing.T) {
 	assert.Equal(t, f_S|f_P|f_N|f_C, cpu.r.F)
 }
 
+func Test_CP_x(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_A_n, 0, LD_B_n, 0x01, CP_B, HALT},
+	}
+	cpu := NewCPU(mem)
+	cpu.r.F = f_Z
+	cpu.Run()
+
+	assert.Equal(t, byte(0), cpu.r.A)
+	assert.Equal(t, f_S|f_H|f_N|f_C, cpu.r.F)
+
+	mem = &Memory{
+		Cells: []byte{LD_A_n, 0x20, CP_A, HALT},
+	}
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x20), cpu.r.A)
+	assert.Equal(t, f_Z|f_N, cpu.r.F)
+
+	mem = &Memory{
+		Cells: []byte{LD_A_n, 0x90, LD_H_n, 0x20, CP_H, HALT},
+	}
+	cpu = NewCPU(mem)
+	cpu.r.F = f_Z
+	cpu.Run()
+
+	assert.Equal(t, byte(0x90), cpu.r.A)
+	assert.Equal(t, f_P|f_N, cpu.r.F)
+
+	mem = &Memory{
+		Cells: []byte{LD_A_n, 0x7F, LD_L_n, 0x06, CP_HL, HALT, 0x80},
+	}
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x7F), cpu.r.A)
+	assert.Equal(t, f_S|f_P|f_N|f_C, cpu.r.F)
+}
+
 func Test_SBC_x(t *testing.T) {
 	mem := &Memory{
 		Cells: []byte{LD_A_n, 0x01, LD_B_n, 0x01, SBC_A_B, HALT},

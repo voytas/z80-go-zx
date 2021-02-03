@@ -230,6 +230,28 @@ func (c *CPU) Run() {
 			if c.r.A > a {
 				c.r.F |= f_C
 			}
+		case CP_A, CP_B, CP_C, CP_D, CP_E, CP_H, CP_L, CP_HL:
+			var n byte
+			if opcode == CP_HL {
+				n = c.mem.Cells[c.r.getRR(r_HL)]
+				t = 7
+			} else {
+				n = *c.r.getR(opcode & 0b00000111)
+				t = 4
+			}
+			test := c.r.A - n
+			c.r.F = f_N
+			c.r.F |= f_S & test
+			if test == 0 {
+				c.r.F |= f_Z
+			}
+			c.r.F |= byte(c.r.A^n^test) & f_H
+			if (c.r.A^n)&0x80 > 0 && (c.r.A^test)&0x80 > 0 {
+				c.r.F |= f_P
+			}
+			if test > c.r.A {
+				c.r.F |= f_C
+			}
 		case SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L, SBC_A_HL:
 			var n byte
 			if opcode == SBC_A_HL {
