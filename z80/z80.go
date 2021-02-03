@@ -230,8 +230,15 @@ func (c *CPU) Run() {
 			if c.r.A > a {
 				c.r.F |= f_C
 			}
-		case SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L:
-			n := *c.r.getR(opcode & 0b00000111)
+		case SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L, SBC_A_HL:
+			var n byte
+			if opcode == SBC_A_HL {
+				n = c.mem.Cells[c.r.getRR(r_HL)]
+				t = 7
+			} else {
+				n = *c.r.getR(opcode & 0b00000111)
+				t = 4
+			}
 			cf := c.r.F & f_C
 			c.r.F = f_N
 			sub_w := word(c.r.A) - word(n) - word(cf)
@@ -248,7 +255,6 @@ func (c *CPU) Run() {
 				c.r.F |= f_C
 			}
 			c.r.A = sub_b
-			t = 4
 		case LD_A_n, LD_B_n, LD_C_n, LD_D_n, LD_E_n, LD_H_n, LD_L_n:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
 			*r = c.readByte()

@@ -249,6 +249,16 @@ func Test_SBC_R(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), cpu.r.A)
 	assert.Equal(t, f_Z|f_N, cpu.r.F)
+
+	mem = &Memory{
+		Cells: []byte{LD_A_n, 0x81, LD_L_n, 0x06, SBC_A_HL, HALT, 0x01},
+	}
+	cpu = NewCPU(mem)
+	cpu.r.F = f_C
+	cpu.Run()
+
+	assert.Equal(t, byte(0x7F), cpu.r.A)
+	assert.Equal(t, f_H|f_PV|f_N, cpu.r.F)
 }
 
 func Test_INC_R(t *testing.T) {
