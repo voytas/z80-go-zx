@@ -265,12 +265,22 @@ func (c *CPU) Run() {
 				t = 4
 			}
 			c.r.F = f_H
-			c.r.A = c.r.A & n
+			c.r.A &= n
 			c.r.F |= f_S & c.r.A
 			if c.r.A == 0 {
 				c.r.F |= f_Z
 			}
 			c.r.F |= parity[c.r.A]
+		case OR_A, OR_B, OR_C, OR_D, OR_E, OR_H, OR_L:
+			n := *c.r.getR(opcode & 0b00000111)
+			c.r.F = f_NONE
+			c.r.A |= n
+			c.r.F |= f_S & c.r.A
+			if c.r.A == 0 {
+				c.r.F |= f_Z
+			}
+			c.r.F |= parity[c.r.A]
+			t = 4
 		case XOR_A, XOR_B, XOR_C, XOR_D, XOR_E, XOR_H, XOR_L, XOR_HL:
 			var n byte
 			if opcode == XOR_HL {

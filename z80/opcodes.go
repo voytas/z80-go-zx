@@ -177,5 +177,12 @@ const (
 	XOR_L     byte = 0xAD // xor l
 	XOR_HL    byte = 0xAE // xor (hl)
 	XOR_A     byte = 0xAF // xor a
+	OR_B      byte = 0xB0 // or b
+	OR_C      byte = 0xB1 // or c
+	OR_D      byte = 0xB2 // or d
+	OR_E      byte = 0xB3 // or e
+	OR_H      byte = 0xB4 // or h
+	OR_L      byte = 0xB5 // or l
+	OR_A      byte = 0xB7 // or a
 	ADD_A_n   byte = 0xC6 // add a.n
 )
