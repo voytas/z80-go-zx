@@ -570,27 +570,13 @@ func (c *CPU) Run() {
 				}
 				t = 13
 			}
-		case RET_C, RET_M, RET_NC, RET_NZ, RET_P, RET_PE, RET_PO, RET_Z:
-			var jump bool
-			switch opcode {
-			case RET_C:
-				jump = c.r.F&f_C != 0
-			case RET_NC:
-				jump = c.r.F&f_C == 0
-			case RET_M:
-				jump = c.r.F&f_S != 0
-			case RET_P:
-				jump = c.r.F&f_S == 0
-			case RET_Z:
-				jump = c.r.F&f_Z != 0
-			case RET_NZ:
-				jump = c.r.F&f_Z == 0
-			case RET_PE:
-				jump = c.r.F&f_P != 0
-			case RET_PO:
-				jump = c.r.F&f_P == 0
+		case JP_C, JP_M, JP_NC, JP_NZ, JP_P, JP_PE, JP_PO, JP_Z:
+			if c.shouldJump(opcode) {
+				c.PC = word(c.readByte()) | word(c.readByte())<<8
 			}
-			if jump {
+			t = 10
+		case RET_C, RET_M, RET_NC, RET_NZ, RET_P, RET_PE, RET_PO, RET_Z:
+			if c.shouldJump(opcode) {
 				c.PC = word(c.mem.Cells[c.r.SP+1])<<8 | word(c.mem.Cells[c.r.SP])
 				c.r.SP += 2
 				t = 11
@@ -617,4 +603,27 @@ func (c *CPU) Run() {
 
 		c.wait(t)
 	}
+}
+
+func (c *CPU) shouldJump(opcode byte) bool {
+	switch opcode & 0b00111000 {
+	case 0b00000000:
+		return c.r.F&f_Z == 0
+	case 0b00001000:
+		return c.r.F&f_Z != 0
+	case 0b00010000:
+		return c.r.F&f_C == 0
+	case 0b00011000:
+		return c.r.F&f_C != 0
+	case 0b00100000:
+		return c.r.F&f_P == 0
+	case 0b00101000:
+		return c.r.F&f_P != 0
+	case 0b00110000:
+		return c.r.F&f_S == 0
+	case 0b00111000:
+		return c.r.F&f_S != 0
+	}
+
+	return false
 }

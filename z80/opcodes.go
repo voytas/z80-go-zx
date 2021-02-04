@@ -195,15 +195,23 @@ const (
 	CP_A      byte = 0xBF // cp a
 	RET_NZ    byte = 0xC0 // ret nz
 	POP_BC    byte = 0xC1 // pop bc
+	JP_NZ     byte = 0xC2 // jp nz,nn
 	ADD_A_n   byte = 0xC6 // add a.n
 	RET_Z     byte = 0xC8 // ret z
+	JP_Z      byte = 0xCA // jp z,nn
 	RET_NC    byte = 0xD0 // ret nc
 	POP_DE    byte = 0xD1 // pop de
+	JP_NC     byte = 0xD2 // jp nc,nn
 	RET_C     byte = 0xD8 // ret c
+	JP_C      byte = 0xDA // jp c,nn
 	RET_PO    byte = 0xE0 // ret po
 	POP_HL    byte = 0xE1 // pop hl
+	JP_PO     byte = 0xE2 // jp po,nn
 	RET_PE    byte = 0xE8 // ret pe
+	JP_PE     byte = 0xEA // jp pe,nn
 	RET_P     byte = 0xF0 // ret p
 	POP_AF    byte = 0xF1 // pop af
+	JP_P      byte = 0xF2 // jp p,nn
 	RET_M     byte = 0xF8 // ret m
+	JP_M      byte = 0xFA // jp m,nn
 )

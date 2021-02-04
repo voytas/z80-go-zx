@@ -513,36 +513,18 @@ func Test_DEC_R(t *testing.T) {
 
 func Test_DEC_RR(t *testing.T) {
 	mem := &Memory{
-		Cells: []byte{LD_BC_nn, 0x34, 0x12, DEC_BC, HALT},
+		Cells: []byte{
+			LD_BC_nn, 0x34, 0x12, DEC_BC, LD_DE_nn, 0x35, 0x13, DEC_DE,
+			LD_HL_nn, 0x36, 0x14, DEC_HL, LD_SP_nn, 0x37, 0x15, DEC_SP,
+			HALT},
 	}
 	cpu := NewCPU(mem)
 	cpu.Run()
 
 	assert.Equal(t, word(0x1233), cpu.r.getBC())
-
-	mem = &Memory{
-		Cells: []byte{LD_DE_nn, 0x34, 0x12, DEC_DE, HALT},
-	}
-	cpu = NewCPU(mem)
-	cpu.Run()
-
-	assert.Equal(t, word(0x1233), cpu.r.getDE())
-
-	mem = &Memory{
-		Cells: []byte{LD_HL_nn, 0x34, 0x12, DEC_HL, HALT},
-	}
-	cpu = NewCPU(mem)
-	cpu.Run()
-
-	assert.Equal(t, word(0x1233), cpu.r.getHL())
-
-	mem = &Memory{
-		Cells: []byte{LD_SP_nn, 0x34, 0x12, DEC_SP, HALT},
-	}
-	cpu = NewCPU(mem)
-	cpu.Run()
-
-	assert.Equal(t, word(0x1233), cpu.r.SP)
+	assert.Equal(t, word(0x1334), cpu.r.getDE())
+	assert.Equal(t, word(0x1435), cpu.r.getHL())
+	assert.Equal(t, word(0x1536), cpu.r.SP)
 }
 
 func Test_DEC_mHL(t *testing.T) {
@@ -1119,26 +1101,46 @@ func Test_JR_NC(t *testing.T) {
 	assert.Equal(t, byte(0), cpu.r.A)
 }
 
-func Test_RET_x(t *testing.T) {
+func Test_JP_cc(t *testing.T) {
 	var tests = []struct {
-		opcode   byte
+		jp       byte
 		flag     byte
 		expected byte
 	}{
-		{RET_C, f_C, 0x55},
-		{RET_NC, f_NONE, 0x55},
-		{RET_Z, f_Z, 0x55},
-		{RET_NZ, f_NONE, 0x55},
-		{RET_M, f_S, 0x55},
-		{RET_P, f_NONE, 0x55},
-		{RET_PE, f_P, 0x55},
-		{RET_PO, f_NONE, 0x55},
-		{RET_PO, f_P, 0xAA},
+		{JP_C, f_C, 0x55}, {JP_NC, f_NONE, 0x55}, {JP_Z, f_Z, 0x55}, {JP_NZ, f_NONE, 0x55},
+		{JP_M, f_S, 0x55}, {JP_P, f_NONE, 0x55}, {JP_PE, f_P, 0x55}, {JP_PO, f_NONE, 0x55},
+		{JP_C, f_NONE, 0xAA}, {JP_NC, f_C, 0xAA}, {JP_Z, f_NONE, 0xAA}, {JP_NZ, f_Z, 0xAA},
+		{JP_M, f_NONE, 0xAA}, {JP_P, f_S, 0xAA}, {JP_PE, f_NONE, 0xAA}, {JP_PO, f_P, 0xAA},
 	}
 
 	for _, test := range tests {
 		mem := &Memory{
-			Cells: []byte{LD_SP_nn, 0x0A, 0x00, test.opcode, LD_A_n, 0xAA, HALT, LD_A_n, 0x55, HALT, 0x07, 0x00},
+			Cells: []byte{test.jp, 0x06, 0x00, LD_A_n, 0xAA, HALT, LD_A_n, 0x55, HALT, 0x07, 0x00},
+		}
+
+		cpu := NewCPU(mem)
+		cpu.r.F = test.flag
+		cpu.Run()
+
+		assert.Equal(t, byte(test.expected), cpu.r.A)
+	}
+}
+
+func Test_RET_cc(t *testing.T) {
+	var tests = []struct {
+		ret      byte
+		flag     byte
+		expected byte
+	}{
+		{RET_C, f_C, 0x55}, {RET_NC, f_NONE, 0x55}, {RET_Z, f_Z, 0x55}, {RET_NZ, f_NONE, 0x55},
+		{RET_M, f_S, 0x55}, {RET_P, f_NONE, 0x55}, {RET_PE, f_P, 0x55}, {RET_PO, f_NONE, 0x55},
+		{RET_C, f_NONE, 0xAA}, {RET_NC, f_C, 0xAA}, {RET_Z, f_NONE, 0xAA}, {RET_NZ, f_Z, 0xAA},
+		{RET_M, f_NONE, 0xAA}, {RET_P, f_S, 0xAA}, {RET_PE, f_NONE, 0xAA}, {RET_PO, f_P, 0xAA},
+	}
+
+	for _, test := range tests {
+		mem := &Memory{
+			Cells: []byte{LD_SP_nn, 0x0A, 0x00, test.ret, LD_A_n, 0xAA, HALT, LD_A_n, 0x55, HALT, 0x07, 0x00},
 		}
 		cpu := NewCPU(mem)
 		cpu.r.F = test.flag
