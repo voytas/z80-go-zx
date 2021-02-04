@@ -578,6 +578,19 @@ func (c *CPU) Run() {
 				c.PC = word(c.readByte()) | word(c.readByte())<<8
 			}
 			t = 10
+		case CALL_C, CALL_M, CALL_NC, CALL_NZ, CALL_P, CALL_PE, CALL_PO, CALL_Z:
+			if c.shouldJump(opcode) {
+				pc := word(c.readByte()) | word(c.readByte())<<8
+				c.r.SP -= 1
+				c.mem.Cells[c.r.SP] = byte(c.PC >> 8)
+				c.r.SP -= 1
+				c.mem.Cells[c.r.SP] = byte(c.PC)
+				c.PC = pc
+				t = 17
+			} else {
+				c.PC += 2
+				t = 10
+			}
 		case RET_C, RET_M, RET_NC, RET_NZ, RET_P, RET_PE, RET_PO, RET_Z:
 			if c.shouldJump(opcode) {
 				c.PC = word(c.mem.Cells[c.r.SP+1])<<8 | word(c.mem.Cells[c.r.SP])
@@ -610,23 +623,23 @@ func (c *CPU) Run() {
 
 func (c *CPU) shouldJump(opcode byte) bool {
 	switch opcode & 0b00111000 {
-	case 0b00000000:
+	case 0b00000000: // Non-Zero (NZ)
 		return c.r.F&f_Z == 0
-	case 0b00001000:
+	case 0b00001000: // Zero (Z)
 		return c.r.F&f_Z != 0
-	case 0b00010000:
+	case 0b00010000: // Non Carry (NC)
 		return c.r.F&f_C == 0
-	case 0b00011000:
+	case 0b00011000: // Carry (C)
 		return c.r.F&f_C != 0
-	case 0b00100000:
+	case 0b00100000: // Parity Odd (PO)
 		return c.r.F&f_P == 0
-	case 0b00101000:
+	case 0b00101000: // Parity Even (PE)
 		return c.r.F&f_P != 0
-	case 0b00110000:
+	case 0b00110000: // Sign Positive (P)
 		return c.r.F&f_S == 0
-	case 0b00111000:
+	case 0b00111000: // Sign Negative (M)
 		return c.r.F&f_S != 0
 	}
 
-	return false
+	panic("Invalid opcode")
 }

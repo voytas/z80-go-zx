@@ -1137,6 +1137,38 @@ func Test_JP_cc(t *testing.T) {
 	}
 }
 
+func Test_CALL_cc(t *testing.T) {
+	var tests = []struct {
+		call     byte
+		flag     byte
+		expected byte
+	}{
+		{CALL_C, f_C, 0x55}, {CALL_NC, f_NONE, 0x55}, {CALL_Z, f_Z, 0x55}, {CALL_NZ, f_NONE, 0x55},
+		{CALL_M, f_S, 0x55}, {CALL_P, f_NONE, 0x55}, {CALL_PE, f_P, 0x55}, {CALL_PO, f_NONE, 0x55},
+		{CALL_C, f_NONE, 0xAA}, {CALL_NC, f_C, 0xAA}, {CALL_Z, f_NONE, 0xAA}, {CALL_NZ, f_Z, 0xAA},
+		{CALL_M, f_NONE, 0xAA}, {CALL_P, f_S, 0xAA}, {CALL_PE, f_NONE, 0xAA}, {CALL_PO, f_P, 0xAA},
+	}
+
+	for _, test := range tests {
+		mem := &Memory{
+			Cells: []byte{LD_SP_nn, 0x10, 0x00, test.call, 0x09, 0x00, LD_A_n, 0xAA, HALT, LD_A_n, 0x55, HALT, 0xFF, 0xFF, 0xFF, 0xFF},
+		}
+
+		cpu := NewCPU(mem)
+		cpu.r.F = test.flag
+		cpu.Run()
+
+		assert.Equal(t, byte(test.expected), cpu.r.A)
+		if cpu.r.A == 0x55 {
+			assert.Equal(t, word(0x0E), cpu.r.SP)
+			assert.Equal(t, byte(0), mem.Cells[15])
+			assert.Equal(t, byte(0x06), mem.Cells[14])
+		} else {
+			assert.Equal(t, word(0x10), cpu.r.SP)
+		}
+	}
+}
+
 func Test_RET_cc(t *testing.T) {
 	var tests = []struct {
 		ret      byte
@@ -1177,4 +1209,29 @@ func Test_POP_rr(t *testing.T) {
 	assert.Equal(t, byte(0x24), cpu.r.H)
 	assert.Equal(t, byte(0x46), cpu.r.L)
 	assert.Equal(t, word(0x10), cpu.r.SP)
+}
+
+func Test_shouldJump(t *testing.T) {
+	var tests = []struct {
+		flags    byte
+		code     byte
+		expected bool
+	}{
+		{f_NONE, 0b00000000, true}, {f_Z, 0b00000000, false},
+		{f_NONE, 0b00001000, false}, {f_Z, 0b00001000, true},
+		{f_NONE, 0b00010000, true}, {f_C, 0b00010000, false},
+		{f_NONE, 0b00011000, false}, {f_C, 0b00011000, true},
+		{f_NONE, 0b00100000, true}, {f_P, 0b00100000, false},
+		{f_NONE, 0b00101000, false}, {f_P, 0b00101000, true},
+		{f_NONE, 0b00110000, true}, {f_S, 0b00110000, false},
+		{f_NONE, 0b00111000, false}, {f_S, 0b00111000, true},
+	}
+
+	cpu := NewCPU(&Memory{})
+	for _, test := range tests {
+		cpu.r.F = test.flags
+		result := cpu.shouldJump(test.code)
+
+		assert.Equal(t, test.expected, result)
+	}
 }
