@@ -13,7 +13,7 @@ const (
 // The Flag registers, F and F', supply information to the user about the status of the Z80
 // CPU at any particular time.
 // 		 7   6   5   4   3   2   1   0
-// 		 S   Z   Y   H   X   P  N   C
+// 		 S   Z   Y   H   X   P   N   C
 // S = sign, Z = zero, H = half carry, P = parity/overflow, N = add/substract, C = carry
 //
 // X and Y are undocumented and currently not used in the implementation.
@@ -27,7 +27,7 @@ const (
 	f_Y    byte = 0x20
 	f_Z    byte = 0x40
 	f_S    byte = 0x80
-	f_ALL       = f_S | f_Z | f_H | f_P | f_N | f_C
+	f_ALL  byte = f_S | f_Z | f_H | f_P | f_N | f_C
 )
 
 type registers struct {

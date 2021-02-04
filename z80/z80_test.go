@@ -1193,6 +1193,27 @@ func Test_RET_cc(t *testing.T) {
 	}
 }
 
+func Test_PUSH_rr(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_SP_nn, 0x1B, 0x00, LD_A_n, 0x98,
+			LD_BC_nn, 0x34, 0x12, LD_DE_nn, 0x35, 0x13, LD_HL_nn, 0x36, 0x14,
+			PUSH_AF, PUSH_BC, PUSH_DE, PUSH_HL, HALT,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+	}
+	cpu := NewCPU(mem)
+	cpu.r.F = f_S | f_C
+	cpu.Run()
+
+	assert.Equal(t, cpu.mem.Cells[26], cpu.r.A)
+	assert.Equal(t, cpu.mem.Cells[25], cpu.r.F)
+	assert.Equal(t, cpu.mem.Cells[24], cpu.r.B)
+	assert.Equal(t, cpu.mem.Cells[23], cpu.r.C)
+	assert.Equal(t, cpu.mem.Cells[22], cpu.r.D)
+	assert.Equal(t, cpu.mem.Cells[21], cpu.r.E)
+	assert.Equal(t, cpu.mem.Cells[20], cpu.r.H)
+	assert.Equal(t, cpu.mem.Cells[19], cpu.r.L)
+}
+
 func Test_POP_rr(t *testing.T) {
 	mem := &Memory{
 		Cells: []byte{LD_SP_nn, 0x08, 0x00, POP_AF, POP_BC, POP_DE, POP_HL, HALT, 0x43, 0x21, 0x44, 0x22, 0x45, 0x23, 0x46, 0x24},

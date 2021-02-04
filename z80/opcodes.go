@@ -198,6 +198,7 @@ const (
 	JP_NZ     byte = 0xC2 // jp nz,nn
 	JP        byte = 0xC3 // jp nn
 	CALL_NZ   byte = 0xC4 // call nz,nn
+	PUSH_BC   byte = 0xC5 // push bc
 	ADD_A_n   byte = 0xC6 // add a.n
 	RET_Z     byte = 0xC8 // ret z
 	JP_Z      byte = 0xCA // jp z,nn
@@ -206,6 +207,7 @@ const (
 	POP_DE    byte = 0xD1 // pop de
 	JP_NC     byte = 0xD2 // jp nc,nn
 	CALL_NC   byte = 0xD4 // call nc,nn
+	PUSH_DE   byte = 0xD5 // push de
 	RET_C     byte = 0xD8 // ret c
 	JP_C      byte = 0xDA // jp c,nn
 	CALL_C    byte = 0xDC // call c,nn
@@ -213,6 +215,7 @@ const (
 	POP_HL    byte = 0xE1 // pop hl
 	JP_PO     byte = 0xE2 // jp po,nn
 	CALL_PO   byte = 0xE4 // call po,nn
+	PUSH_HL   byte = 0xE5 // push hl
 	RET_PE    byte = 0xE8 // ret pe
 	JP_PE     byte = 0xEA // jp pe,nn
 	CALL_PE   byte = 0xEC // call pe,nn
@@ -220,6 +223,7 @@ const (
 	POP_AF    byte = 0xF1 // pop af
 	JP_P      byte = 0xF2 // jp p,nn
 	CALL_P    byte = 0xF4 // call p,nn
+	PUSH_AF   byte = 0xF5 // push af
 	RET_M     byte = 0xF8 // ret m
 	JP_M      byte = 0xFA // jp m,nn
 	CALL_M    byte = 0xFC // call m,nn

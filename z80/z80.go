@@ -599,6 +599,30 @@ func (c *CPU) Run() {
 			} else {
 				t = 5
 			}
+		case PUSH_AF:
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = c.r.A
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = c.r.F
+			t = 11
+		case PUSH_BC:
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = c.r.B
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = c.r.C
+			t = 11
+		case PUSH_DE:
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = c.r.D
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = c.r.E
+			t = 11
+		case PUSH_HL:
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = c.r.H
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = c.r.L
+			t = 11
 		case POP_AF:
 			c.r.A, c.r.F = c.mem.Cells[c.r.SP+1], c.mem.Cells[c.r.SP]
 			c.r.SP += 2
