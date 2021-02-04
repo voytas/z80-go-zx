@@ -194,12 +194,16 @@ const (
 	CP_HL     byte = 0xBE // cp (hl)
 	CP_A      byte = 0xBF // cp a
 	RET_NZ    byte = 0xC0 // ret nz
+	POP_BC    byte = 0xC1 // pop bc
 	ADD_A_n   byte = 0xC6 // add a.n
 	RET_Z     byte = 0xC8 // ret z
 	RET_NC    byte = 0xD0 // ret nc
+	POP_DE    byte = 0xD1 // pop de
 	RET_C     byte = 0xD8 // ret c
 	RET_PO    byte = 0xE0 // ret po
+	POP_HL    byte = 0xE1 // pop hl
 	RET_PE    byte = 0xE8 // ret pe
 	RET_P     byte = 0xF0 // ret p
+	POP_AF    byte = 0xF1 // pop af
 	RET_M     byte = 0xF8 // ret m
 )

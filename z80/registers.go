@@ -1,11 +1,6 @@
 package z80
 
 const (
-	r_BC = 0b00
-	r_DE = 0b01
-	r_HL = 0b10
-	r_SP = 0b11
-
 	r_B = 0b000
 	r_C = 0b001
 	r_D = 0b010
@@ -79,47 +74,34 @@ func newRegisters() *registers {
 	return r
 }
 
-func (r *registers) setRRn(reg byte, nn word) {
-	switch reg {
-	case 0b00:
-		r.B, r.C = byte(nn>>8), byte(nn)
-	case 0b01:
-		r.D, r.E = byte(nn>>8), byte(nn)
-	case 0b10:
-		r.H, r.L = byte(nn>>8), byte(nn)
-	case 0b11:
-		r.SP = nn
-	}
-}
-
-func (r *registers) setRRnn(reg byte, lo byte, hi byte) {
-	switch reg {
-	case 0b00:
-		r.B, r.C = hi, lo
-	case 0b01:
-		r.D, r.E = hi, lo
-	case 0b10:
-		r.H, r.L = hi, lo
-	case 0b11:
-		r.SP = word(hi)<<8 | word(lo)
-	}
-}
-
 func (r *registers) getR(reg byte) *byte {
 	return r.regs8[reg]
 }
 
-func (r *registers) getRR(reg byte) word {
-	switch reg {
-	case r_BC:
-		return word(r.B)<<8 | word(r.C)
-	case r_DE:
-		return word(r.D)<<8 | word(r.E)
-	case r_HL:
-		return word(r.H)<<8 | word(r.L)
-	case r_SP:
-		return r.SP
-	}
+func (r *registers) getAF() word {
+	return word(r.A)<<8 | word(r.F)
+}
 
-	panic("invalid 16 bit register code")
+func (r *registers) getBC() word {
+	return word(r.B)<<8 | word(r.C)
+}
+
+func (r *registers) setBC(nn word) {
+	r.B, r.C = byte(nn>>8), byte(nn)
+}
+
+func (r *registers) getDE() word {
+	return word(r.D)<<8 | word(r.E)
+}
+
+func (r *registers) setDE(nn word) {
+	r.D, r.E = byte(nn>>8), byte(nn)
+}
+
+func (r *registers) getHL() word {
+	return word(r.H)<<8 | word(r.L)
+}
+
+func (r *registers) setHL(nn word) {
+	r.H, r.L = byte(nn>>8), byte(nn)
 }
