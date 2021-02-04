@@ -591,6 +591,10 @@ func (c *CPU) Run() {
 				c.PC += 2
 				t = 10
 			}
+		case RET:
+			c.PC = word(c.mem.Cells[c.r.SP+1])<<8 | word(c.mem.Cells[c.r.SP])
+			c.r.SP += 2
+			t = 10
 		case RET_C, RET_M, RET_NC, RET_NZ, RET_P, RET_PE, RET_PO, RET_Z:
 			if c.shouldJump(opcode) {
 				c.PC = word(c.mem.Cells[c.r.SP+1])<<8 | word(c.mem.Cells[c.r.SP])
@@ -599,6 +603,13 @@ func (c *CPU) Run() {
 			} else {
 				t = 5
 			}
+		case RST_00h, RST_08h, RST_10h, RST_18h, RST_20h, RST_28h, RST_30h, RST_38h:
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = byte(c.PC >> 8)
+			c.r.SP -= 1
+			c.mem.Cells[c.r.SP] = byte(c.PC)
+			c.PC = word(8 * ((opcode & 0b00111000) >> 3))
+			t = 11
 		case PUSH_AF:
 			c.r.SP -= 1
 			c.mem.Cells[c.r.SP] = c.r.A

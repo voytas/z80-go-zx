@@ -1169,6 +1169,16 @@ func Test_CALL_cc(t *testing.T) {
 	}
 }
 
+func Test_RET(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{LD_SP_nn, 0x0A, 0x00, RET, LD_A_n, 0xAA, HALT, LD_A_n, 0x55, HALT, 0x07, 0x00},
+	}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x55), cpu.r.A)
+}
+
 func Test_RET_cc(t *testing.T) {
 	var tests = []struct {
 		ret      byte
@@ -1191,6 +1201,29 @@ func Test_RET_cc(t *testing.T) {
 
 		assert.Equal(t, byte(test.expected), cpu.r.A)
 	}
+}
+
+func Test_RST_xx(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{
+			LD_A_n, 0x01, RET, 0, 0, 0, 0, 0,
+			ADD_A_n, 0x02, RET, 0, 0, 0, 0, 0,
+			ADD_A_n, 0x04, RET, 0, 0, 0, 0, 0,
+			ADD_A_n, 0x08, RET, 0, 0, 0, 0, 0,
+			ADD_A_n, 0x10, RET, 0, 0, 0, 0, 0,
+			ADD_A_n, 0x20, RET, 0, 0, 0, 0, 0,
+			ADD_A_n, 0x40, RET, 0, 0, 0, 0, 0,
+			ADD_A_n, 0x80, RET, 0, 0, 0, 0, 0,
+			LD_SP_nn, 0x50, 0, RST_00h, RST_08h, RST_10h, RST_18h, RST_20h,
+			RST_28h, RST_30h, RST_38h, LD_B_n, 0x55, HALT, 0, 0,
+		},
+	}
+	cpu := NewCPU(mem)
+	cpu.PC = 0x40
+	cpu.Run()
+
+	assert.Equal(t, byte(0xFF), cpu.r.A)
+	assert.Equal(t, byte(0x55), cpu.r.B)
 }
 
 func Test_PUSH_rr(t *testing.T) {
