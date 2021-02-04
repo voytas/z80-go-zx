@@ -570,6 +570,9 @@ func (c *CPU) Run() {
 				}
 				t = 13
 			}
+		case JP:
+			c.PC = word(c.readByte()) | word(c.readByte())<<8
+			t = 10
 		case JP_C, JP_M, JP_NC, JP_NZ, JP_P, JP_PE, JP_PO, JP_Z:
 			if c.shouldJump(opcode) {
 				c.PC = word(c.readByte()) | word(c.readByte())<<8

@@ -1101,6 +1101,17 @@ func Test_JR_NC(t *testing.T) {
 	assert.Equal(t, byte(0), cpu.r.A)
 }
 
+func Test_JP(t *testing.T) {
+	mem := &Memory{
+		Cells: []byte{JP, 0x06, 0x00, LD_A_n, 0xAA, HALT, LD_A_n, 0x55, HALT, 0x07, 0x00},
+	}
+
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x55), cpu.r.A)
+}
+
 func Test_JP_cc(t *testing.T) {
 	var tests = []struct {
 		jp       byte

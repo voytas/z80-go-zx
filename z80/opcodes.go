@@ -196,6 +196,7 @@ const (
 	RET_NZ    byte = 0xC0 // ret nz
 	POP_BC    byte = 0xC1 // pop bc
 	JP_NZ     byte = 0xC2 // jp nz,nn
+	JP        byte = 0xC3 // jp nn
 	ADD_A_n   byte = 0xC6 // add a.n
 	RET_Z     byte = 0xC8 // ret z
 	JP_Z      byte = 0xCA // jp z,nn
