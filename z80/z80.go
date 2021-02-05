@@ -715,13 +715,22 @@ func (c *CPU) cb(opcode byte, t *byte) {
 		cy := v >> 7
 		v = v<<1 | f_C&c.r.F
 		c.r.F = f_NONE
+		c.r.F |= f_S & v
 		if v == 0 {
 			c.r.F |= f_Z
 		}
-		c.r.F |= f_S & v
 		c.r.F |= parity[v] | cy
 		write(v)
 	case RR_r:
+		cy := v & f_C
+		v = v>>1 | f_C&c.r.F<<7
+		c.r.F = f_NONE
+		c.r.F |= f_S & v
+		if v == 0 {
+			c.r.F |= f_Z
+		}
+		c.r.F |= parity[v] | cy
+		write(v)
 	case SLA_r:
 	case SRA_r:
 	case SLL_r:
