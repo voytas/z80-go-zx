@@ -4,17 +4,12 @@ type word uint16
 
 type CPU struct {
 	PC   word
-	mem  *Memory
+	mem  Memory
 	r    *registers
 	halt bool
 }
 
-type Memory struct {
-	Cells    []byte
-	RAMStart word
-}
-
-func NewCPU(mem *Memory) *CPU {
+func NewCPU(mem Memory) *CPU {
 	cpu := &CPU{}
 	cpu.mem = mem
 	cpu.Reset()
@@ -22,23 +17,15 @@ func NewCPU(mem *Memory) *CPU {
 }
 
 func (c *CPU) readByte() byte {
-	b := c.mem.Cells[c.PC]
+	b := c.mem.read(c.PC)
 	c.PC += 1
 	return b
 }
 
 func (c *CPU) readWord() word {
-	w := word(c.mem.Cells[c.PC]) + word(c.mem.Cells[c.PC+1])<<8
+	w := word(c.mem.read(c.PC)) + word(c.mem.read(c.PC+1))<<8
 	c.PC += 2
 	return w
-}
-
-func (c *CPU) readAddr(addr word) byte {
-	return c.mem.Cells[addr]
-}
-
-func (c *CPU) writeByte(addr word, b byte) {
-	c.mem.Cells[addr] = b
 }
 
 func (c *CPU) wait(t byte) {}
@@ -150,7 +137,7 @@ func (c *CPU) Run() {
 				n = c.readByte()
 				t = 7
 			} else if opcode == ADD_A_HL {
-				n = c.mem.Cells[c.r.getHL()]
+				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {
 				n = *c.r.getR(opcode & 0b00000111)
@@ -174,7 +161,7 @@ func (c *CPU) Run() {
 		case ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L, ADC_A_HL:
 			var n byte
 			if opcode == ADC_A_HL {
-				n = c.mem.Cells[c.r.getHL()]
+				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {
 				n = *c.r.getR(opcode & 0b00000111)
@@ -221,7 +208,7 @@ func (c *CPU) Run() {
 			a := c.r.A
 			var n byte
 			if opcode == SUB_HL {
-				n = c.mem.Cells[c.r.getHL()]
+				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {
 				n = *c.r.getR(opcode & 0b00000111)
@@ -243,7 +230,7 @@ func (c *CPU) Run() {
 		case CP_A, CP_B, CP_C, CP_D, CP_E, CP_H, CP_L, CP_HL:
 			var n byte
 			if opcode == CP_HL {
-				n = c.mem.Cells[c.r.getHL()]
+				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {
 				n = *c.r.getR(opcode & 0b00000111)
@@ -265,7 +252,7 @@ func (c *CPU) Run() {
 		case SBC_A_A, SBC_A_B, SBC_A_C, SBC_A_D, SBC_A_E, SBC_A_H, SBC_A_L, SBC_A_HL:
 			var n byte
 			if opcode == SBC_A_HL {
-				n = c.mem.Cells[c.r.getHL()]
+				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {
 				n = *c.r.getR(opcode & 0b00000111)
@@ -290,7 +277,7 @@ func (c *CPU) Run() {
 		case AND_A, AND_B, AND_C, AND_D, AND_E, AND_H, AND_L, AND_HL:
 			var n byte
 			if opcode == AND_HL {
-				n = c.mem.Cells[c.r.getHL()]
+				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {
 				n = *c.r.getR(opcode & 0b00000111)
@@ -306,7 +293,7 @@ func (c *CPU) Run() {
 		case OR_A, OR_B, OR_C, OR_D, OR_E, OR_H, OR_L, OR_HL:
 			var n byte
 			if opcode == OR_HL {
-				n = c.mem.Cells[c.r.getHL()]
+				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {
 				t = 4
@@ -322,7 +309,7 @@ func (c *CPU) Run() {
 		case XOR_A, XOR_B, XOR_C, XOR_D, XOR_E, XOR_H, XOR_L, XOR_HL:
 			var n byte
 			if opcode == XOR_HL {
-				n = c.mem.Cells[c.r.getHL()]
+				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {
 				n = *c.r.getR(opcode & 0b00000111)
@@ -365,44 +352,44 @@ func (c *CPU) Run() {
 			t = 10
 		case LD_HL_mm:
 			w := c.readWord()
-			c.r.L = c.mem.Cells[w]
-			c.r.H = c.mem.Cells[w+1]
+			c.r.L = c.mem.read(w)
+			c.r.H = c.mem.read(w + 1)
 			t = 16
 		case LD_mm_HL:
 			w := c.readWord()
-			c.mem.Cells[w] = c.r.L
-			c.mem.Cells[w+1] = c.r.H
+			c.mem.write(w, c.r.L)
+			c.mem.write(w+1, c.r.H)
 			t = 16
 		case LD_mHL_n:
-			c.mem.Cells[c.r.getHL()] = c.readByte()
+			c.mem.write(c.r.getHL(), c.readByte())
 			t = 10
 		case LD_mm_A:
 			w := c.readWord()
-			c.mem.Cells[w] = c.r.A
+			c.mem.write(w, c.r.A)
 			t = 13
 		case LD_A_mm:
 			w := c.readWord()
-			c.r.A = c.mem.Cells[w]
+			c.r.A = c.mem.read(w)
 			t = 13
 		case LD_BC_A:
-			c.writeByte(c.r.getBC(), c.r.A)
+			c.mem.write(c.r.getBC(), c.r.A)
 			t = 7
 		case LD_DE_A:
-			c.writeByte(c.r.getDE(), c.r.A)
+			c.mem.write(c.r.getDE(), c.r.A)
 			t = 7
 		case LD_A_BC:
-			c.r.A = c.readAddr(c.r.getBC())
+			c.r.A = c.mem.read(c.r.getBC())
 			t = 7
 		case LD_A_DE:
-			c.r.A = c.readAddr(c.r.getDE())
+			c.r.A = c.mem.read(c.r.getDE())
 			t = 7
 		case LD_A_HL, LD_B_HL, LD_C_HL, LD_D_HL, LD_E_HL, LD_H_HL, LD_L_HL:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
-			*r = c.mem.Cells[c.r.getHL()]
+			*r = c.mem.read(c.r.getHL())
 			t = 7
 		case LD_HL_A, LD_HL_B, LD_HL_C, LD_HL_D, LD_HL_E, LD_HL_H, LD_HL_L:
 			r := c.r.getR(opcode & 0b00000111)
-			c.mem.Cells[c.r.getHL()] = *r
+			c.mem.write(c.r.getHL(), *r)
 			t = 7
 		case INC_A, INC_B, INC_C, INC_D, INC_E, INC_H, INC_L:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
@@ -435,7 +422,7 @@ func (c *CPU) Run() {
 			t = 6
 		case INC_mHL:
 			mm := c.r.getHL()
-			b := c.mem.Cells[mm]
+			b := c.mem.read(mm)
 			c.r.F &= ^(f_S | f_Z | f_P | f_N)
 			if b == 0x7F {
 				c.r.F |= f_P
@@ -450,7 +437,7 @@ func (c *CPU) Run() {
 			if b > 0x7F {
 				c.r.F |= f_S
 			}
-			c.mem.Cells[mm] = b
+			c.mem.write(mm, b)
 			t = 11
 		case DEC_A, DEC_B, DEC_C, DEC_D, DEC_E, DEC_H, DEC_L:
 			r := c.r.getR(opcode & 0b00111000 >> 3)
@@ -483,7 +470,7 @@ func (c *CPU) Run() {
 			t = 6
 		case DEC_mHL:
 			mm := c.r.getHL()
-			b := c.mem.Cells[mm]
+			b := c.mem.read(mm)
 			c.r.F &= ^(f_S | f_Z | f_P)
 			c.r.F |= f_N
 			if b == 0x80 {
@@ -499,7 +486,7 @@ func (c *CPU) Run() {
 			if b > 0x7F {
 				c.r.F |= f_S
 			}
-			c.mem.Cells[mm] = b
+			c.mem.write(mm, b)
 			t = 11
 		case JR:
 			o := c.readByte()
@@ -582,9 +569,9 @@ func (c *CPU) Run() {
 			if c.shouldJump(opcode) {
 				pc := word(c.readByte()) | word(c.readByte())<<8
 				c.r.SP -= 1
-				c.mem.Cells[c.r.SP] = byte(c.PC >> 8)
+				c.mem.write(c.r.SP, byte(c.PC>>8))
 				c.r.SP -= 1
-				c.mem.Cells[c.r.SP] = byte(c.PC)
+				c.mem.write(c.r.SP, byte(c.PC))
 				c.PC = pc
 				t = 17
 			} else {
@@ -592,12 +579,12 @@ func (c *CPU) Run() {
 				t = 10
 			}
 		case RET:
-			c.PC = word(c.mem.Cells[c.r.SP+1])<<8 | word(c.mem.Cells[c.r.SP])
+			c.PC = word(c.mem.read(c.r.SP+1))<<8 | word(c.mem.read(c.r.SP))
 			c.r.SP += 2
 			t = 10
 		case RET_C, RET_M, RET_NC, RET_NZ, RET_P, RET_PE, RET_PO, RET_Z:
 			if c.shouldJump(opcode) {
-				c.PC = word(c.mem.Cells[c.r.SP+1])<<8 | word(c.mem.Cells[c.r.SP])
+				c.PC = word(c.mem.read(c.r.SP+1))<<8 | word(c.mem.read(c.r.SP))
 				c.r.SP += 2
 				t = 11
 			} else {
@@ -605,51 +592,53 @@ func (c *CPU) Run() {
 			}
 		case RST_00h, RST_08h, RST_10h, RST_18h, RST_20h, RST_28h, RST_30h, RST_38h:
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = byte(c.PC >> 8)
+			c.mem.write(c.r.SP, byte(c.PC>>8))
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = byte(c.PC)
+			c.mem.write(c.r.SP, byte(c.PC))
 			c.PC = word(8 * ((opcode & 0b00111000) >> 3))
 			t = 11
 		case PUSH_AF:
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = c.r.A
+			c.mem.write(c.r.SP, c.r.A)
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = c.r.F
+			c.mem.write(c.r.SP, c.r.F)
 			t = 11
 		case PUSH_BC:
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = c.r.B
+			c.mem.write(c.r.SP, c.r.B)
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = c.r.C
+			c.mem.write(c.r.SP, c.r.C)
 			t = 11
 		case PUSH_DE:
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = c.r.D
+			c.mem.write(c.r.SP, c.r.D)
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = c.r.E
+			c.mem.write(c.r.SP, c.r.E)
 			t = 11
 		case PUSH_HL:
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = c.r.H
+			c.mem.write(c.r.SP, c.r.H)
 			c.r.SP -= 1
-			c.mem.Cells[c.r.SP] = c.r.L
+			c.mem.write(c.r.SP, c.r.L)
 			t = 11
 		case POP_AF:
-			c.r.A, c.r.F = c.mem.Cells[c.r.SP+1], c.mem.Cells[c.r.SP]
+			c.r.A, c.r.F = c.mem.read(c.r.SP+1), c.mem.read(c.r.SP)
 			c.r.SP += 2
 			t = 10
 		case POP_BC:
-			c.r.B, c.r.C = c.mem.Cells[c.r.SP+1], c.mem.Cells[c.r.SP]
+			c.r.B, c.r.C = c.mem.read(c.r.SP+1), c.mem.read(c.r.SP)
 			c.r.SP += 2
 			t = 10
 		case POP_DE:
-			c.r.D, c.r.E = c.mem.Cells[c.r.SP+1], c.mem.Cells[c.r.SP]
+			c.r.D, c.r.E = c.mem.read(c.r.SP+1), c.mem.read(c.r.SP)
 			c.r.SP += 2
 			t = 10
 		case POP_HL:
-			c.r.H, c.r.L = c.mem.Cells[c.r.SP+1], c.mem.Cells[c.r.SP]
+			c.r.H, c.r.L = c.mem.read(c.r.SP+1), c.mem.read(c.r.SP)
 			c.r.SP += 2
 			t = 10
+		case __CB__:
+			c.cb(c.readByte(), &t)
 		}
 
 		c.wait(t)
@@ -677,4 +666,50 @@ func (c *CPU) shouldJump(opcode byte) bool {
 	}
 
 	panic("Invalid opcode")
+}
+
+func (c *CPU) cb(opcode byte, t *byte) {
+	switch opcode & 0b11111000 {
+	case RLC_r:
+	case RRC_r:
+	case RL_r:
+	case RR_r:
+	case SLA_r:
+	case SRA_r:
+	case SLL_r:
+	case SRL_r:
+		r := opcode & 0x7
+		if r == r_HL {
+
+		} else {
+
+		}
+	default:
+		switch opcode & 0b11000000 {
+		case BIT_b:
+			reg := opcode & 0b00000111
+			var v byte
+			if reg == r_HL {
+				v = 0 // TODO read HL
+				*t = 12
+			} else {
+				v = *c.r.regs8[reg]
+				*t = 8
+			}
+			c.r.F &= ^(f_Z | f_N)
+			c.r.F |= f_H
+			if v&bit_mask[(opcode&0b00111000)>>3] == 0 {
+				c.r.F |= f_Z
+			}
+		case RES_b:
+			r := opcode & 0x7
+			if r == r_HL {
+
+			} else {
+
+			}
+		case SET_b:
+
+		}
+	}
 }

@@ -204,6 +204,7 @@ const (
 	RET_Z     byte = 0xC8 // ret z
 	RET       byte = 0xC9 // ret
 	JP_Z      byte = 0xCA // jp z,nn
+	__CB__    byte = 0xCB // CB prefix
 	RST_08h   byte = 0xCF // rst 08h
 	CALL_Z    byte = 0xCC // call z,nn
 	RET_NC    byte = 0xD0 // ret nc
@@ -236,4 +237,27 @@ const (
 	JP_M      byte = 0xFA // jp m,nn
 	CALL_M    byte = 0xFC // call m,nn
 	RST_38h   byte = 0xFF // rst 38h
+)
+
+const (
+	RLC_r byte = 0b00000000
+	RRC_r byte = 0b00001000
+	RL_r  byte = 0b00010000
+	RR_r  byte = 0b00011000
+	SLA_r byte = 0b00100000
+	SRA_r byte = 0b00101000
+	SLL_r byte = 0b00110000 // Undocumented
+	SRL_r byte = 0b00111000
+	BIT_b byte = 0b01000000
+	RES_b byte = 0b10000000
+	SET_b byte = 0b11000000
+
+	BIT_0 byte = 0b00000000
+	BIT_1 byte = 0b00001000
+	BIT_2 byte = 0b00010000
+	BIT_3 byte = 0b00011000
+	BIT_4 byte = 0b00100000
+	BIT_5 byte = 0b00101000
+	BIT_6 byte = 0b00110000
+	BIT_7 byte = 0b00111000
 )
