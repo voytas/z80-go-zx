@@ -24,16 +24,8 @@ func Test_BasicMemory(t *testing.T) {
 	}
 	for _, test := range tests {
 		mem.write(test.addr, 0xAA)
-		result := *mem.read((test.addr))
+		result := mem.read(test.addr)
 
 		assert.Equal(t, byte(test.expected), result)
 	}
-
-	mem.write(0x4000, 0xFF)
-	v1 := mem.read(0x4000)
-	assert.Equal(t, byte(0xFF), *v1)
-
-	*v1 = 0xAB
-	v2 := *mem.read(0x4000)
-	assert.Equal(t, byte(0xAB), v2)
 }
