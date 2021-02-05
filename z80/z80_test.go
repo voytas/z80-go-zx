@@ -1425,6 +1425,34 @@ func Test_RR_r(t *testing.T) {
 	assert.Equal(t, f_C, cpu.r.F)
 }
 
+func Test_SLA_r(t *testing.T) {
+	mem := &BasicMemory{cells: []byte{LD_E_n, 0x55, __CB__, SLA_r | r_E, HALT}}
+	cpu := NewCPU(mem)
+	cpu.r.F = f_Z | f_H | f_N | f_C
+	cpu.Run()
+
+	assert.Equal(t, byte(0xAA), cpu.r.E)
+	assert.Equal(t, f_S|f_P, cpu.r.F)
+
+	mem = &BasicMemory{cells: []byte{LD_D_n, 0xAA, __CB__, SLA_r | r_D, HALT}}
+	cpu = NewCPU(mem)
+	cpu.r.F = f_Z | f_H | f_N
+	cpu.Run()
+
+	assert.Equal(t, byte(0x54), cpu.r.D)
+	assert.Equal(t, f_C, cpu.r.F)
+}
+
+func Test_SRA_r(t *testing.T) {
+	mem := &BasicMemory{cells: []byte{LD_E_n, 0x85, __CB__, SRA_r | r_E, HALT}}
+	cpu := NewCPU(mem)
+	cpu.r.F = f_Z | f_H | f_N
+	cpu.Run()
+
+	assert.Equal(t, byte(0xC2), cpu.r.E)
+	assert.Equal(t, f_S|f_C, cpu.r.F)
+}
+
 func Test_BIT_b(t *testing.T) {
 	mem := &BasicMemory{cells: []byte{LD_E_n, 0x40, __CB__, BIT_b | r_E | BIT_6, HALT}}
 	cpu := NewCPU(mem)

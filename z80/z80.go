@@ -682,57 +682,46 @@ func (c *CPU) cb(opcode byte, t *byte) {
 		*t = 8
 	}
 
-	write := func(v byte) {
+	var cy byte
+	write := func() {
 		if reg == r_HL {
 			c.mem.write(hl, v)
 		} else {
 			*c.r.regs8[reg] = v
 		}
+		c.r.F = f_NONE
+		c.r.F |= f_S & v
+		if v == 0 {
+			c.r.F |= f_Z
+		}
+		c.r.F |= parity[v] | cy
 	}
 
 	switch opcode & 0b11111000 {
 	case RLC_r:
-		cy := v >> 7
+		cy = v >> 7
 		v = v<<1 | cy
-		c.r.F = f_NONE
-		c.r.F |= f_S & v
-		if v == 0 {
-			c.r.F |= f_Z
-		}
-		c.r.F |= parity[v] | cy
-		write(v)
+		write()
 	case RRC_r:
-		cy := v & f_C
+		cy = v & f_C
 		v = v>>1 | cy<<7
-		c.r.F = f_NONE
-		c.r.F |= f_S & v
-		if v == 0 {
-			c.r.F |= f_Z
-		}
-		c.r.F |= parity[v] | cy
-		write(v)
+		write()
 	case RL_r:
-		cy := v >> 7
+		cy = v >> 7
 		v = v<<1 | f_C&c.r.F
-		c.r.F = f_NONE
-		c.r.F |= f_S & v
-		if v == 0 {
-			c.r.F |= f_Z
-		}
-		c.r.F |= parity[v] | cy
-		write(v)
+		write()
 	case RR_r:
-		cy := v & f_C
+		cy = v & f_C
 		v = v>>1 | f_C&c.r.F<<7
-		c.r.F = f_NONE
-		c.r.F |= f_S & v
-		if v == 0 {
-			c.r.F |= f_Z
-		}
-		c.r.F |= parity[v] | cy
-		write(v)
+		write()
 	case SLA_r:
+		cy = v >> 7
+		v = v << 1
+		write()
 	case SRA_r:
+		cy = v & f_C
+		v = v&0x80 | v>>1
+		write()
 	case SLL_r:
 	case SRL_r:
 	default:
@@ -748,9 +737,11 @@ func (c *CPU) cb(opcode byte, t *byte) {
 				c.r.F |= f_Z
 			}
 		case RES_b:
-			write(v & ^bit_mask[bit])
+			v &= ^bit_mask[bit]
+			write()
 		case SET_b:
-			write(v | bit_mask[bit])
+			v |= bit_mask[bit]
+			write()
 		}
 	}
 }
