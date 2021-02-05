@@ -723,7 +723,13 @@ func (c *CPU) cb(opcode byte, t *byte) {
 		v = v&0x80 | v>>1
 		write()
 	case SLL_r:
+		cy = v >> 7
+		v = v<<1 | 0x01
+		write()
 	case SRL_r:
+		cy = v & f_C
+		v = v >> 1
+		write()
 	default:
 		bit := (opcode & 0b00111000) >> 3
 		switch opcode & 0b11000000 {
