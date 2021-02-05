@@ -685,12 +685,13 @@ func (c *CPU) cb(opcode byte, t *byte) {
 
 		}
 	default:
+		reg := opcode & 0b00000111
+		bit := (opcode & 0b00111000) >> 3
 		switch opcode & 0b11000000 {
 		case BIT_b:
-			reg := opcode & 0b00000111
 			var v byte
 			if reg == r_HL {
-				v = 0 // TODO read HL
+				v = c.mem.read(c.r.getHL())
 				*t = 12
 			} else {
 				v = *c.r.regs8[reg]
@@ -698,18 +699,31 @@ func (c *CPU) cb(opcode byte, t *byte) {
 			}
 			c.r.F &= ^(f_Z | f_N)
 			c.r.F |= f_H
-			if v&bit_mask[(opcode&0b00111000)>>3] == 0 {
+			if v&bit_mask[bit] == 0 {
 				c.r.F |= f_Z
 			}
 		case RES_b:
-			r := opcode & 0x7
-			if r == r_HL {
-
+			if reg == r_HL {
+				mm := c.r.getHL()
+				v := c.mem.read(mm)
+				c.mem.write(mm, v & ^bit_mask[bit])
+				*t = 15
 			} else {
-
+				v := c.r.regs8[reg]
+				*v &= ^bit_mask[bit]
+				*t = 8
 			}
 		case SET_b:
-
+			if reg == r_HL {
+				mm := c.r.getHL()
+				v := c.mem.read(mm)
+				c.mem.write(mm, v|bit_mask[bit])
+				*t = 15
+			} else {
+				v := c.r.regs8[reg]
+				*v |= bit_mask[bit]
+				*t = 8
+			}
 		}
 	}
 }

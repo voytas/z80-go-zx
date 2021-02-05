@@ -19,6 +19,7 @@ var parity = []byte{
 	0, 4, 4, 0, 4, 0, 0, 4, 4, 0, 0, 4, 0, 4, 4, 0,
 	4, 0, 0, 4, 0, 4, 4, 0, 0, 4, 4, 0, 4, 0, 0, 4}
 
+// Bit mask (2 ^ n), so no need to calculate
 var bit_mask = []byte{
 	0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
 }
