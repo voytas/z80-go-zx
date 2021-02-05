@@ -205,8 +205,9 @@ const (
 	RET       byte = 0xC9 // ret
 	JP_Z      byte = 0xCA // jp z,nn
 	__CB__    byte = 0xCB // CB prefix
-	RST_08h   byte = 0xCF // rst 08h
 	CALL_Z    byte = 0xCC // call z,nn
+	CALL      byte = 0xCD // call nn
+	RST_08h   byte = 0xCF // rst 08h
 	RET_NC    byte = 0xD0 // ret nc
 	POP_DE    byte = 0xD1 // pop de
 	JP_NC     byte = 0xD2 // jp nc,nn

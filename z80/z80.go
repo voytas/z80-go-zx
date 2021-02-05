@@ -565,7 +565,7 @@ func (c *CPU) Run() {
 				c.PC = word(c.readByte()) | word(c.readByte())<<8
 			}
 			t = 10
-		case CALL_C, CALL_M, CALL_NC, CALL_NZ, CALL_P, CALL_PE, CALL_PO, CALL_Z:
+		case CALL, CALL_C, CALL_M, CALL_NC, CALL_NZ, CALL_P, CALL_PE, CALL_PO, CALL_Z:
 			if c.shouldJump(opcode) {
 				pc := word(c.readByte()) | word(c.readByte())<<8
 				c.r.SP -= 1
@@ -646,6 +646,10 @@ func (c *CPU) Run() {
 }
 
 func (c *CPU) shouldJump(opcode byte) bool {
+	if opcode == CALL {
+		return true
+	}
+
 	switch opcode & 0b00111000 {
 	case 0b00000000: // Non-Zero (NZ)
 		return c.r.F&f_Z == 0

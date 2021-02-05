@@ -1147,6 +1147,7 @@ func Test_CALL_cc(t *testing.T) {
 		{CALL_M, f_S, 0x55}, {CALL_P, f_NONE, 0x55}, {CALL_PE, f_P, 0x55}, {CALL_PO, f_NONE, 0x55},
 		{CALL_C, f_NONE, 0xAA}, {CALL_NC, f_C, 0xAA}, {CALL_Z, f_NONE, 0xAA}, {CALL_NZ, f_Z, 0xAA},
 		{CALL_M, f_NONE, 0xAA}, {CALL_P, f_S, 0xAA}, {CALL_PE, f_NONE, 0xAA}, {CALL_PO, f_P, 0xAA},
+		{CALL, f_NONE, 0x55},
 	}
 
 	for _, test := range tests {
