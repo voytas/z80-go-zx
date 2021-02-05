@@ -3,7 +3,7 @@ package z80
 // Memory provides required methods for the emulated memory implementation
 type Memory interface {
 	// Read memory at the specified address
-	read(addr word) byte
+	read(addr word) *byte
 	// Write memory at the specified address
 	write(addr word, value byte)
 }
@@ -14,12 +14,14 @@ type BasicMemory struct {
 	ramStart word // address of the first RAM cell, lower address is treated as ROM, read-only
 }
 
-func (m *BasicMemory) read(addr word) byte {
+var _invalid_cell byte = 0xFF
+
+func (m *BasicMemory) read(addr word) *byte {
 	// Check if we are reading outside available memory
 	if addr >= word(len(m.cells)) {
-		return 0xFF
+		return &_invalid_cell
 	}
-	return m.cells[addr]
+	return &m.cells[addr]
 }
 
 func (m *BasicMemory) write(addr word, value byte) {
