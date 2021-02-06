@@ -79,6 +79,41 @@ func (r *registers) getR(reg byte) *byte {
 	return r.regs8[reg]
 }
 
+func (r *registers) getReg(reg byte, prefix byte) byte {
+	switch reg {
+	case r_A:
+		return r.A
+	case r_B:
+		return r.B
+	case r_C:
+		return r.C
+	case r_D:
+		return r.D
+	case r_E:
+		return r.E
+	case r_H:
+		switch prefix {
+		case prefix_ix:
+			return byte(r.IX >> 8)
+		case prefix_iy:
+			return byte(r.IY >> 8)
+		default:
+			return r.H
+		}
+	case r_L:
+		switch prefix {
+		case prefix_ix:
+			return byte(r.IX)
+		case prefix_iy:
+			return byte(r.IY)
+		default:
+			return r.L
+		}
+	}
+
+	panic("Invalid register")
+}
+
 func (r *registers) getAF() word {
 	return word(r.A)<<8 | word(r.F)
 }
