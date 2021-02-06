@@ -1096,9 +1096,9 @@ func Test_POP_rr(t *testing.T) {
 	mem := &BasicMemory{
 		cells: []byte{LD_SP_nn, 0x08, 0x00, POP_AF, POP_BC, POP_DE, POP_HL, HALT, 0x43, 0x21, 0x44, 0x22, 0x45, 0x23, 0x46, 0x24},
 	}
-
 	cpu := NewCPU(mem)
 	cpu.Run()
+
 	assert.Equal(t, byte(0x21), cpu.r.A)
 	assert.Equal(t, byte(0x43), cpu.r.F)
 	assert.Equal(t, byte(0x22), cpu.r.B)
@@ -1108,6 +1108,26 @@ func Test_POP_rr(t *testing.T) {
 	assert.Equal(t, byte(0x24), cpu.r.H)
 	assert.Equal(t, byte(0x46), cpu.r.L)
 	assert.Equal(t, word(0x10), cpu.r.SP)
+}
+
+func Test_IN_A_n(t *testing.T) {
+	mem := &BasicMemory{
+		cells: []byte{LD_A_n, 0x23, IN_A_n, 0x01, HALT},
+	}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x23), cpu.r.A)
+
+	cpu.Reset()
+	cpu.IN = func(a, n byte) byte {
+		if a == 0x23 && n == 0x01 {
+			return 0xA5
+		}
+		return 0
+	}
+	cpu.Run()
+	assert.Equal(t, byte(0xA5), cpu.r.A)
 }
 
 func Test_RLC_r(t *testing.T) {

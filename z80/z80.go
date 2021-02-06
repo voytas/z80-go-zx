@@ -7,6 +7,7 @@ type CPU struct {
 	mem  Memory
 	r    *registers
 	halt bool
+	IN   func(a, n byte) byte
 }
 
 func NewCPU(mem Memory) *CPU {
@@ -648,6 +649,12 @@ func (c *CPU) Run() {
 			c.r.H, c.r.L = c.mem.read(c.r.SP+1), c.mem.read(c.r.SP)
 			c.r.SP += 2
 			t = 10
+		case IN_A_n:
+			n := c.readByte()
+			if c.IN != nil {
+				c.r.A = c.IN(c.r.A, n)
+			}
+			t = 11
 		case __CB__:
 			c.cb(c.readByte(), &t)
 		}

@@ -219,6 +219,7 @@ const (
 	RET_C      byte = 0xD8 // ret c
 	EXX        byte = 0xD9 // exx
 	JP_C_nn    byte = 0xDA // jp c,nn
+	IN_A_n     byte = 0xDB // in a,(n)
 	CALL_C_nn  byte = 0xDC // call c,nn
 	RST_18h    byte = 0xDF // rst 18h
 	RET_PO     byte = 0xE0 // ret po
