@@ -207,10 +207,13 @@ func (c *CPU) Run() {
 			}
 			c.r.F |= byte((hl^nn^sum)>>8) & f_H
 			t = 11
-		case SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L, SUB_HL:
+		case SUB_n, SUB_A, SUB_B, SUB_C, SUB_D, SUB_E, SUB_H, SUB_L, SUB_HL:
 			a := c.r.A
 			var n byte
-			if opcode == SUB_HL {
+			if opcode == SUB_n {
+				n = c.readByte()
+				t = 7
+			} else if opcode == SUB_HL {
 				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {

@@ -214,6 +214,7 @@ const (
 	JP_NC_nn   byte = 0xD2 // jp nc,nn
 	CALL_NC_nn byte = 0xD4 // call nc,nn
 	PUSH_DE    byte = 0xD5 // push de
+	SUB_n      byte = 0xD6 // sub n
 	RST_10h    byte = 0xD7 // rst 10h
 	RET_C      byte = 0xD8 // ret c
 	JP_C_nn    byte = 0xDA // jp c,nn

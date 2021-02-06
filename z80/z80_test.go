@@ -172,7 +172,7 @@ func Test_ADD_HL_RR(t *testing.T) {
 }
 
 func Test_SUB_x(t *testing.T) {
-	mem := &BasicMemory{cells: []byte{LD_A_n, 0, LD_B_n, 0x01, SUB_B, HALT}}
+	mem := &BasicMemory{cells: []byte{LD_A_n, 0, SUB_n, 0x01, HALT}}
 	cpu := NewCPU(mem)
 	cpu.r.F = f_Z
 	cpu.Run()
