@@ -158,9 +158,12 @@ func (c *CPU) Run() {
 				c.r.F |= f_C
 			}
 			c.r.A = sum
-		case ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L, ADC_A_HL:
+		case ADC_A_n, ADC_A_A, ADC_A_B, ADC_A_C, ADC_A_D, ADC_A_E, ADC_A_H, ADC_A_L, ADC_A_HL:
 			var n byte
-			if opcode == ADC_A_HL {
+			if opcode == ADC_A_n {
+				n = c.readByte()
+				t = 7
+			} else if opcode == ADC_A_HL {
 				n = c.mem.read(c.r.getHL())
 				t = 7
 			} else {
@@ -488,7 +491,7 @@ func (c *CPU) Run() {
 			}
 			c.mem.write(mm, b)
 			t = 11
-		case JR:
+		case JR_o:
 			o := c.readByte()
 			if o&0x80 == 0 {
 				c.PC += word(o)
@@ -496,7 +499,7 @@ func (c *CPU) Run() {
 				c.PC -= word(^o + 1)
 			}
 			t = 12
-		case JR_Z:
+		case JR_Z_o:
 			o := c.readByte()
 			if c.r.F&f_Z == f_Z {
 				if o&0x80 == 0 {
@@ -508,7 +511,7 @@ func (c *CPU) Run() {
 			} else {
 				t = 7
 			}
-		case JR_NZ:
+		case JR_NZ_o:
 			o := c.readByte()
 			if c.r.F&f_Z == 0 {
 				if o&0x80 == 0 {
@@ -532,7 +535,7 @@ func (c *CPU) Run() {
 			} else {
 				t = 7
 			}
-		case JR_NC:
+		case JR_NC_o:
 			o := c.readByte()
 			if c.r.F&f_C == 0 {
 				if o&0x80 == 0 {
@@ -557,15 +560,15 @@ func (c *CPU) Run() {
 				}
 				t = 13
 			}
-		case JP:
+		case JP_nn:
 			c.PC = word(c.readByte()) | word(c.readByte())<<8
 			t = 10
-		case JP_C, JP_M, JP_NC, JP_NZ, JP_P, JP_PE, JP_PO, JP_Z:
+		case JP_C_nn, JP_M_nn, JP_NC_nn, JP_NZ_nn, JP_P_nn, JP_PE_nn, JP_PO_nn, JP_Z_nn:
 			if c.shouldJump(opcode) {
 				c.PC = word(c.readByte()) | word(c.readByte())<<8
 			}
 			t = 10
-		case CALL, CALL_C, CALL_M, CALL_NC, CALL_NZ, CALL_P, CALL_PE, CALL_PO, CALL_Z:
+		case CALL_nn, CALL_C_nn, CALL_M_nn, CALL_NC_nn, CALL_NZ_nn, CALL_P_nn, CALL_PE_nn, CALL_PO_nn, CALL_Z_nn:
 			if c.shouldJump(opcode) {
 				pc := word(c.readByte()) | word(c.readByte())<<8
 				c.r.SP -= 1
@@ -646,7 +649,7 @@ func (c *CPU) Run() {
 }
 
 func (c *CPU) shouldJump(opcode byte) bool {
-	if opcode == CALL {
+	if opcode == CALL_nn {
 		return true
 	}
 
