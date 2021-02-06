@@ -217,6 +217,7 @@ const (
 	SUB_n      byte = 0xD6 // sub n
 	RST_10h    byte = 0xD7 // rst 10h
 	RET_C      byte = 0xD8 // ret c
+	EXX        byte = 0xD9 // exx
 	JP_C_nn    byte = 0xDA // jp c,nn
 	CALL_C_nn  byte = 0xDC // call c,nn
 	RST_18h    byte = 0xDF // rst 18h

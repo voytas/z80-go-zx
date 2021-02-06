@@ -131,6 +131,11 @@ func (c *CPU) Run() {
 			c.r.A, c.r.A_ = c.r.A_, c.r.A
 			c.r.F, c.r.F_ = c.r.F_, c.r.F
 			t = 4
+		case EXX:
+			c.r.B, c.r.B_, c.r.C, c.r.C_ = c.r.B_, c.r.B, c.r.C_, c.r.C
+			c.r.D, c.r.D_, c.r.E, c.r.E_ = c.r.D_, c.r.D, c.r.E_, c.r.E
+			c.r.H, c.r.H_, c.r.L, c.r.L_ = c.r.H_, c.r.H, c.r.L_, c.r.L
+			t = 4
 		case ADD_A_n, ADD_A_A, ADD_A_B, ADD_A_C, ADD_A_D, ADD_A_E, ADD_A_H, ADD_A_L, ADD_A_HL:
 			var n byte
 			if opcode == ADD_A_n {

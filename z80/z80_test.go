@@ -37,6 +37,29 @@ func Test_EX_AF_AF(t *testing.T) {
 	assert.Equal(t, f_, cpu.r.F_)
 }
 
+func Test_EXX(t *testing.T) {
+	mem := &BasicMemory{cells: []byte{EXX, HALT}}
+	cpu := NewCPU(mem)
+	cpu.r.B, cpu.r.C, cpu.r.B_, cpu.r.C_ = 0x01, 0x02, 0x03, 0x04
+	cpu.r.D, cpu.r.E, cpu.r.D_, cpu.r.E_ = 0x05, 0x06, 0x07, 0x08
+	cpu.r.H, cpu.r.L, cpu.r.H_, cpu.r.L_ = 0x09, 0x0A, 0x0B, 0x0C
+	cpu.Run()
+
+	assert.Equal(t, byte(0x01), cpu.r.B_)
+	assert.Equal(t, byte(0x02), cpu.r.C_)
+	assert.Equal(t, byte(0x03), cpu.r.B)
+	assert.Equal(t, byte(0x04), cpu.r.C)
+	assert.Equal(t, byte(0x05), cpu.r.D_)
+	assert.Equal(t, byte(0x06), cpu.r.E_)
+	assert.Equal(t, byte(0x07), cpu.r.D)
+	assert.Equal(t, byte(0x08), cpu.r.E)
+	assert.Equal(t, byte(0x09), cpu.r.H_)
+	assert.Equal(t, byte(0x0A), cpu.r.L_)
+	assert.Equal(t, byte(0x0B), cpu.r.H)
+	assert.Equal(t, byte(0x0C), cpu.r.L)
+
+}
+
 func Test_ADD_A_x(t *testing.T) {
 	mem := &BasicMemory{cells: []byte{LD_A_n, 0, ADD_A_n, 0, HALT}}
 	cpu := NewCPU(mem)
