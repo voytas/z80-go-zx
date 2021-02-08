@@ -100,6 +100,14 @@ func Test_ADD_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x10), cpu.reg.A)
 	assert.Equal(t, f_H|f_P|f_C, cpu.reg.F)
+
+	mem = &BasicMemory{cells: []byte{ld_a_n, 0x22, prefix_ix, ld_hl_nn, 0x13, 0x00, prefix_ix, add_a_l, halt}}
+	cpu = NewCPU(mem)
+	cpu.reg.F = f_NONE
+	cpu.Run()
+
+	assert.Equal(t, byte(0x35), cpu.reg.A)
+	assert.Equal(t, f_NONE, cpu.reg.F)
 }
 
 func Test_ADC_A_x(t *testing.T) {
@@ -990,9 +998,9 @@ func Test_CALL_cc_nn(t *testing.T) {
 		expected byte
 	}{
 		{call_c_nn, f_C, 0x55}, {call_nc_nn, f_NONE, 0x55}, {call_z_nn, f_Z, 0x55}, {call_nz_nn, f_NONE, 0x55},
-		{CALL_M_nn, f_S, 0x55}, {call_p_nn, f_NONE, 0x55}, {call_pe_nn, f_P, 0x55}, {call_po_nn, f_NONE, 0x55},
+		{call_m_nn, f_S, 0x55}, {call_p_nn, f_NONE, 0x55}, {call_pe_nn, f_P, 0x55}, {call_po_nn, f_NONE, 0x55},
 		{call_c_nn, f_NONE, 0xAA}, {call_nc_nn, f_C, 0xAA}, {call_z_nn, f_NONE, 0xAA}, {call_nz_nn, f_Z, 0xAA},
-		{CALL_M_nn, f_NONE, 0xAA}, {call_p_nn, f_S, 0xAA}, {call_pe_nn, f_NONE, 0xAA}, {call_po_nn, f_P, 0xAA},
+		{call_m_nn, f_NONE, 0xAA}, {call_p_nn, f_S, 0xAA}, {call_pe_nn, f_NONE, 0xAA}, {call_po_nn, f_P, 0xAA},
 		{call_nn, f_NONE, 0x55},
 	}
 
@@ -1425,5 +1433,28 @@ func Test_shouldJump(t *testing.T) {
 		result := cpu.shouldJump(test.code)
 
 		assert.Equal(t, test.expected, result)
+	}
+}
+
+func Test_getHL(t *testing.T) {
+	mem := &BasicMemory{cells: []byte{ld_hl_nn, 0x01, 0x02, halt}}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	result := cpu.getHL(prefix_none)
+	assert.Equal(t, word(0x0201), result)
+
+	for _, prefix := range []byte{prefix_ix, prefix_iy} {
+		mem = &BasicMemory{cells: []byte{prefix, ld_a_hl, 0x05, halt, 0x00, 0xE5}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0xE5), cpu.reg.A)
+
+		mem = &BasicMemory{cells: []byte{prefix, ld_hl_nn, 0x40, 0x00, prefix, ld_a_hl, 0xC9, halt, 0x00, 0xE5}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0xE5), cpu.reg.A)
 	}
 }

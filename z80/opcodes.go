@@ -1,6 +1,10 @@
 package z80
 
 const (
+	prefix_none byte = 0
+)
+
+const (
 	nop        byte = 0x00 // nop
 	ld_bc_nn   byte = 0x01 // ld bc,nn
 	ld_bc_a    byte = 0x02 // ld (bc),a
@@ -242,7 +246,7 @@ const (
 	rst_30h    byte = 0xF7 // rst 30h
 	ret_m      byte = 0xF8 // ret m
 	jp_m_nn    byte = 0xFA // jp m,nn
-	CALL_M_nn  byte = 0xFC // call m,nn
+	call_m_nn  byte = 0xFC // call m,nn
 	prefix_iy  byte = 0xFD // IX instruction
 	rst_38h    byte = 0xFF // rst 38h
 )

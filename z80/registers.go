@@ -1,5 +1,7 @@
 package z80
 
+import "fmt"
+
 const (
 	r_B  = 0b000
 	r_C  = 0b001
@@ -79,7 +81,7 @@ func (r *registers) getR(reg byte) *byte {
 	return r.regs8[reg]
 }
 
-func (r *registers) getReg(reg byte, prefix byte) byte {
+func (r *registers) getReg(reg, prefix byte) byte {
 	switch reg {
 	case r_A:
 		return r.A
@@ -111,11 +113,40 @@ func (r *registers) getReg(reg byte, prefix byte) byte {
 		}
 	}
 
-	panic("Invalid register")
+	panic(fmt.Sprintf("getReg: Invalid register %v", reg))
 }
 
-func (r *registers) getAF() word {
-	return word(r.A)<<8 | word(r.F)
+func (r *registers) setReg(reg, prefix, value byte) {
+	switch reg {
+	case r_A:
+		r.A = value
+	case r_B:
+		r.B = value
+	case r_C:
+		r.C = value
+	case r_D:
+		r.D = value
+	case r_E:
+		r.E = value
+	case r_H:
+		switch prefix {
+		case prefix_ix:
+			r.IX = r.IX&0x00FF | word(value)<<8
+		case prefix_iy:
+			r.IY = r.IY&0x00FF | word(value)<<8
+		default:
+			r.H = value
+		}
+	case r_L:
+		switch prefix {
+		case prefix_ix:
+			r.IX = r.IX&0xFF | word(value)
+		case prefix_iy:
+			r.IY = r.IY&0xFF | word(value)
+		default:
+			r.L = value
+		}
+	}
 }
 
 func (r *registers) getBC() word {

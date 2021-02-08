@@ -3,11 +3,12 @@ package z80
 type word uint16
 
 type CPU struct {
+	// Program Counter - 16-bit address of the current instruction being fetched from memory
 	PC   word
+	IN   func(a, n byte) byte
 	mem  Memory
 	reg  *registers
 	halt bool
-	IN   func(a, n byte) byte
 	t    byte
 }
 
@@ -30,7 +31,7 @@ func (cpu *CPU) readWord() word {
 	return w
 }
 
-func (cpu *CPU) wait(t byte) {}
+func (cpu *CPU) wait() {}
 
 func (cpu *CPU) Reset() {
 	cpu.PC = 0
@@ -44,7 +45,7 @@ func (cpu *CPU) Run() {
 		opcode := cpu.readByte()
 
 		if prefix == prefix_ix || prefix == prefix_iy {
-			cpu.t = 4 // extra 4 states for prefixed op
+			cpu.t = 4 // add extra 4 states for prefixed op
 		} else {
 			cpu.t = 0
 		}
@@ -54,7 +55,7 @@ func (cpu *CPU) Run() {
 			cpu.t += 4
 		case halt:
 			cpu.t += 4
-			cpu.wait(cpu.t)
+			cpu.wait()
 			cpu.halt = true
 			return
 		case cpl:
@@ -410,8 +411,7 @@ func (cpu *CPU) Run() {
 			cpu.reg.A = cpu.mem.read(cpu.reg.getDE())
 			cpu.t += 7
 		case ld_a_hl, ld_b_hl, ld_c_hl, ld_d_hl, ld_e_hl, ld_h_hl, ld_l_hl:
-			r := cpu.reg.getR(opcode & 0b00111000 >> 3)
-			*r = cpu.mem.read(cpu.reg.getHL())
+			cpu.reg.setReg(opcode&0b00111000>>3, prefix_none, cpu.mem.read(cpu.getHL(prefix)))
 			cpu.t += 7
 		case ld_hl_a, ld_hl_b, ld_hl_c, ld_hl_d, ld_hl_e, ld_hl_h, ld_hl_l:
 			r := cpu.reg.getR(opcode & 0b00000111)
@@ -591,7 +591,7 @@ func (cpu *CPU) Run() {
 				cpu.PC = cpu.readWord()
 			}
 			cpu.t += 10
-		case call_nn, call_c_nn, CALL_M_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
+		case call_nn, call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
 			if cpu.shouldJump(opcode) {
 				pc := cpu.readWord()
 				cpu.reg.SP -= 1
@@ -670,7 +670,7 @@ func (cpu *CPU) Run() {
 			}
 			cpu.t += 11
 		case prefix_cb:
-			cpu.cb(cpu.readByte())
+			cpu.prefix_cb(cpu.readByte())
 		case prefix_ix:
 			if prefix == prefix_ix || prefix == prefix_iy || prefix == prefix_ED {
 				// NOP
@@ -689,8 +689,8 @@ func (cpu *CPU) Run() {
 			}
 		}
 
-		prefix = 0 // reset ix or iy prefix if
-		cpu.wait(cpu.t)
+		prefix = prefix_none // reset ix or iy prefix if
+		cpu.wait()
 	}
 }
 
@@ -721,7 +721,7 @@ func (cpu *CPU) shouldJump(opcode byte) bool {
 	panic("Invalid opcode")
 }
 
-func (cpu *CPU) cb(opcode byte) {
+func (cpu *CPU) prefix_cb(opcode byte) {
 	var v byte
 	var hl word
 
@@ -805,7 +805,9 @@ func (cpu *CPU) cb(opcode byte) {
 	}
 }
 
-// Returns value of HL / IX + d / IY + d depending on whether operation is prefixed or not
+// Returns value of HL / (IX + d) / (IY + d) register. The prefix parameter specifies
+// whether to use IX or IY register instead of HL. t-states are updated with extra
+// cycles in case of IX and IY.
 func (cpu *CPU) getHL(prefix byte) word {
 	var hl word
 	switch prefix {
