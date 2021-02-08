@@ -542,6 +542,16 @@ func Test_LD_mHL_n(t *testing.T) {
 	assert.Equal(t, byte(0xAB), cpu.mem.read(6))
 }
 
+func Test_LD_mIXY_n(t *testing.T) {
+	for _, prefix := range []byte{prefix_ix, prefix_iy} {
+		mem := &BasicMemory{cells: []byte{prefix, ld_hl_nn, 0x02, 0x00, prefix, ld_mhl_n, 0x07, 0xAB, halt, 0x00}}
+		cpu := NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0xAB), cpu.mem.read(9))
+	}
+}
+
 func Test_LD_mm_A(t *testing.T) {
 	mem := &BasicMemory{cells: []byte{ld_a_n, 0x9F, ld_mm_a, 0x06, 0x00, halt, 0x00}}
 	cpu := NewCPU(mem)
@@ -634,6 +644,16 @@ func Test_LD_R_HL(t *testing.T) {
 
 	assert.Equal(t, byte(0xA7), cpu.reg.A)
 	assert.Equal(t, byte(0xA7), cpu.reg.L)
+}
+
+func Test_LD_R_IXY(t *testing.T) {
+	for _, prefix := range []byte{prefix_ix, prefix_iy} {
+		mem := &BasicMemory{cells: []byte{prefix, ld_hl_nn, 0x01, 0x00, prefix, ld_l_hl, 0x07, halt, 0xA7}}
+		cpu := NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0xA7), cpu.reg.L)
+	}
 }
 
 func Test_LD_HL_R(t *testing.T) {

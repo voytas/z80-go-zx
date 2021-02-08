@@ -58,6 +58,10 @@ func (cpu *CPU) Run() {
 			cpu.wait()
 			cpu.halt = true
 			return
+		case di:
+			// TODO: Implement
+		case ei:
+			// TODO: Implement
 		case cpl:
 			cpu.reg.A = ^cpu.reg.A
 			cpu.reg.F |= f_H | f_N
@@ -145,6 +149,10 @@ func (cpu *CPU) Run() {
 			cpu.reg.D, cpu.reg.D_, cpu.reg.E, cpu.reg.E_ = cpu.reg.D_, cpu.reg.D, cpu.reg.E_, cpu.reg.E
 			cpu.reg.H, cpu.reg.H_, cpu.reg.L, cpu.reg.L_ = cpu.reg.H_, cpu.reg.H, cpu.reg.L_, cpu.reg.L
 			cpu.t += 4
+		case ex_de_hl:
+			// TODO: Implement
+		case ex_sp_hl:
+			// TODO: Implement
 		case add_a_n, add_a_a, add_a_b, add_a_c, add_a_d, add_a_e, add_a_h, add_a_l, add_a_hl:
 			var n byte
 			if opcode == add_a_n {
@@ -247,11 +255,13 @@ func (cpu *CPU) Run() {
 			if cpu.reg.A > a {
 				cpu.reg.F |= f_C
 			}
-		case cp_a, cp_b, cp_c, cp_d, cp_e, cp_h, cp_l, cp_hl:
+		case cp_a, cp_b, cp_c, cp_d, cp_e, cp_h, cp_l, cp_hl, cp_n:
 			var n byte
 			if opcode == cp_hl {
 				n = cpu.mem.read(cpu.reg.getHL())
 				cpu.t += 7
+			} else if opcode == cp_n {
+				// TODO: Implement
 			} else {
 				n = *cpu.reg.getR(opcode & 0b00000111)
 				cpu.t += 4
@@ -269,11 +279,13 @@ func (cpu *CPU) Run() {
 			if test > cpu.reg.A {
 				cpu.reg.F |= f_C
 			}
-		case sbc_a_a, sbc_a_b, sbc_a_c, sbc_a_d, sbc_a_e, sbc_a_h, sbc_a_l, sbc_a_hl:
+		case sbc_a_a, sbc_a_b, sbc_a_c, sbc_a_d, sbc_a_e, sbc_a_h, sbc_a_l, sbc_a_hl, sbc_a_n:
 			var n byte
 			if opcode == sbc_a_hl {
 				n = cpu.mem.read(cpu.reg.getHL())
 				cpu.t += 7
+			} else if opcode == sbc_a_n {
+				// TODO: Implement
 			} else {
 				n = *cpu.reg.getR(opcode & 0b00000111)
 				cpu.t += 4
@@ -294,11 +306,13 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_C
 			}
 			cpu.reg.A = sub_b
-		case and_a, and_b, and_c, and_d, and_e, and_h, and_l, and_hl:
+		case and_a, and_b, and_c, and_d, and_e, and_h, and_l, and_hl, and_n:
 			var n byte
 			if opcode == and_hl {
 				n = cpu.mem.read(cpu.reg.getHL())
 				cpu.t += 7
+			} else if opcode == and_n {
+				// TODO: Implement
 			} else {
 				n = *cpu.reg.getR(opcode & 0b00000111)
 				cpu.t += 4
@@ -310,11 +324,13 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_Z
 			}
 			cpu.reg.F |= parity[cpu.reg.A]
-		case or_a, or_b, or_c, or_d, or_e, or_h, or_l, or_hl:
+		case or_a, or_b, or_c, or_d, or_e, or_h, or_l, or_hl, or_n:
 			var n byte
 			if opcode == or_hl {
 				n = cpu.mem.read(cpu.reg.getHL())
 				cpu.t += 7
+			} else if opcode == or_n {
+				// TODO: Implement
 			} else {
 				n = *cpu.reg.getR(opcode & 0b00000111)
 				cpu.t += 4
@@ -326,11 +342,13 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_Z
 			}
 			cpu.reg.F |= parity[cpu.reg.A]
-		case xor_a, xor_b, xor_c, xor_d, xor_e, xor_h, XOR_L, xor_hl:
+		case xor_a, xor_b, xor_c, xor_d, xor_e, xor_h, xor_l, xor_hl, xor_n:
 			var n byte
 			if opcode == xor_hl {
 				n = cpu.mem.read(cpu.reg.getHL())
 				cpu.t += 7
+			} else if opcode == xor_n {
+				// TODO: Implement
 			} else {
 				n = *cpu.reg.getR(opcode & 0b00000111)
 				cpu.t += 4
@@ -377,6 +395,8 @@ func (cpu *CPU) Run() {
 		case ld_sp_nn:
 			cpu.reg.SP = cpu.readWord()
 			cpu.t += 10
+		case ld_sp_hl:
+			// TODO: Implement
 		case ld_hl_mm:
 			w := cpu.readWord()
 			cpu.reg.L = cpu.mem.read(w)
@@ -388,7 +408,8 @@ func (cpu *CPU) Run() {
 			cpu.mem.write(w+1, cpu.reg.H)
 			cpu.t += 16
 		case ld_mhl_n:
-			cpu.mem.write(cpu.reg.getHL(), cpu.readByte())
+			cpu.mem.write(cpu.getHL(prefix), cpu.readByte())
+			// t is wrong for IX & IY
 			cpu.t += 10
 		case ld_mm_a:
 			w := cpu.readWord()
@@ -414,8 +435,7 @@ func (cpu *CPU) Run() {
 			cpu.reg.setReg(opcode&0b00111000>>3, prefix_none, cpu.mem.read(cpu.getHL(prefix)))
 			cpu.t += 7
 		case ld_hl_a, ld_hl_b, ld_hl_c, ld_hl_d, ld_hl_e, ld_hl_h, ld_hl_l:
-			r := cpu.reg.getR(opcode & 0b00000111)
-			cpu.mem.write(cpu.reg.getHL(), *r)
+			cpu.mem.write(cpu.getHL(prefix), cpu.reg.getReg(opcode&0b00000111, prefix_none))
 			cpu.t += 7
 		case inc_a, inc_b, inc_c, inc_d, inc_e, inc_h, inc_l:
 			r := cpu.reg.getR(opcode & 0b00111000 >> 3)
@@ -591,6 +611,8 @@ func (cpu *CPU) Run() {
 				cpu.PC = cpu.readWord()
 			}
 			cpu.t += 10
+		case jp_hl:
+			// TODO: Implement
 		case call_nn, call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
 			if cpu.shouldJump(opcode) {
 				pc := cpu.readWord()
@@ -669,6 +691,8 @@ func (cpu *CPU) Run() {
 				cpu.reg.A = cpu.IN(cpu.reg.A, n)
 			}
 			cpu.t += 11
+		case out_n_a:
+			// TODO:
 		case prefix_cb:
 			cpu.prefix_cb(cpu.readByte())
 		case prefix_ix:

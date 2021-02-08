@@ -178,7 +178,7 @@ const (
 	xor_d      byte = 0xAA // xor d
 	xor_e      byte = 0xAB // xor e
 	xor_h      byte = 0xAC // xor h
-	XOR_L      byte = 0xAD // xor l
+	xor_l      byte = 0xAD // xor l
 	xor_hl     byte = 0xAE // xor (hl)
 	xor_a      byte = 0xAF // xor a
 	or_b       byte = 0xB0 // or b
@@ -216,6 +216,7 @@ const (
 	ret_nc     byte = 0xD0 // ret nc
 	pop_de     byte = 0xD1 // pop de
 	jp_nc_nn   byte = 0xD2 // jp nc,nn
+	out_n_a    byte = 0xD3 // out (n),a
 	call_nc_nn byte = 0xD4 // call nc,nn
 	push_de    byte = 0xD5 // push de
 	sub_n      byte = 0xD6 // sub n
@@ -226,28 +227,39 @@ const (
 	in_a_n     byte = 0xDB // in a,(n)
 	call_c_nn  byte = 0xDC // call c,nn
 	prefix_ix  byte = 0xDD // IX instruction
+	sbc_a_n    byte = 0xDE // sbc a,n
 	rst_18h    byte = 0xDF // rst 18h
 	ret_po     byte = 0xE0 // ret po
 	pop_hl     byte = 0xE1 // pop hl
 	jp_po_nn   byte = 0xE2 // jp po,nn
+	ex_sp_hl   byte = 0xE3 // ex (sp),hl
 	call_po_nn byte = 0xE4 // call po,nn
 	push_hl    byte = 0xE5 // push hl
+	and_n      byte = 0xE6 // and n
 	rst_20h    byte = 0xE7 // rst 20h
 	ret_pe     byte = 0xE8 // ret pe
+	jp_hl      byte = 0xE9 // jp (hl)
 	jp_pe_nn   byte = 0xEA // jp pe,nn
+	ex_de_hl   byte = 0xEB // ex de,hl
 	call_pe_nn byte = 0xEC // call pe,nn
 	prefix_ED  byte = 0xED // ED prefix
+	xor_n      byte = 0xEE // xor n
 	rst_28h    byte = 0xEF // rst 28h
 	ret_p      byte = 0xF0 // ret p
 	pop_af     byte = 0xF1 // pop af
 	jp_p_nn    byte = 0xF2 // jp p,nn
+	di         byte = 0xF3 // di
 	call_p_nn  byte = 0xF4 // call p,nn
 	push_af    byte = 0xF5 // push af
+	or_n       byte = 0xF6 // or n
 	rst_30h    byte = 0xF7 // rst 30h
 	ret_m      byte = 0xF8 // ret m
+	ld_sp_hl   byte = 0xF9 // ld sp,hl
 	jp_m_nn    byte = 0xFA // jp m,nn
+	ei         byte = 0xFB // ei
 	call_m_nn  byte = 0xFC // call m,nn
 	prefix_iy  byte = 0xFD // IX instruction
+	cp_n       byte = 0xFE // cp n
 	rst_38h    byte = 0xFF // rst 38h
 )
 
