@@ -81,6 +81,8 @@ func Test_getReg(t *testing.T) {
 			}
 		}
 	}
+
+	assert.Panics(t, func() { r.getReg(0x0F, prefix_none) })
 }
 
 func Test_setReg(t *testing.T) {

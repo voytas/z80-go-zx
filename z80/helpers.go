@@ -41,7 +41,7 @@ var t_states = map[byte]byte{
 	dec_c:      4,
 	ld_c_n:     7,
 	rrca:       4,
-	djnz:       13, // 13 or 8 based on condition
+	djnz:       8, // 13 or 8 based on condition
 	ld_de_nn:   10,
 	ld_de_a:    7,
 	inc_de:     6,
@@ -57,7 +57,7 @@ var t_states = map[byte]byte{
 	dec_e:      4,
 	ld_e_n:     7,
 	rra:        4,
-	jr_nz_o:    12, // 12 or 7 based on condition
+	jr_nz_o:    7, // 12 or 7 based on condition
 	ld_hl_nn:   10,
 	ld_mm_hl:   16,
 	inc_hl:     6,
@@ -65,7 +65,7 @@ var t_states = map[byte]byte{
 	dec_h:      4,
 	ld_h_n:     7,
 	daa:        4,
-	jr_z_o:     12, // 12 or 7 based on condition
+	jr_z_o:     7, // 12 or 7 based on condition
 	add_hl_hl:  11,
 	ld_hl_mm:   16,
 	dec_hl:     6,
@@ -73,7 +73,7 @@ var t_states = map[byte]byte{
 	dec_l:      4,
 	ld_l_n:     7,
 	cpl:        4,
-	jr_nc_o:    12, // 12 or 7 based on condition
+	jr_nc_o:    7, // 12 or 7 based on condition
 	ld_sp_nn:   10,
 	ld_mm_a:    13,
 	inc_sp:     6,
@@ -81,7 +81,7 @@ var t_states = map[byte]byte{
 	dec_mhl:    11,
 	ld_mhl_n:   10,
 	scf:        4,
-	jr_c:       12, // 12 or 7 based on condition
+	jr_c:       7, // 12 or 7 based on condition
 	add_hl_sp:  11,
 	ld_a_mm:    13,
 	dec_sp:     6,
@@ -217,67 +217,67 @@ var t_states = map[byte]byte{
 	cp_l:       4,
 	cp_hl:      7,
 	cp_a:       4,
-	ret_nz:     11, // 11 or 5 based on condition
+	ret_nz:     5, // 11 or 5 based on condition
 	pop_bc:     10,
 	jp_nz_nn:   10,
 	jp_nn:      10,
-	call_nz_nn: 17, // 17 or 10 based on condition
+	call_nz_nn: 10, // 17 or 10 based on condition
 	push_bc:    11,
 	add_a_n:    7,
 	rst_00h:    11,
-	ret_z:      11, // 11 or 5 based on condition
+	ret_z:      5, // 11 or 5 based on condition
 	ret:        10,
 	jp_z_nn:    10,
-	prefix_cb:  4,
-	call_z_nn:  17, // 17 or 10 based on condition
+	prefix_bit: 4,
+	call_z_nn:  10, // 17 or 10 based on condition
 	call_nn:    17,
 	adc_a_n:    7,
 	rst_08h:    11,
-	ret_nc:     11, // 11 or 5 based on condition
+	ret_nc:     5, // 11 or 5 based on condition
 	pop_de:     10,
 	jp_nc_nn:   10,
-	call_nc_nn: 17, // 17 or 10 based on condition
+	call_nc_nn: 10, // 17 or 10 based on condition
 	push_de:    11,
 	sub_n:      7,
 	rst_10h:    11,
-	ret_c:      11, // 11 or 5 based on condition
+	ret_c:      5, // 11 or 5 based on condition
 	exx:        4,
 	jp_c_nn:    10,
 	in_a_n:     11,
 	out_n_a:    11,
-	call_c_nn:  17, // 17 or 10 based on condition
+	call_c_nn:  10, // 17 or 10 based on condition
 	prefix_ix:  4,
 	sbc_a_n:    7,
 	rst_18h:    11,
-	ret_po:     11, // 11 or 5 based on condition
+	ret_po:     5, // 11 or 5 based on condition
 	pop_hl:     10,
 	jp_po_nn:   10,
 	ex_sp_hl:   19,
-	call_po_nn: 17, // 17 or 10 based on condition
+	call_po_nn: 10, // 17 or 10 based on condition
 	push_hl:    11,
 	and_n:      7,
 	rst_20h:    11,
-	ret_pe:     11, // 11 or 5 based on condition
+	ret_pe:     5, // 11 or 5 based on condition
 	jp_hl:      4,
 	jp_pe_nn:   10,
 	ex_de_hl:   4,
-	call_pe_nn: 17, // 17 or 10 based on condition
+	call_pe_nn: 10, // 17 or 10 based on condition
 	prefix_ED:  4,
 	xor_n:      7,
 	rst_28h:    11,
-	ret_p:      11, // 11 or 5 based on condition
+	ret_p:      5, // 11 or 5 based on condition
 	pop_af:     10,
 	jp_p_nn:    10,
 	di:         4,
-	call_p_nn:  17, // 17 or 10 based on condition
+	call_p_nn:  10, // 17 or 10 based on condition
 	push_af:    11,
 	or_n:       7,
 	rst_30h:    11,
-	ret_m:      11, // 11 or 5 based on condition
+	ret_m:      5, // 11 or 5 based on condition
 	ld_sp_hl:   6,
 	jp_m_nn:    10,
 	ei:         4,
-	call_m_nn:  17, // 17 or 10 based on condition
+	call_m_nn:  10, // 17 or 10 based on condition
 	prefix_iy:  4,
 	cp_n:       7,
 	rst_38h:    11,

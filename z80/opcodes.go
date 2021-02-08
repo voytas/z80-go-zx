@@ -208,7 +208,7 @@ const (
 	ret_z      byte = 0xC8 // ret z
 	ret        byte = 0xC9 // ret
 	jp_z_nn    byte = 0xCA // jp z,nn
-	prefix_cb  byte = 0xCB // CB prefix
+	prefix_bit byte = 0xCB // bit operations etc prefix
 	call_z_nn  byte = 0xCC // call z,nn
 	call_nn    byte = 0xCD // call nn
 	adc_a_n    byte = 0xCE // adc a,n
