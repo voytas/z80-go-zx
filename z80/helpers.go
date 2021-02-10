@@ -228,7 +228,7 @@ var t_states = map[byte]byte{
 	ret_z:      5, // 11 or 5 based on condition
 	ret:        10,
 	jp_z_nn:    10,
-	prefix_bit: 4,
+	prefix_cb:  4,
 	call_z_nn:  10, // 17 or 10 based on condition
 	call_nn:    17,
 	adc_a_n:    7,
@@ -246,7 +246,7 @@ var t_states = map[byte]byte{
 	in_a_n:     11,
 	out_n_a:    11,
 	call_c_nn:  10, // 17 or 10 based on condition
-	prefix_ix:  4,
+	use_ix:     4,
 	sbc_a_n:    7,
 	rst_18h:    11,
 	ret_po:     5, // 11 or 5 based on condition
@@ -262,7 +262,7 @@ var t_states = map[byte]byte{
 	jp_pe_nn:   10,
 	ex_de_hl:   4,
 	call_pe_nn: 10, // 17 or 10 based on condition
-	prefix_ED:  4,
+	prefix_ed:  4,
 	xor_n:      7,
 	rst_28h:    11,
 	ret_p:      5, // 11 or 5 based on condition
@@ -278,7 +278,118 @@ var t_states = map[byte]byte{
 	jp_m_nn:    10,
 	ei:         4,
 	call_m_nn:  10, // 17 or 10 based on condition
-	prefix_iy:  4,
+	use_iy:     4,
 	cp_n:       7,
 	rst_38h:    11,
+}
+
+var t_states_ixy = map[byte]byte{
+	add_hl_bc: 15,
+	ld_mm_hl:  20,
+	add_hl_de: 15,
+	ld_hl_nn:  14,
+	inc_h:     8,
+	add_hl_hl: 15,
+	ld_hl_mm:  20,
+	inc_l:     8,
+	ld_mhl_n:  19,
+	add_hl_sp: 15,
+	ld_b_hl:   19,
+	ld_c_hl:   19,
+	ld_d_hl:   19,
+	ld_e_hl:   19,
+	ld_h_hl:   19,
+	ld_l_hl:   19,
+	ld_hl_b:   19,
+	ld_hl_c:   19,
+	ld_hl_d:   19,
+	ld_hl_e:   19,
+	ld_hl_h:   19,
+	ld_hl_l:   19,
+	ld_hl_a:   19,
+	ld_a_hl:   19,
+	add_a_hl:  19,
+	adc_a_hl:  19,
+	sub_hl:    19,
+	sbc_a_hl:  19,
+	and_hl:    19,
+	xor_hl:    19,
+	or_hl:     19,
+	cp_hl:     19,
+	ex_sp_hl:  23,
+	ld_sp_hl:  10,
+}
+
+var t_states_ed = map[byte]byte{
+	in_b_c:    12,
+	out_c_b:   12,
+	sbc_hl_bc: 15,
+	ld_mm_bc:  20,
+	neg:       8,
+	retn:      14,
+	im0:       8,
+	ld_i_a:    9,
+	in_c_c:    12,
+	out_c_c:   12,
+	adc_hl_bc: 15,
+	ld_bc_mm:  20,
+	0x4C:      8, // undocumented neg
+	reti:      14,
+	ld_r_a:    9,
+	in_d_c:    12,
+	out_c_d:   12,
+	sbc_hl_de: 15,
+	ld_mm_de:  20,
+	0x54:      8,  // undocumented neg
+	0x55:      14, // undocumented retn
+	im1:       8,
+	ld_a_i:    9,
+	in_e_c:    12,
+	out_c_e:   12,
+	adc_hl_de: 15,
+	ld_de_mm:  20,
+	0x5C:      8, // undocumented neg
+	im2:       8,
+	ld_a_r:    9,
+	in_h_c:    12,
+	out_c_h:   12,
+	sbc_hl_hl: 15,
+	ld_mm_hl2: 20,
+	0x64:      8,  // undocumented neg
+	0x65:      14, // undocumented retn
+	rrd:       18,
+	in_l_c:    12,
+	out_c_l:   12,
+	adc_hl_hl: 15,
+	ld_hl_mm2: 20,
+	0x6C:      8, // undocumented neg
+	rld:       18,
+	in_f_c:    12,
+	out_c_f:   12,
+	sbc_hl_sp: 15,
+	ld_mm_sp:  20,
+	0x74:      8,  // undocumented neg
+	0x75:      14, // undocumented retn
+	in_a_c:    12,
+	out_c_a:   12,
+	adc_hl_sp: 15,
+	ld_sp_mm:  20,
+	0x7C:      8,  // undocumented neg
+	0x7D:      14, // undocumented reti
+	ldi:       16,
+	cpi:       16,
+	ini:       16,
+	outi:      16,
+	ldd:       16,
+	cpd:       16,
+	ind:       16,
+	outd:      16,
+	ldir:      16, // 21 or 16 based on condition
+	cpir:      16, // 21 or 16 based on condition
+	inir:      16, // 21 or 16 based on condition
+	otir:      16, // 21 or 16 based on condition
+	lddr:      16, // 21 or 16 based on condition
+	cpdr:      16, // 21 or 16 based on condition
+	indr:      16, // 21 or 16 based on condition
+	otdr:      16, // 21 or 16 based on condition
 }

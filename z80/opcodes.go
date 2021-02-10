@@ -1,9 +1,10 @@
 package z80
 
 const (
-	prefix_none byte = 0
+	use_hl byte = 0
 )
 
+// Primary opcodes
 const (
 	nop        byte = 0x00 // nop
 	ld_bc_nn   byte = 0x01 // ld bc,nn
@@ -208,7 +209,7 @@ const (
 	ret_z      byte = 0xC8 // ret z
 	ret        byte = 0xC9 // ret
 	jp_z_nn    byte = 0xCA // jp z,nn
-	prefix_bit byte = 0xCB // bit operations etc prefix
+	prefix_cb  byte = 0xCB // bit operations etc prefix
 	call_z_nn  byte = 0xCC // call z,nn
 	call_nn    byte = 0xCD // call nn
 	adc_a_n    byte = 0xCE // adc a,n
@@ -226,7 +227,7 @@ const (
 	jp_c_nn    byte = 0xDA // jp c,nn
 	in_a_n     byte = 0xDB // in a,(n)
 	call_c_nn  byte = 0xDC // call c,nn
-	prefix_ix  byte = 0xDD // IX instruction
+	use_ix     byte = 0xDD // IX instruction
 	sbc_a_n    byte = 0xDE // sbc a,n
 	rst_18h    byte = 0xDF // rst 18h
 	ret_po     byte = 0xE0 // ret po
@@ -242,7 +243,7 @@ const (
 	jp_pe_nn   byte = 0xEA // jp pe,nn
 	ex_de_hl   byte = 0xEB // ex de,hl
 	call_pe_nn byte = 0xEC // call pe,nn
-	prefix_ED  byte = 0xED // ED prefix
+	prefix_ed  byte = 0xED // ED prefix
 	xor_n      byte = 0xEE // xor n
 	rst_28h    byte = 0xEF // rst 28h
 	ret_p      byte = 0xF0 // ret p
@@ -258,11 +259,12 @@ const (
 	jp_m_nn    byte = 0xFA // jp m,nn
 	ei         byte = 0xFB // ei
 	call_m_nn  byte = 0xFC // call m,nn
-	prefix_iy  byte = 0xFD // IX instruction
+	use_iy     byte = 0xFD // IX instruction
 	cp_n       byte = 0xFE // cp n
 	rst_38h    byte = 0xFF // rst 38h
 )
 
+// CB prefixed opcodes
 const (
 	rlc_r byte = 0b00000000
 	rrc_r byte = 0b00001000
@@ -284,4 +286,68 @@ const (
 	bit_5 byte = 0b00101000
 	bit_6 byte = 0b00110000
 	bit_7 byte = 0b00111000
+)
+
+// ED prefixed opcodes
+const (
+	in_b_c    byte = 0x40 // in b,(c)
+	out_c_b   byte = 0x41 // out (c),b
+	sbc_hl_bc byte = 0x42 // sbc hl,bc
+	ld_mm_bc  byte = 0x43 // ld (nn),bc
+	neg       byte = 0x44 // neg
+	retn      byte = 0x45 // retn
+	im0       byte = 0x46 // im 0
+	ld_i_a    byte = 0x47 // ld i,a
+	in_c_c    byte = 0x48 // in c,(c)
+	out_c_c   byte = 0x49 // out (c),c
+	adc_hl_bc byte = 0x4A // adc hl,bc
+	ld_bc_mm  byte = 0x4B // ld bc,(nn)
+	reti      byte = 0x4D // reti
+	ld_r_a    byte = 0x4F // ld r,a
+	in_d_c    byte = 0x50 // in d,(c)
+	out_c_d   byte = 0x51 // out (c),d
+	sbc_hl_de byte = 0x52 // sbc hl,de
+	ld_mm_de  byte = 0x53 // ld (nn),de
+	im1       byte = 0x56 // im 1
+	ld_a_i    byte = 0x57 // ld a,i
+	in_e_c    byte = 0x58 // in e,(c)
+	out_c_e   byte = 0x59 // out (c),e
+	adc_hl_de byte = 0x5A // adc hl,de
+	ld_de_mm  byte = 0x5B // ld de,(nn)
+	im2       byte = 0x5E // im 2
+	ld_a_r    byte = 0x5F // ld a,r
+	in_h_c    byte = 0x60 // in h,(c)
+	out_c_h   byte = 0x61 // out (c),h
+	sbc_hl_hl byte = 0x62 // sbc hl,hl
+	ld_mm_hl2 byte = 0x63 // ld (nn),hl
+	rrd       byte = 0x67 // rrd
+	in_l_c    byte = 0x68 // in l,(c)
+	out_c_l   byte = 0x69 // out (c),l
+	adc_hl_hl byte = 0x6A // adc hl,hl
+	ld_hl_mm2 byte = 0x6B // ld hl,(nn)
+	rld       byte = 0x6F // rld
+	in_f_c    byte = 0x70 // in f,(c)
+	out_c_f   byte = 0x71 // out (c),f
+	sbc_hl_sp byte = 0x72 // sbc hl,sp
+	ld_mm_sp  byte = 0x73 // ld (nn),sp
+	in_a_c    byte = 0x78 // in a,(c)
+	out_c_a   byte = 0x79 // out (c),a
+	adc_hl_sp byte = 0x7A // adc hl,sp
+	ld_sp_mm  byte = 0x7B // ld sp,(nn)
+	ldi       byte = 0xA0 // ldi
+	cpi       byte = 0xA1 // cpi
+	ini       byte = 0xA2 // ini
+	outi      byte = 0xA3 // outi
+	ldd       byte = 0xA8 // ldd
+	cpd       byte = 0xA9 // cpd
+	ind       byte = 0xAA // ind
+	outd      byte = 0xAB // outd
+	ldir      byte = 0xB0 // ldir
+	cpir      byte = 0xB1 // cpir
+	inir      byte = 0xB2 // inir
+	otir      byte = 0xB3 // otir
+	lddr      byte = 0xB8 // lddr
+	cpdr      byte = 0xB9 // cpdr
+	indr      byte = 0xBA // indr
+	otdr      byte = 0xBB // otdr
 )

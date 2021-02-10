@@ -53,8 +53,8 @@ type registers struct {
 	L_ byte
 	F_ byte
 	// Other & special registers
-	IX word
-	IY word
+	IX [2]byte
+	IY [2]byte
 	SP word
 	I  byte
 	R  byte
@@ -81,35 +81,35 @@ func (r *registers) getR(reg byte) *byte {
 	return r.regs8[reg]
 }
 
-func (r *registers) getReg(reg, prefix byte) byte {
+func (r *registers) getReg(reg, prefix byte) *byte {
 	switch reg {
 	case r_A:
-		return r.A
+		return &r.A
 	case r_B:
-		return r.B
+		return &r.B
 	case r_C:
-		return r.C
+		return &r.C
 	case r_D:
-		return r.D
+		return &r.D
 	case r_E:
-		return r.E
+		return &r.E
 	case r_H:
 		switch prefix {
-		case prefix_ix:
-			return byte(r.IX >> 8)
-		case prefix_iy:
-			return byte(r.IY >> 8)
+		case use_ix:
+			return &r.IX[0]
+		case use_iy:
+			return &r.IY[0]
 		default:
-			return r.H
+			return &r.H
 		}
 	case r_L:
 		switch prefix {
-		case prefix_ix:
-			return byte(r.IX)
-		case prefix_iy:
-			return byte(r.IY)
+		case use_ix:
+			return &r.IX[1]
+		case use_iy:
+			return &r.IY[1]
 		default:
-			return r.L
+			return &r.L
 		}
 	}
 
@@ -130,19 +130,19 @@ func (r *registers) setReg(reg, prefix, value byte) {
 		r.E = value
 	case r_H:
 		switch prefix {
-		case prefix_ix:
-			r.IX = r.IX&0x00FF | word(value)<<8
-		case prefix_iy:
-			r.IY = r.IY&0x00FF | word(value)<<8
+		case use_ix:
+			r.IX[0] = value
+		case use_iy:
+			r.IY[0] = value
 		default:
 			r.H = value
 		}
 	case r_L:
 		switch prefix {
-		case prefix_ix:
-			r.IX = r.IX&0xFF | word(value)
-		case prefix_iy:
-			r.IY = r.IY&0xFF | word(value)
+		case use_ix:
+			r.IX[1] = value
+		case use_iy:
+			r.IY[1] = value
 		default:
 			r.L = value
 		}
@@ -165,10 +165,36 @@ func (r *registers) setDE(nn word) {
 	r.D, r.E = byte(nn>>8), byte(nn)
 }
 
-func (r *registers) getHL() word {
-	return word(r.H)<<8 | word(r.L)
+func (r *registers) getHL(prefix byte) word {
+	switch prefix {
+	case use_ix:
+		return word(r.IX[0])<<8 | word(r.IX[1])
+	case use_iy:
+		return word(r.IY[0])<<8 | word(r.IY[1])
+	default:
+		return word(r.H)<<8 | word(r.L)
+	}
 }
 
-func (r *registers) setHL(nn word) {
-	r.H, r.L = byte(nn>>8), byte(nn)
+func (r *registers) setHLw(value word, prefix byte) {
+	h, l := byte(value>>8), byte(value)
+	switch prefix {
+	case use_ix:
+		r.IX[0], r.IX[1] = h, l
+	case use_iy:
+		r.IY[0], r.IY[1] = h, l
+	default:
+		r.H, r.L = h, l
+	}
+}
+
+func (r *registers) setHLb(h, l, prefix byte) {
+	switch prefix {
+	case use_ix:
+		r.IX[0], r.IX[1] = h, l
+	case use_iy:
+		r.IY[0], r.IY[1] = h, l
+	default:
+		r.H, r.L = h, l
+	}
 }
