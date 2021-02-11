@@ -1,7 +1,5 @@
 package z80
 
-import "fmt"
-
 const (
 	r_B  = 0b000
 	r_C  = 0b001
@@ -11,6 +9,11 @@ const (
 	r_L  = 0b101
 	r_HL = 0b110
 	r_A  = 0b111
+
+	r_IXh = use_ix - r_H
+	r_IXl = use_ix - r_L
+	r_IYh = use_iy - r_H
+	r_IYl = use_iy - r_L
 )
 
 // The Flag registers, F and F', supply information to the user about the status of the Z80
@@ -35,118 +38,46 @@ const (
 
 type registers struct {
 	// Standard registers
-	A byte
-	B byte
-	C byte
-	D byte
-	E byte
-	H byte
-	L byte
-	F byte
+	A, B, C, D, E, H, L, F byte
 	// Shadow registers
-	A_ byte
-	B_ byte
-	C_ byte
-	D_ byte
-	E_ byte
-	H_ byte
-	L_ byte
-	F_ byte
+	A_, B_, C_, D_, E_, H_, L_, F_ byte
 	// Other & special registers
-	IX [2]byte
-	IY [2]byte
-	SP word
-	I  byte
-	R  byte
+	IX, IY [2]byte
+	SP     word
+	I, R   byte
 	// Helper register index
-	regs8 map[byte]*byte
+	get      map[byte]*byte
+	prefixed map[byte]map[byte]*byte
+	prefix   byte
 }
 
 func newRegisters() *registers {
 	r := &registers{}
-	r.regs8 = map[byte]*byte{
-		r_A: &r.A,
-		r_B: &r.B,
-		r_C: &r.C,
-		r_D: &r.D,
-		r_E: &r.E,
-		r_H: &r.H,
-		r_L: &r.L,
+	r.prefixed = map[byte]map[byte]*byte{
+		use_hl: {
+			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
+			r_E: &r.E, r_H: &r.H, r_L: &r.L,
+		},
+		use_ix: {
+			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
+			r_E: &r.E, r_H: &r.IX[0], r_L: &r.IX[1],
+		},
+		use_iy: {
+			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
+			r_E: &r.E, r_H: &r.IY[0], r_L: &r.IY[1],
+		},
 	}
+	r.get = r.prefixed[use_hl]
 
 	return r
 }
 
-func (r *registers) getR(reg byte) *byte {
-	return r.regs8[reg]
+func (r *registers) getReg(reg byte) *byte {
+	return r.prefixed[r.prefix][reg]
 }
 
-func (r *registers) getReg(reg, prefix byte) *byte {
-	switch reg {
-	case r_A:
-		return &r.A
-	case r_B:
-		return &r.B
-	case r_C:
-		return &r.C
-	case r_D:
-		return &r.D
-	case r_E:
-		return &r.E
-	case r_H:
-		switch prefix {
-		case use_ix:
-			return &r.IX[0]
-		case use_iy:
-			return &r.IY[0]
-		default:
-			return &r.H
-		}
-	case r_L:
-		switch prefix {
-		case use_ix:
-			return &r.IX[1]
-		case use_iy:
-			return &r.IY[1]
-		default:
-			return &r.L
-		}
-	}
-
-	panic(fmt.Sprintf("getReg: Invalid register %v", reg))
-}
-
-func (r *registers) setReg(reg, prefix, value byte) {
-	switch reg {
-	case r_A:
-		r.A = value
-	case r_B:
-		r.B = value
-	case r_C:
-		r.C = value
-	case r_D:
-		r.D = value
-	case r_E:
-		r.E = value
-	case r_H:
-		switch prefix {
-		case use_ix:
-			r.IX[0] = value
-		case use_iy:
-			r.IY[0] = value
-		default:
-			r.H = value
-		}
-	case r_L:
-		switch prefix {
-		case use_ix:
-			r.IX[1] = value
-		case use_iy:
-			r.IY[1] = value
-		default:
-			r.L = value
-		}
-	}
+func (r *registers) setReg(reg, value byte) {
+	*r.prefixed[r.prefix][reg] = value
 }
 
 func (r *registers) getBC() word {
@@ -165,8 +96,8 @@ func (r *registers) setDE(nn word) {
 	r.D, r.E = byte(nn>>8), byte(nn)
 }
 
-func (r *registers) getHL(prefix byte) word {
-	switch prefix {
+func (r *registers) getHL() word {
+	switch r.prefix {
 	case use_ix:
 		return word(r.IX[0])<<8 | word(r.IX[1])
 	case use_iy:
@@ -176,9 +107,9 @@ func (r *registers) getHL(prefix byte) word {
 	}
 }
 
-func (r *registers) setHLw(value word, prefix byte) {
+func (r *registers) setHLw(value word) {
 	h, l := byte(value>>8), byte(value)
-	switch prefix {
+	switch r.prefix {
 	case use_ix:
 		r.IX[0], r.IX[1] = h, l
 	case use_iy:
@@ -188,8 +119,8 @@ func (r *registers) setHLw(value word, prefix byte) {
 	}
 }
 
-func (r *registers) setHLb(h, l, prefix byte) {
-	switch prefix {
+func (r *registers) setHLb(h, l byte) {
+	switch r.prefix {
 	case use_ix:
 		r.IX[0], r.IX[1] = h, l
 	case use_iy:

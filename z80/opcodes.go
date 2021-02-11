@@ -259,7 +259,7 @@ const (
 	jp_m_nn    byte = 0xFA // jp m,nn
 	ei         byte = 0xFB // ei
 	call_m_nn  byte = 0xFC // call m,nn
-	use_iy     byte = 0xFD // IX instruction
+	use_iy     byte = 0xFD // IY instruction
 	cp_n       byte = 0xFE // cp n
 	rst_38h    byte = 0xFF // rst 38h
 )

@@ -13,7 +13,6 @@ type CPU struct {
 	reg              *registers
 	t                byte
 	halt, iff1, iff2 bool
-	prefix           byte
 }
 
 func NewCPU(mem Memory) *CPU {
@@ -42,14 +41,13 @@ func (cpu *CPU) Reset() {
 	cpu.reg = newRegisters()
 	cpu.halt = false
 	cpu.iff1, cpu.iff2 = true, true
-	cpu.prefix = use_hl
 }
 
 func (cpu *CPU) Run() {
 	for {
 		opcode := cpu.readByte()
 
-		if cpu.prefix == use_ix || cpu.prefix == use_iy {
+		if cpu.reg.prefix == use_ix || cpu.reg.prefix == use_iy {
 			t, ok := t_states_ixy[opcode]
 			if ok {
 				cpu.t = t
@@ -63,7 +61,7 @@ func (cpu *CPU) Run() {
 		switch opcode {
 		case nop:
 		case halt:
-			cpu.prefix = use_hl
+			cpu.reg.prefix = use_hl
 			cpu.wait()
 			cpu.halt = true
 			return
@@ -151,8 +149,8 @@ func (cpu *CPU) Run() {
 		case ex_de_hl:
 			cpu.reg.D, cpu.reg.E, cpu.reg.H, cpu.reg.L = cpu.reg.H, cpu.reg.L, cpu.reg.D, cpu.reg.E
 		case ex_sp_hl:
-			h, l := *cpu.reg.getReg(r_H, cpu.prefix), *cpu.reg.getReg(r_L, cpu.prefix)
-			cpu.reg.setHLb(cpu.mem.read(cpu.reg.SP+1), cpu.mem.read(cpu.reg.SP), cpu.prefix)
+			h, l := *cpu.reg.getReg(r_H), *cpu.reg.getReg(r_L)
+			cpu.reg.setHLb(cpu.mem.read(cpu.reg.SP+1), cpu.mem.read(cpu.reg.SP))
 			cpu.mem.write(cpu.reg.SP, l)
 			cpu.mem.write(cpu.reg.SP+1, h)
 		case add_a_n, add_a_a, add_a_b, add_a_c, add_a_d, add_a_e, add_a_h, add_a_l, add_a_hl:
@@ -163,7 +161,7 @@ func (cpu *CPU) Run() {
 			case add_a_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.getReg(opcode&0b00000111, cpu.prefix)
+				n = *cpu.reg.getReg(opcode & 0b00000111)
 			}
 			cpu.reg.F = f_NONE
 			sum := cpu.reg.A + n
@@ -188,7 +186,7 @@ func (cpu *CPU) Run() {
 			case adc_a_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.getR(opcode & 0b00000111)
+				n = *cpu.reg.get[opcode&0b00000111]
 			}
 			cf := cpu.reg.F & f_C
 			cpu.reg.F = f_NONE
@@ -220,7 +218,7 @@ func (cpu *CPU) Run() {
 				nn = cpu.reg.SP
 			}
 			sum := hl + nn
-			cpu.reg.setHLw(sum, cpu.prefix)
+			cpu.reg.setHLw(sum)
 			cpu.reg.F &= ^(f_H | f_N | f_C)
 			if sum < hl {
 				cpu.reg.F |= f_C
@@ -235,7 +233,7 @@ func (cpu *CPU) Run() {
 			case sub_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.getR(opcode & 0b00000111)
+				n = *cpu.reg.get[opcode&0b00000111]
 			}
 			cpu.reg.A -= n
 			cpu.reg.F = f_N
@@ -258,7 +256,7 @@ func (cpu *CPU) Run() {
 			case cp_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.getR(opcode & 0b00000111)
+				n = *cpu.reg.get[opcode&0b00000111]
 			}
 			test := cpu.reg.A - n
 			cpu.reg.F = f_N
@@ -281,7 +279,7 @@ func (cpu *CPU) Run() {
 			case sbc_a_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.getR(opcode & 0b00000111)
+				n = *cpu.reg.get[opcode&0b00000111]
 			}
 			cf := cpu.reg.F & f_C
 			cpu.reg.F = f_N
@@ -307,7 +305,7 @@ func (cpu *CPU) Run() {
 			case and_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.getR(opcode & 0b00000111)
+				n = *cpu.reg.get[opcode&0b00000111]
 			}
 			cpu.reg.F = f_H
 			cpu.reg.A &= n
@@ -324,7 +322,7 @@ func (cpu *CPU) Run() {
 			case or_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.getR(opcode & 0b00000111)
+				n = *cpu.reg.get[opcode&0b00000111]
 			}
 			cpu.reg.F = f_NONE
 			cpu.reg.A |= n
@@ -341,7 +339,7 @@ func (cpu *CPU) Run() {
 			case xor_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.getR(opcode & 0b00000111)
+				n = *cpu.reg.get[opcode&0b00000111]
 			}
 			cpu.reg.F = f_NONE
 			cpu.reg.A ^= n
@@ -351,7 +349,7 @@ func (cpu *CPU) Run() {
 			}
 			cpu.reg.F |= parity[cpu.reg.A]
 		case ld_a_n, ld_b_n, ld_c_n, ld_d_n, ld_e_n, ld_h_n, ld_l_n:
-			r := cpu.reg.getR(opcode & 0b00111000 >> 3)
+			r := cpu.reg.get[opcode&0b00111000>>3]
 			*r = cpu.readByte()
 		case
 			ld_a_a, ld_a_b, ld_a_c, ld_a_d, ld_a_e, ld_a_h, ld_a_l,
@@ -361,28 +359,28 @@ func (cpu *CPU) Run() {
 			ld_e_a, ld_e_b, ld_e_c, ld_e_d, ld_e_e, ld_e_h, ld_e_l,
 			ld_h_a, ld_h_b, ld_h_c, ld_h_d, ld_h_e, ld_h_h, ld_h_l,
 			ld_l_a, ld_l_b, ld_l_c, ld_l_d, ld_l_e, ld_l_h, ld_l_l:
-			rs := cpu.reg.getR(opcode & 0b00000111)
-			rd := cpu.reg.getR(opcode & 0b00111000 >> 3)
+			rs := cpu.reg.get[opcode&0b00000111]
+			rd := cpu.reg.get[opcode&0b00111000>>3]
 			*rd = *rs
 		case ld_bc_nn:
 			cpu.reg.C, cpu.reg.B = cpu.readByte(), cpu.readByte()
 		case ld_de_nn:
 			cpu.reg.E, cpu.reg.D = cpu.readByte(), cpu.readByte()
 		case ld_hl_nn:
-			h, l := cpu.reg.getReg(r_H, cpu.prefix), cpu.reg.getReg(r_L, cpu.prefix)
+			h, l := cpu.reg.getReg(r_H), cpu.reg.getReg(r_L)
 			*l, *h = cpu.readByte(), cpu.readByte()
 		case ld_sp_nn:
 			cpu.reg.SP = cpu.readWord()
 		case ld_sp_hl:
-			cpu.reg.SP = cpu.reg.getHL(cpu.prefix)
+			cpu.reg.SP = cpu.reg.getHL()
 		case ld_hl_mm:
 			addr := cpu.readWord()
-			h, l := cpu.reg.getReg(r_H, cpu.prefix), cpu.reg.getReg(r_L, cpu.prefix)
+			h, l := cpu.reg.getReg(r_H), cpu.reg.getReg(r_L)
 			*l = cpu.mem.read(addr)
 			*h = cpu.mem.read(addr + 1)
 		case ld_mm_hl:
 			w := cpu.readWord()
-			h, l := cpu.reg.getReg(r_H, cpu.prefix), cpu.reg.getReg(r_L, cpu.prefix)
+			h, l := cpu.reg.getReg(r_H), cpu.reg.getReg(r_L)
 			cpu.mem.write(w, *l)
 			cpu.mem.write(w+1, *h)
 		case ld_mhl_n:
@@ -402,12 +400,12 @@ func (cpu *CPU) Run() {
 		case ld_a_de:
 			cpu.reg.A = cpu.mem.read(cpu.reg.getDE())
 		case ld_a_hl, ld_b_hl, ld_c_hl, ld_d_hl, ld_e_hl, ld_h_hl, ld_l_hl:
-			cpu.reg.setReg(opcode&0b00111000>>3, use_hl, cpu.mem.read(cpu.getHL(true)))
+			*cpu.reg.get[opcode&0b00111000>>3] = cpu.mem.read(cpu.getHL(true))
 		case ld_hl_a, ld_hl_b, ld_hl_c, ld_hl_d, ld_hl_e, ld_hl_h, ld_hl_l:
-			cpu.mem.write(cpu.getHL(true), *cpu.reg.getReg(opcode&0b00000111, use_hl))
+			cpu.mem.write(cpu.getHL(true), *cpu.reg.get[opcode&0b00000111])
 		case inc_a, inc_b, inc_c, inc_d, inc_e, inc_h, inc_l:
 			r := opcode & 0b00111000 >> 3
-			n := *cpu.reg.getReg(r, cpu.prefix)
+			n := *cpu.reg.getReg(r)
 			cpu.reg.F &= ^(f_S | f_Z | f_H | f_P | f_N)
 			if n == 0x7F {
 				cpu.reg.F |= f_P
@@ -422,13 +420,13 @@ func (cpu *CPU) Run() {
 			if n == 0 {
 				cpu.reg.F |= f_Z
 			}
-			cpu.reg.setReg(r, cpu.prefix, n)
+			cpu.reg.setReg(r, n)
 		case inc_bc:
 			cpu.reg.setBC(cpu.reg.getBC() + 1)
 		case inc_de:
 			cpu.reg.setDE(cpu.reg.getDE() + 1)
 		case inc_hl:
-			cpu.reg.setHLw(cpu.getHL(true)+1, cpu.prefix)
+			cpu.reg.setHLw(cpu.getHL(true) + 1)
 		case inc_sp:
 			cpu.reg.SP += 1
 		case inc_mhl:
@@ -450,7 +448,7 @@ func (cpu *CPU) Run() {
 			}
 			cpu.mem.write(mm, b)
 		case dec_a, dec_b, dec_c, dec_d, dec_e, dec_h, dec_l:
-			r := cpu.reg.getR(opcode & 0b00111000 >> 3)
+			r := cpu.reg.get[opcode&0b00111000>>3]
 			cpu.reg.F = cpu.reg.F & ^(f_S|f_Z|f_H|f_P) | f_N
 			if *r == 0x80 {
 				cpu.reg.F |= f_P
@@ -470,7 +468,7 @@ func (cpu *CPU) Run() {
 		case dec_de:
 			cpu.reg.setDE(cpu.reg.getDE() - 1)
 		case dec_hl:
-			cpu.reg.setHLw(cpu.reg.getHL(cpu.prefix)-1, cpu.prefix)
+			cpu.reg.setHLw(cpu.reg.getHL() - 1)
 		case dec_sp:
 			cpu.reg.SP -= 1
 		case dec_mhl:
@@ -557,7 +555,7 @@ func (cpu *CPU) Run() {
 				cpu.PC = cpu.readWord()
 			}
 		case jp_hl:
-			cpu.PC = cpu.reg.getHL(cpu.prefix)
+			cpu.PC = cpu.reg.getHL()
 		case call_nn, call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
 			if cpu.shouldJump(opcode) {
 				pc := cpu.readWord()
@@ -629,22 +627,22 @@ func (cpu *CPU) Run() {
 		case prefix_ed:
 			cpu.prefixED(cpu.readByte())
 		case use_ix:
-			if cpu.prefix == use_ix || cpu.prefix == use_iy || cpu.prefix == prefix_ed {
+			if cpu.reg.prefix == use_ix || cpu.reg.prefix == use_iy || cpu.reg.prefix == prefix_ed {
 				cpu.t += t_states[nop]
 			} else {
-				cpu.prefix = use_ix
+				cpu.reg.prefix = use_ix
 				continue
 			}
 		case use_iy:
-			if cpu.prefix == use_ix || cpu.prefix == use_iy || cpu.prefix == prefix_ed {
+			if cpu.reg.prefix == use_ix || cpu.reg.prefix == use_iy || cpu.reg.prefix == prefix_ed {
 				cpu.t += t_states[nop]
 			} else {
-				cpu.prefix = use_iy
+				cpu.reg.prefix = use_iy
 				continue
 			}
 		}
 
-		cpu.prefix = use_hl // reset IX or IY prefix back to HL
+		cpu.reg.prefix = use_hl // reset IX or IY prefix back to HL
 		cpu.wait()
 	}
 }
@@ -656,11 +654,11 @@ func (cpu *CPU) prefixCB(opcode byte) {
 
 	reg := opcode & 0b00000111
 	if reg == r_HL {
-		hl = cpu.reg.getHL(use_hl)
+		hl = cpu.reg.getHL()
 		v = cpu.mem.read(hl)
 		cpu.t += 15 // the only exception is bit operation that takes 12 t-states
 	} else {
-		v = *cpu.reg.regs8[reg]
+		v = *cpu.reg.get[reg]
 		cpu.t += 8
 	}
 
@@ -669,7 +667,7 @@ func (cpu *CPU) prefixCB(opcode byte) {
 		if reg == r_HL {
 			cpu.mem.write(hl, v)
 		} else {
-			*cpu.reg.regs8[reg] = v
+			*cpu.reg.get[reg] = v
 		}
 		cpu.reg.F = f_NONE
 		cpu.reg.F |= f_S & v
@@ -843,8 +841,8 @@ func (cpu *CPU) shouldJump(opcode byte) bool {
 // determines whether to use IX or IY register instead of HL.
 // Offset argument specifies whether IX / IY should include offset.
 func (cpu *CPU) getHL(offset bool) word {
-	hl := cpu.reg.getHL(cpu.prefix)
-	if offset && (cpu.prefix == use_ix || cpu.prefix == use_iy) {
+	hl := cpu.reg.getHL()
+	if offset && (cpu.reg.prefix == use_ix || cpu.reg.prefix == use_iy) {
 		o := cpu.readByte()
 		if o&0x80 == 0 {
 			return hl + word(o)

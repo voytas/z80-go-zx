@@ -9,13 +9,13 @@ import (
 func Test_getR(t *testing.T) {
 	r := newRegisters()
 	r.A, r.B, r.C, r.D, r.E, r.H, r.L = 1, 2, 3, 4, 5, 6, 7
-	assert.Equal(t, &r.A, r.getR(r_A))
-	assert.Equal(t, &r.B, r.getR(r_B))
-	assert.Equal(t, &r.C, r.getR(r_C))
-	assert.Equal(t, &r.D, r.getR(r_D))
-	assert.Equal(t, &r.E, r.getR(r_E))
-	assert.Equal(t, &r.H, r.getR(r_H))
-	assert.Equal(t, &r.L, r.getR(r_L))
+	assert.Equal(t, &r.A, r.get[r_A])
+	assert.Equal(t, &r.B, r.get[r_B])
+	assert.Equal(t, &r.C, r.get[r_C])
+	assert.Equal(t, &r.D, r.get[r_D])
+	assert.Equal(t, &r.E, r.get[r_E])
+	assert.Equal(t, &r.H, r.get[r_H])
+	assert.Equal(t, &r.L, r.get[r_L])
 }
 
 func Test_getRR(t *testing.T) {
@@ -24,14 +24,14 @@ func Test_getRR(t *testing.T) {
 
 	assert.Equal(t, word(0x0203), r.getBC())
 	assert.Equal(t, word(0x0405), r.getDE())
-	assert.Equal(t, word(0x0607), r.getHL(use_hl))
+	assert.Equal(t, word(0x0607), r.getHL())
 }
 
 func Test_setRR(t *testing.T) {
 	r := newRegisters()
 	r.setBC(0x1122)
 	r.setDE(0x3344)
-	r.setHLw(0x5566, use_hl)
+	r.setHLw(0x5566)
 
 	assert.Equal(t, byte(0x11), r.B)
 	assert.Equal(t, byte(0x22), r.C)
@@ -49,7 +49,8 @@ func Test_getReg(t *testing.T) {
 
 	for _, prefix := range []byte{use_hl, use_ix, use_iy} {
 		for _, reg := range []byte{r_A, r_B, r_C, r_D, r_E, r_H, r_L} {
-			result := *r.getReg(reg, prefix)
+			r.prefix = prefix
+			result := *r.getReg(reg)
 			switch reg {
 			case r_A:
 				assert.Equal(t, r.A, result)
@@ -82,8 +83,6 @@ func Test_getReg(t *testing.T) {
 			}
 		}
 	}
-
-	assert.Panics(t, func() { r.getReg(0x0F, use_hl) })
 }
 
 func Test_setReg(t *testing.T) {
@@ -91,7 +90,8 @@ func Test_setReg(t *testing.T) {
 		for _, reg := range []byte{r_A, r_B, r_C, r_D, r_E, r_H, r_L} {
 			var val byte = 0x76
 			r := newRegisters()
-			r.setReg(reg, prefix, val)
+			r.prefix = prefix
+			r.setReg(reg, val)
 
 			switch reg {
 			case r_A:

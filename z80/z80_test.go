@@ -488,7 +488,7 @@ func Test_INC_RR(t *testing.T) {
 
 	assert.Equal(t, word(0x1235), cpu.reg.getBC())
 	assert.Equal(t, word(0x1336), cpu.reg.getDE())
-	assert.Equal(t, word(0x1437), cpu.reg.getHL(use_hl))
+	assert.Equal(t, word(0x1437), cpu.reg.getHL())
 	assert.Equal(t, word(0x1538), cpu.reg.SP)
 }
 
@@ -556,7 +556,7 @@ func Test_DEC_RR(t *testing.T) {
 
 	assert.Equal(t, word(0x1233), cpu.reg.getBC())
 	assert.Equal(t, word(0x1334), cpu.reg.getDE())
-	assert.Equal(t, word(0x1435), cpu.reg.getHL(use_hl))
+	assert.Equal(t, word(0x1435), cpu.reg.getHL())
 	assert.Equal(t, word(0x1536), cpu.reg.SP)
 }
 
@@ -1565,7 +1565,7 @@ func Test_getHL(t *testing.T) {
 	cpu := NewCPU(mem)
 	cpu.Run()
 
-	result := cpu.reg.getHL(use_hl)
+	result := cpu.reg.getHL()
 	assert.Equal(t, word(0x0201), result)
 
 	for _, prefix := range []byte{use_ix, use_iy} {
