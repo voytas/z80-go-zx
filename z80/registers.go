@@ -10,10 +10,10 @@ const (
 	r_HL = 0b110
 	r_A  = 0b111
 
-	r_IXh = use_ix - r_H
-	r_IXl = use_ix - r_L
-	r_IYh = use_iy - r_H
-	r_IYl = use_iy - r_L
+	r_IXh = useIX - r_H
+	r_IXl = useIX - r_L
+	r_IYh = useIY - r_H
+	r_IYl = useIY - r_L
 )
 
 // The Flag registers, F and F', supply information to the user about the status of the Z80
@@ -54,20 +54,20 @@ type registers struct {
 func newRegisters() *registers {
 	r := &registers{}
 	r.prefixed = map[byte]map[byte]*byte{
-		use_hl: {
+		useHL: {
 			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
 			r_E: &r.E, r_H: &r.H, r_L: &r.L,
 		},
-		use_ix: {
+		useIX: {
 			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
 			r_E: &r.E, r_H: &r.IX[0], r_L: &r.IX[1],
 		},
-		use_iy: {
+		useIY: {
 			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
 			r_E: &r.E, r_H: &r.IY[0], r_L: &r.IY[1],
 		},
 	}
-	r.get = r.prefixed[use_hl]
+	r.get = r.prefixed[useHL]
 
 	return r
 }
@@ -98,9 +98,9 @@ func (r *registers) setDE(nn word) {
 
 func (r *registers) getHL() word {
 	switch r.prefix {
-	case use_ix:
+	case useIX:
 		return word(r.IX[0])<<8 | word(r.IX[1])
-	case use_iy:
+	case useIY:
 		return word(r.IY[0])<<8 | word(r.IY[1])
 	default:
 		return word(r.H)<<8 | word(r.L)
@@ -110,9 +110,9 @@ func (r *registers) getHL() word {
 func (r *registers) setHLw(value word) {
 	h, l := byte(value>>8), byte(value)
 	switch r.prefix {
-	case use_ix:
+	case useIX:
 		r.IX[0], r.IX[1] = h, l
-	case use_iy:
+	case useIY:
 		r.IY[0], r.IY[1] = h, l
 	default:
 		r.H, r.L = h, l
@@ -121,9 +121,9 @@ func (r *registers) setHLw(value word) {
 
 func (r *registers) setHLb(h, l byte) {
 	switch r.prefix {
-	case use_ix:
+	case useIX:
 		r.IX[0], r.IX[1] = h, l
-	case use_iy:
+	case useIY:
 		r.IY[0], r.IY[1] = h, l
 	default:
 		r.H, r.L = h, l

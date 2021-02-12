@@ -47,7 +47,7 @@ func Test_getReg(t *testing.T) {
 	r.IX[0], r.IX[1] = 0x09, 0x0A
 	r.IY[0], r.IY[1] = 0x0B, 0x0C
 
-	for _, prefix := range []byte{use_hl, use_ix, use_iy} {
+	for _, prefix := range []byte{useHL, useIX, useIY} {
 		for _, reg := range []byte{r_A, r_B, r_C, r_D, r_E, r_H, r_L} {
 			r.prefix = prefix
 			result := *r.getReg(reg)
@@ -64,18 +64,18 @@ func Test_getReg(t *testing.T) {
 				assert.Equal(t, r.E, result)
 			case r_H:
 				switch prefix {
-				case use_ix:
+				case useIX:
 					assert.Equal(t, r.IX[0], result)
-				case use_iy:
+				case useIY:
 					assert.Equal(t, r.IY[0], result)
 				default:
 					assert.Equal(t, r.H, result)
 				}
 			case r_L:
 				switch prefix {
-				case use_ix:
+				case useIX:
 					assert.Equal(t, r.IX[1], result)
-				case use_iy:
+				case useIY:
 					assert.Equal(t, r.IY[1], result)
 				default:
 					assert.Equal(t, r.L, result)
@@ -86,7 +86,7 @@ func Test_getReg(t *testing.T) {
 }
 
 func Test_setReg(t *testing.T) {
-	for _, prefix := range []byte{use_hl, use_ix, use_iy} {
+	for _, prefix := range []byte{useHL, useIX, useIY} {
 		for _, reg := range []byte{r_A, r_B, r_C, r_D, r_E, r_H, r_L} {
 			var val byte = 0x76
 			r := newRegisters()
@@ -106,18 +106,18 @@ func Test_setReg(t *testing.T) {
 				assert.Equal(t, val, r.E)
 			case r_H:
 				switch prefix {
-				case use_ix:
+				case useIX:
 					assert.Equal(t, val, r.IX[0])
-				case use_iy:
+				case useIY:
 					assert.Equal(t, val, r.IY[0])
 				default:
 					assert.Equal(t, val, r.H)
 				}
 			case r_L:
 				switch prefix {
-				case use_ix:
+				case useIX:
 					assert.Equal(t, val, r.IX[1])
-				case use_iy:
+				case useIY:
 					assert.Equal(t, val, r.IY[1])
 				default:
 					assert.Equal(t, val, r.L)

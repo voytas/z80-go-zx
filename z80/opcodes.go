@@ -1,7 +1,7 @@
 package z80
 
 const (
-	use_hl byte = 0
+	useHL byte = 0
 )
 
 // Primary opcodes
@@ -62,7 +62,7 @@ const (
 	dec_mhl    byte = 0x35 // dec (hl)
 	ld_mhl_n   byte = 0x36 // ld (hl),n
 	scf        byte = 0x37 // scf
-	jr_c       byte = 0x38 // jr c, o
+	jr_c       byte = 0x38 // jr c,o
 	add_hl_sp  byte = 0x39 // add hl,sp
 	ld_a_mm    byte = 0x3A // ld a,(nn)
 	dec_sp     byte = 0x3B // dec sp
@@ -227,7 +227,7 @@ const (
 	jp_c_nn    byte = 0xDA // jp c,nn
 	in_a_n     byte = 0xDB // in a,(n)
 	call_c_nn  byte = 0xDC // call c,nn
-	use_ix     byte = 0xDD // IX instruction
+	useIX      byte = 0xDD // IX instruction
 	sbc_a_n    byte = 0xDE // sbc a,n
 	rst_18h    byte = 0xDF // rst 18h
 	ret_po     byte = 0xE0 // ret po
@@ -259,7 +259,7 @@ const (
 	jp_m_nn    byte = 0xFA // jp m,nn
 	ei         byte = 0xFB // ei
 	call_m_nn  byte = 0xFC // call m,nn
-	use_iy     byte = 0xFD // IY instruction
+	useIY      byte = 0xFD // IY instruction
 	cp_n       byte = 0xFE // cp n
 	rst_38h    byte = 0xFF // rst 38h
 )

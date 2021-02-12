@@ -47,7 +47,7 @@ func (cpu *CPU) Run() {
 	for {
 		opcode := cpu.readByte()
 
-		if cpu.reg.prefix == use_ix || cpu.reg.prefix == use_iy {
+		if cpu.reg.prefix == useIX || cpu.reg.prefix == useIY {
 			t, ok := t_states_ixy[opcode]
 			if ok {
 				cpu.t = t
@@ -61,7 +61,7 @@ func (cpu *CPU) Run() {
 		switch opcode {
 		case nop:
 		case halt:
-			cpu.reg.prefix = use_hl
+			cpu.reg.prefix = useHL
 			cpu.wait()
 			cpu.halt = true
 			return
@@ -186,7 +186,7 @@ func (cpu *CPU) Run() {
 			case adc_a_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.get[opcode&0b00000111]
+				n = *cpu.reg.getReg(opcode & 0b00000111)
 			}
 			cf := cpu.reg.F & f_C
 			cpu.reg.F = f_NONE
@@ -349,7 +349,7 @@ func (cpu *CPU) Run() {
 			}
 			cpu.reg.F |= parity[cpu.reg.A]
 		case ld_a_n, ld_b_n, ld_c_n, ld_d_n, ld_e_n, ld_h_n, ld_l_n:
-			r := cpu.reg.get[opcode&0b00111000>>3]
+			r := cpu.reg.getReg(opcode & 0b00111000 >> 3)
 			*r = cpu.readByte()
 		case
 			ld_a_a, ld_a_b, ld_a_c, ld_a_d, ld_a_e, ld_a_h, ld_a_l,
@@ -359,8 +359,8 @@ func (cpu *CPU) Run() {
 			ld_e_a, ld_e_b, ld_e_c, ld_e_d, ld_e_e, ld_e_h, ld_e_l,
 			ld_h_a, ld_h_b, ld_h_c, ld_h_d, ld_h_e, ld_h_h, ld_h_l,
 			ld_l_a, ld_l_b, ld_l_c, ld_l_d, ld_l_e, ld_l_h, ld_l_l:
-			rs := cpu.reg.get[opcode&0b00000111]
-			rd := cpu.reg.get[opcode&0b00111000>>3]
+			rs := cpu.reg.getReg(opcode & 0b00000111)
+			rd := cpu.reg.getReg(opcode & 0b00111000 >> 3)
 			*rd = *rs
 		case ld_bc_nn:
 			cpu.reg.C, cpu.reg.B = cpu.readByte(), cpu.readByte()
@@ -404,29 +404,27 @@ func (cpu *CPU) Run() {
 		case ld_hl_a, ld_hl_b, ld_hl_c, ld_hl_d, ld_hl_e, ld_hl_h, ld_hl_l:
 			cpu.mem.write(cpu.getHL(true), *cpu.reg.get[opcode&0b00000111])
 		case inc_a, inc_b, inc_c, inc_d, inc_e, inc_h, inc_l:
-			r := opcode & 0b00111000 >> 3
-			n := *cpu.reg.getReg(r)
+			r := cpu.reg.getReg(opcode & 0b00111000 >> 3)
 			cpu.reg.F &= ^(f_S | f_Z | f_H | f_P | f_N)
-			if n == 0x7F {
+			if *r == 0x7F {
 				cpu.reg.F |= f_P
 			}
-			if n&0x0F == 0x0F {
+			if *r&0x0F == 0x0F {
 				cpu.reg.F |= f_H
 			}
-			n += 1
-			if n > 0x7F {
+			*r += 1
+			if *r > 0x7F {
 				cpu.reg.F |= f_S
 			}
-			if n == 0 {
+			if *r == 0 {
 				cpu.reg.F |= f_Z
 			}
-			cpu.reg.setReg(r, n)
 		case inc_bc:
 			cpu.reg.setBC(cpu.reg.getBC() + 1)
 		case inc_de:
 			cpu.reg.setDE(cpu.reg.getDE() + 1)
 		case inc_hl:
-			cpu.reg.setHLw(cpu.getHL(true) + 1)
+			cpu.reg.setHLw(cpu.reg.getHL() + 1)
 		case inc_sp:
 			cpu.reg.SP += 1
 		case inc_mhl:
@@ -448,7 +446,7 @@ func (cpu *CPU) Run() {
 			}
 			cpu.mem.write(mm, b)
 		case dec_a, dec_b, dec_c, dec_d, dec_e, dec_h, dec_l:
-			r := cpu.reg.get[opcode&0b00111000>>3]
+			r := cpu.reg.getReg(opcode & 0b00111000 >> 3)
 			cpu.reg.F = cpu.reg.F & ^(f_S|f_Z|f_H|f_P) | f_N
 			if *r == 0x80 {
 				cpu.reg.F |= f_P
@@ -626,23 +624,23 @@ func (cpu *CPU) Run() {
 			cpu.prefixCB(cpu.readByte())
 		case prefix_ed:
 			cpu.prefixED(cpu.readByte())
-		case use_ix:
-			if cpu.reg.prefix == use_ix || cpu.reg.prefix == use_iy || cpu.reg.prefix == prefix_ed {
+		case useIX:
+			if cpu.reg.prefix == useIX || cpu.reg.prefix == useIY || cpu.reg.prefix == prefix_ed {
 				cpu.t += t_states[nop]
 			} else {
-				cpu.reg.prefix = use_ix
+				cpu.reg.prefix = useIX
 				continue
 			}
-		case use_iy:
-			if cpu.reg.prefix == use_ix || cpu.reg.prefix == use_iy || cpu.reg.prefix == prefix_ed {
+		case useIY:
+			if cpu.reg.prefix == useIX || cpu.reg.prefix == useIY || cpu.reg.prefix == prefix_ed {
 				cpu.t += t_states[nop]
 			} else {
-				cpu.reg.prefix = use_iy
+				cpu.reg.prefix = useIY
 				continue
 			}
 		}
 
-		cpu.reg.prefix = use_hl // reset IX or IY prefix back to HL
+		cpu.reg.prefix = useHL // reset IX or IY prefix back to HL
 		cpu.wait()
 	}
 }
@@ -842,7 +840,7 @@ func (cpu *CPU) shouldJump(opcode byte) bool {
 // Offset argument specifies whether IX / IY should include offset.
 func (cpu *CPU) getHL(offset bool) word {
 	hl := cpu.reg.getHL()
-	if offset && (cpu.reg.prefix == use_ix || cpu.reg.prefix == use_iy) {
+	if offset && (cpu.reg.prefix == useIX || cpu.reg.prefix == useIY) {
 		o := cpu.readByte()
 		if o&0x80 == 0 {
 			return hl + word(o)
