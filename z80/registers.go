@@ -9,11 +9,6 @@ const (
 	r_L  = 0b101
 	r_HL = 0b110
 	r_A  = 0b111
-
-	r_IXh = useIX - r_H
-	r_IXl = useIX - r_L
-	r_IYh = useIY - r_H
-	r_IYl = useIY - r_L
 )
 
 // The Flag registers, F and F', supply information to the user about the status of the Z80
