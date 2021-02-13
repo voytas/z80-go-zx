@@ -98,9 +98,7 @@ func Test_EX_SP_HL(t *testing.T) {
 	assert.Equal(t, byte(0x11), cpu.reg.L)
 	assert.Equal(t, byte(0x12), cpu.mem.read(8))
 	assert.Equal(t, byte(0x70), cpu.mem.read(9))
-}
 
-func Test_EX_SP_IXY(t *testing.T) {
 	for _, prefix := range []byte{useIX, useIY} {
 		mem := &BasicMemory{cells: []byte{prefix, ld_hl_nn, 0x12, 0x70, ld_sp_nn, 0x0A, 0x00, prefix, ex_sp_hl, halt, 0x11, 0x22}}
 		cpu := NewCPU(mem)
@@ -331,6 +329,13 @@ func Test_SUB_x(t *testing.T) {
 	assert.Equal(t, f_S|f_P|f_N|f_C, cpu.reg.F)
 
 	for _, prefix := range []byte{useIX, useIY} {
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x12, prefix, ld_h_n, 0x02, prefix, sub_h, halt}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0x10), cpu.reg.A)
+		assert.Equal(t, f_N, cpu.reg.F)
+
 		mem = &BasicMemory{cells: []byte{ld_a_n, 0x12, prefix, sub_hl, 0x06, halt, 0x01}}
 		cpu = NewCPU(mem)
 		cpu.Run()
@@ -370,6 +375,22 @@ func Test_CP_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x7F), cpu.reg.A)
 	assert.Equal(t, f_S|f_P|f_N|f_C, cpu.reg.F)
+
+	for _, prefix := range []byte{useIX, useIY} {
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x7F, prefix, ld_h_n, 0x80, prefix, cp_h, halt}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0x7F), cpu.reg.A)
+		assert.Equal(t, f_S|f_P|f_N|f_C, cpu.reg.F)
+
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x7F, prefix, cp_hl, 0x06, halt, 0x80}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0x7F), cpu.reg.A)
+		assert.Equal(t, f_S|f_P|f_N|f_C, cpu.reg.F)
+	}
 }
 
 func Test_SBC_x(t *testing.T) {
@@ -406,6 +427,14 @@ func Test_SBC_x(t *testing.T) {
 	assert.Equal(t, f_H|f_P|f_N, cpu.reg.F)
 
 	for _, prefix := range []byte{useIX, useIY} {
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x12, prefix, ld_h_n, 0x02, prefix, sbc_a_h, halt}}
+		cpu = NewCPU(mem)
+		cpu.reg.F = f_C
+		cpu.Run()
+
+		assert.Equal(t, byte(0x0F), cpu.reg.A)
+		assert.Equal(t, f_H|f_N, cpu.reg.F)
+
 		mem = &BasicMemory{cells: []byte{ld_a_n, 0x12, prefix, sbc_a_hl, 0x06, halt, 0x01}}
 		cpu = NewCPU(mem)
 		cpu.reg.F = f_C
@@ -438,6 +467,22 @@ func Test_AND_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x81), cpu.reg.A)
 	assert.Equal(t, f_S|f_H|f_P, cpu.reg.F)
+
+	for _, prefix := range []byte{useIX, useIY} {
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x01, prefix, ld_l_n, 0x03, prefix, and_l, halt}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0x01), cpu.reg.A)
+		assert.Equal(t, f_H, cpu.reg.F)
+
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x88, prefix, and_hl, 0x06, halt, 0x08}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0x08), cpu.reg.A)
+		assert.Equal(t, f_H, cpu.reg.F)
+	}
 }
 
 func Test_OR_x(t *testing.T) {
@@ -464,6 +509,22 @@ func Test_OR_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x31), cpu.reg.A)
 	assert.Equal(t, f_NONE, cpu.reg.F)
+
+	for _, prefix := range []byte{useIX, useIY} {
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x01, prefix, ld_l_n, 0x12, prefix, or_l, halt}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0x13), cpu.reg.A)
+		assert.Equal(t, f_NONE, cpu.reg.F)
+
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x80, prefix, or_hl, 0x06, halt, 0x08}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0x88), cpu.reg.A)
+		assert.Equal(t, f_S|f_P, cpu.reg.F)
+	}
 }
 
 func Test_XOR_x(t *testing.T) {
@@ -488,6 +549,22 @@ func Test_XOR_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x10), cpu.reg.A)
 	assert.Equal(t, f_NONE, cpu.reg.F)
+
+	for _, prefix := range []byte{useIX, useIY} {
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x01, prefix, ld_l_n, 0x03, prefix, xor_l, halt}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0x02), cpu.reg.A)
+		assert.Equal(t, f_NONE, cpu.reg.F)
+
+		mem = &BasicMemory{cells: []byte{ld_a_n, 0x88, prefix, xor_hl, 0x06, halt, 0x08}}
+		cpu = NewCPU(mem)
+		cpu.Run()
+
+		assert.Equal(t, byte(0x80), cpu.reg.A)
+		assert.Equal(t, f_S, cpu.reg.F)
+	}
 }
 
 func Test_INC_R(t *testing.T) {
@@ -1344,28 +1421,33 @@ func Test_RST_xx(t *testing.T) {
 
 func Test_PUSH_rr(t *testing.T) {
 	mem := &BasicMemory{
-		cells: []byte{ld_sp_nn, 0x1B, 0x00, ld_a_n, 0x98,
+		cells: []byte{ld_sp_nn, 0x23, 0x00, ld_a_n, 0x98,
 			ld_bc_nn, 0x34, 0x12, ld_de_nn, 0x35, 0x13, ld_hl_nn, 0x36, 0x14,
-			push_af, push_bc, push_de, push_hl, halt,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+			push_af, push_bc, push_de, push_hl, useIX, push_hl, useIY, push_hl, halt,
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 	}
 	cpu := NewCPU(mem)
 	cpu.reg.F = f_S | f_C
 	cpu.Run()
 
-	assert.Equal(t, cpu.mem.read(26), cpu.reg.A)
-	assert.Equal(t, cpu.mem.read(25), cpu.reg.F)
-	assert.Equal(t, cpu.mem.read(24), cpu.reg.B)
-	assert.Equal(t, cpu.mem.read(23), cpu.reg.C)
-	assert.Equal(t, cpu.mem.read(22), cpu.reg.D)
-	assert.Equal(t, cpu.mem.read(21), cpu.reg.E)
-	assert.Equal(t, cpu.mem.read(20), cpu.reg.H)
-	assert.Equal(t, cpu.mem.read(19), cpu.reg.L)
+	assert.Equal(t, cpu.mem.read(34), cpu.reg.A)
+	assert.Equal(t, cpu.mem.read(33), cpu.reg.F)
+	assert.Equal(t, cpu.mem.read(32), cpu.reg.B)
+	assert.Equal(t, cpu.mem.read(31), cpu.reg.C)
+	assert.Equal(t, cpu.mem.read(30), cpu.reg.D)
+	assert.Equal(t, cpu.mem.read(29), cpu.reg.E)
+	assert.Equal(t, cpu.mem.read(28), cpu.reg.H)
+	assert.Equal(t, cpu.mem.read(27), cpu.reg.L)
+	assert.Equal(t, cpu.mem.read(26), cpu.reg.IX[0])
+	assert.Equal(t, cpu.mem.read(25), cpu.reg.IX[1])
+	assert.Equal(t, cpu.mem.read(24), cpu.reg.IY[0])
+	assert.Equal(t, cpu.mem.read(23), cpu.reg.IY[1])
 }
 
 func Test_POP_rr(t *testing.T) {
 	mem := &BasicMemory{
-		cells: []byte{ld_sp_nn, 0x08, 0x00, pop_af, pop_bc, pop_de, pop_hl, halt, 0x43, 0x21, 0x44, 0x22, 0x45, 0x23, 0x46, 0x24},
+		cells: []byte{ld_sp_nn, 0x0C, 0x00, pop_af, pop_bc, pop_de, pop_hl, useIX, pop_hl, useIY, pop_hl, halt,
+			0x43, 0x21, 0x44, 0x22, 0x45, 0x23, 0x46, 0x24, 0x47, 0x25, 0x48, 0x26},
 	}
 	cpu := NewCPU(mem)
 	cpu.Run()
@@ -1378,7 +1460,11 @@ func Test_POP_rr(t *testing.T) {
 	assert.Equal(t, byte(0x45), cpu.reg.E)
 	assert.Equal(t, byte(0x24), cpu.reg.H)
 	assert.Equal(t, byte(0x46), cpu.reg.L)
-	assert.Equal(t, word(0x10), cpu.reg.SP)
+	assert.Equal(t, byte(0x25), cpu.reg.IX[0])
+	assert.Equal(t, byte(0x47), cpu.reg.IX[1])
+	assert.Equal(t, byte(0x26), cpu.reg.IY[0])
+	assert.Equal(t, byte(0x48), cpu.reg.IY[1])
+	assert.Equal(t, word(0x18), cpu.reg.SP)
 }
 
 func Test_IN_A_n(t *testing.T) {

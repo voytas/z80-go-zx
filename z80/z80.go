@@ -52,7 +52,7 @@ func (cpu *CPU) Run() {
 			if ok {
 				cpu.t = t
 			} else {
-				cpu.t = 4
+				cpu.t = 4 + t_states[opcode]
 			}
 		} else {
 			cpu.t = t_states[opcode]
@@ -233,7 +233,7 @@ func (cpu *CPU) Run() {
 			case sub_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.get[opcode&0b00000111]
+				n = *cpu.reg.getReg(opcode & 0b00000111)
 			}
 			cpu.reg.A -= n
 			cpu.reg.F = f_N
@@ -256,7 +256,7 @@ func (cpu *CPU) Run() {
 			case cp_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.get[opcode&0b00000111]
+				n = *cpu.reg.getReg(opcode & 0b00000111)
 			}
 			test := cpu.reg.A - n
 			cpu.reg.F = f_N
@@ -279,7 +279,7 @@ func (cpu *CPU) Run() {
 			case sbc_a_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.get[opcode&0b00000111]
+				n = *cpu.reg.getReg(opcode & 0b00000111)
 			}
 			cf := cpu.reg.F & f_C
 			cpu.reg.F = f_N
@@ -305,7 +305,7 @@ func (cpu *CPU) Run() {
 			case and_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.get[opcode&0b00000111]
+				n = *cpu.reg.getReg(opcode & 0b00000111)
 			}
 			cpu.reg.F = f_H
 			cpu.reg.A &= n
@@ -322,7 +322,7 @@ func (cpu *CPU) Run() {
 			case or_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.get[opcode&0b00000111]
+				n = *cpu.reg.getReg(opcode & 0b00000111)
 			}
 			cpu.reg.F = f_NONE
 			cpu.reg.A |= n
@@ -339,7 +339,7 @@ func (cpu *CPU) Run() {
 			case xor_hl:
 				n = cpu.mem.read(cpu.getHL(true))
 			default:
-				n = *cpu.reg.get[opcode&0b00000111]
+				n = *cpu.reg.getReg(opcode & 0b00000111)
 			}
 			cpu.reg.F = f_NONE
 			cpu.reg.A ^= n
@@ -598,9 +598,9 @@ func (cpu *CPU) Run() {
 			cpu.mem.write(cpu.reg.SP, cpu.reg.E)
 		case push_hl:
 			cpu.reg.SP -= 1
-			cpu.mem.write(cpu.reg.SP, cpu.reg.H)
+			cpu.mem.write(cpu.reg.SP, *cpu.reg.getReg(r_H))
 			cpu.reg.SP -= 1
-			cpu.mem.write(cpu.reg.SP, cpu.reg.L)
+			cpu.mem.write(cpu.reg.SP, *cpu.reg.getReg(r_L))
 		case pop_af:
 			cpu.reg.A, cpu.reg.F = cpu.mem.read(cpu.reg.SP+1), cpu.mem.read(cpu.reg.SP)
 			cpu.reg.SP += 2
@@ -611,7 +611,7 @@ func (cpu *CPU) Run() {
 			cpu.reg.D, cpu.reg.E = cpu.mem.read(cpu.reg.SP+1), cpu.mem.read(cpu.reg.SP)
 			cpu.reg.SP += 2
 		case pop_hl:
-			cpu.reg.H, cpu.reg.L = cpu.mem.read(cpu.reg.SP+1), cpu.mem.read(cpu.reg.SP)
+			*cpu.reg.getReg(r_H), *cpu.reg.getReg(r_L) = cpu.mem.read(cpu.reg.SP+1), cpu.mem.read(cpu.reg.SP)
 			cpu.reg.SP += 2
 		case in_a_n:
 			n := cpu.readByte()
