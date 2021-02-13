@@ -9,6 +9,7 @@ type word uint16
 type CPU struct {
 	PC               word
 	IN               func(a, n byte) byte
+	OUT              func(a, n byte)
 	mem              Memory
 	reg              *registers
 	t                byte
@@ -619,7 +620,10 @@ func (cpu *CPU) Run() {
 				cpu.reg.A = cpu.IN(cpu.reg.A, n)
 			}
 		case out_n_a:
-			// TODO:
+			n := cpu.readByte()
+			if cpu.OUT != nil {
+				cpu.OUT(cpu.reg.A, n)
+			}
 		case prefix_cb:
 			cpu.prefixCB(cpu.readByte())
 		case prefix_ed:

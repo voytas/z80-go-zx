@@ -1487,6 +1487,18 @@ func Test_IN_A_n(t *testing.T) {
 	assert.Equal(t, byte(0xA5), cpu.reg.A)
 }
 
+func Test_OUT_n_A(t *testing.T) {
+	mem := &BasicMemory{
+		cells: []byte{ld_a_n, 0x23, out_n_a, 0x01, halt},
+	}
+	cpu := NewCPU(mem)
+	cpu.OUT = func(a, n byte) {
+		assert.Equal(t, byte(0x23), a)
+		assert.Equal(t, byte(0x01), n)
+	}
+	cpu.Run()
+}
+
 func Test_RLC_r(t *testing.T) {
 	mem := &BasicMemory{cells: []byte{ld_e_n, 0x55, prefix_cb, rlc_r | r_E, halt}}
 	cpu := NewCPU(mem)
