@@ -41,14 +41,14 @@ type registers struct {
 	SP     word
 	I, R   byte
 	// Helper register index
-	get      map[byte]*byte
-	prefixed map[byte]map[byte]*byte
+	get      []*byte
+	prefixed map[byte][]*byte
 	prefix   byte
 }
 
 func newRegisters() *registers {
 	r := &registers{}
-	r.prefixed = map[byte]map[byte]*byte{
+	r.prefixed = map[byte][]*byte{
 		useHL: {
 			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
 			r_E: &r.E, r_H: &r.H, r_L: &r.L,

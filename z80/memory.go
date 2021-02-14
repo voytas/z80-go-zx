@@ -1,10 +1,12 @@
 package z80
 
+import "log"
+
 // Memory provides required methods for the emulated memory implementation
 type Memory interface {
-	// Read memory at the specified address
+	// read memory at the specified address
 	read(addr word) byte
-	// Write memory at the specified address
+	// write memory at the specified address
 	write(addr word, value byte)
 }
 
@@ -27,4 +29,12 @@ func (m *BasicMemory) write(addr word, value byte) {
 	if addr >= m.ramStart && addr < word(len(m.cells)) {
 		m.cells[addr] = value
 	}
+}
+
+func (m *BasicMemory) Configure(cells []byte, ramStart int) {
+	if len(cells) > 65536 {
+		log.Fatal("Total memory size cannot exceed 65536 byte")
+	}
+	m.cells = cells
+	m.ramStart = word(ramStart)
 }

@@ -552,6 +552,8 @@ func (cpu *CPU) Run() {
 		case jp_c_nn, jp_m_nn, jp_nc_nn, jp_nz_nn, jp_p_nn, jp_pe_nn, jp_po_nn, jp_z_nn:
 			if cpu.shouldJump(opcode) {
 				cpu.PC = cpu.readWord()
+			} else {
+				cpu.PC += 2
 			}
 		case jp_hl:
 			cpu.PC = cpu.reg.getHL()
@@ -717,7 +719,7 @@ func (cpu *CPU) prefixCB(opcode byte) {
 		switch opcode & 0b11000000 {
 		case bit_b:
 			if reg == r_HL {
-				cpu.t -= 3 // for bit operation it is 12 t-states
+				cpu.t -= 3 // for bit operation it is 12 t-states, not usual 15
 			}
 			cpu.reg.F &= ^(f_Z | f_N)
 			cpu.reg.F |= f_H
