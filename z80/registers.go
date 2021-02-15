@@ -49,7 +49,7 @@ type registers struct {
 func newRegisters() *registers {
 	r := &registers{}
 	r.prefixed = map[byte][]*byte{
-		useHL: {
+		noPrefix: {
 			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
 			r_E: &r.E, r_H: &r.H, r_L: &r.L,
 		},
@@ -62,7 +62,7 @@ func newRegisters() *registers {
 			r_E: &r.E, r_H: &r.IY[0], r_L: &r.IY[1],
 		},
 	}
-	r.get = r.prefixed[useHL]
+	r.get = r.prefixed[noPrefix]
 
 	return r
 }

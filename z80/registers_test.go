@@ -47,7 +47,7 @@ func Test_getReg(t *testing.T) {
 	r.IX[0], r.IX[1] = 0x09, 0x0A
 	r.IY[0], r.IY[1] = 0x0B, 0x0C
 
-	for _, prefix := range []byte{useHL, useIX, useIY} {
+	for _, prefix := range []byte{noPrefix, useIX, useIY} {
 		for _, reg := range []byte{r_A, r_B, r_C, r_D, r_E, r_H, r_L} {
 			r.prefix = prefix
 			result := *r.getReg(reg)
@@ -86,7 +86,7 @@ func Test_getReg(t *testing.T) {
 }
 
 func Test_setReg(t *testing.T) {
-	for _, prefix := range []byte{useHL, useIX, useIY} {
+	for _, prefix := range []byte{noPrefix, useIX, useIY} {
 		for _, reg := range []byte{r_A, r_B, r_C, r_D, r_E, r_H, r_L} {
 			var val byte = 0x76
 			r := newRegisters()

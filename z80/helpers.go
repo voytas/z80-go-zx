@@ -25,7 +25,7 @@ var bit_mask = []byte{
 }
 
 // t-states for primary opcodes
-var t_states = map[byte]byte{
+var t_states = []byte{
 	nop:        4,
 	ld_bc_nn:   10,
 	ld_bc_a:    7,
@@ -285,7 +285,7 @@ var t_states = map[byte]byte{
 }
 
 // t-states for IX/IY prefixed opcodes which values are not just simply +4 t-state
-var t_states_ixy = map[byte]byte{
+var t_states_ixy = []byte{
 	inc_mhl:  23,
 	dec_mhl:  23,
 	ld_mhl_n: 19,
@@ -311,9 +311,12 @@ var t_states_ixy = map[byte]byte{
 	xor_hl:   19,
 	or_hl:    19,
 	cp_hl:    19,
+	useIX:    4,
+	useIY:    4,
+	0xFF:     0,
 }
 
-var t_states_ed = map[byte]byte{
+var t_states_ed = []byte{
 	in_b_c:    12,
 	out_c_b:   12,
 	sbc_hl_bc: 15,
@@ -385,4 +388,5 @@ var t_states_ed = map[byte]byte{
 	cpdr:      16, // 21 or 16 based on condition
 	indr:      16, // 21 or 16 based on condition
 	otdr:      16, // 21 or 16 based on condition
+	0xFF:      0,
 }

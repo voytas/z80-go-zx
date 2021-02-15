@@ -1,7 +1,7 @@
 package z80
 
 const (
-	useHL byte = 0
+	noPrefix byte = 0
 )
 
 // Primary opcodes

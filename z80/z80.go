@@ -35,7 +35,9 @@ func (cpu *CPU) readWord() uint16 {
 	return w
 }
 
-func (cpu *CPU) wait() {}
+func (cpu *CPU) wait() {
+	//fmt.Printf("t-states %d\n", cpu.t)
+}
 
 func (cpu *CPU) Reset() {
 	cpu.PC = 0
@@ -48,11 +50,12 @@ func (cpu *CPU) Run() {
 	for {
 		opcode := cpu.readByte()
 
-		//cpu.debug()
+		cpu.debug(opcode)
 
+		// Get the t-state for the current instruction
 		if cpu.reg.prefix == useIX || cpu.reg.prefix == useIY {
-			t, ok := t_states_ixy[opcode]
-			if ok {
+			t := t_states_ixy[opcode]
+			if t != 0 {
 				cpu.t = t
 			} else {
 				cpu.t = 4 + t_states[opcode]
@@ -64,7 +67,7 @@ func (cpu *CPU) Run() {
 		switch opcode {
 		case nop:
 		case halt:
-			cpu.reg.prefix = useHL
+			cpu.reg.prefix = noPrefix
 			cpu.wait()
 			cpu.halt = true
 			return
@@ -633,22 +636,20 @@ func (cpu *CPU) Run() {
 		case prefix_ed:
 			cpu.prefixED(cpu.readByte())
 		case useIX:
-			if cpu.reg.prefix == useIX || cpu.reg.prefix == useIY || cpu.reg.prefix == prefix_ed {
-				cpu.t += t_states[nop]
-			} else {
-				cpu.reg.prefix = useIX
-				continue
+			if cpu.reg.prefix != noPrefix {
+				cpu.wait()
 			}
+			cpu.reg.prefix = useIX
+			continue
 		case useIY:
-			if cpu.reg.prefix == useIX || cpu.reg.prefix == useIY || cpu.reg.prefix == prefix_ed {
-				cpu.t += t_states[nop]
-			} else {
-				cpu.reg.prefix = useIY
-				continue
+			if cpu.reg.prefix != noPrefix {
+				cpu.wait()
 			}
+			cpu.reg.prefix = useIY
+			continue
 		}
 
-		cpu.reg.prefix = useHL // reset IX or IY prefix back to HL
+		cpu.reg.prefix = noPrefix
 		cpu.wait()
 	}
 }
@@ -739,8 +740,8 @@ func (cpu *CPU) prefixCB(opcode byte) {
 }
 
 func (cpu *CPU) prefixED(opcode byte) {
-	t, ok := t_states[opcode]
-	if ok {
+	t := t_states[opcode]
+	if t != 0 {
 		cpu.t += t
 	} else {
 		cpu.t += 2 * t_states[nop]

@@ -87,4 +87,5 @@ var fdInstructions = []*instruction{
 	0xE5: {mnemonic: "PUSH IY"},
 	0xE9: {mnemonic: "JP   (IY)"},
 	0xF9: {mnemonic: "LD   SP,IY"},
+	0xFF: nil,
 }
