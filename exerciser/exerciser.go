@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/voytas/z80-go-zx/z80"
+	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
 func Run(program string) {
@@ -30,7 +31,7 @@ func Run(program string) {
 	// TODO: Simulate print char
 	//cells[5] = 0xC9 // RET
 
-	mem := z80.BasicMemory{}
+	mem := memory.BasicMemory{}
 	mem.Configure(cells, 0x100)
 	cpu := z80.NewCPU(&mem)
 	cpu.Run()

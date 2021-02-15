@@ -38,7 +38,7 @@ type registers struct {
 	A_, B_, C_, D_, E_, H_, L_, F_ byte
 	// Other & special registers
 	IX, IY [2]byte
-	SP     word
+	SP     uint16
 	I, R   byte
 	// Helper register index
 	get      []*byte
@@ -75,34 +75,34 @@ func (r *registers) setReg(reg, value byte) {
 	*r.prefixed[r.prefix][reg] = value
 }
 
-func (r *registers) getBC() word {
-	return word(r.B)<<8 | word(r.C)
+func (r *registers) getBC() uint16 {
+	return uint16(r.B)<<8 | uint16(r.C)
 }
 
-func (r *registers) setBC(nn word) {
+func (r *registers) setBC(nn uint16) {
 	r.B, r.C = byte(nn>>8), byte(nn)
 }
 
-func (r *registers) getDE() word {
-	return word(r.D)<<8 | word(r.E)
+func (r *registers) getDE() uint16 {
+	return uint16(r.D)<<8 | uint16(r.E)
 }
 
-func (r *registers) setDE(nn word) {
+func (r *registers) setDE(nn uint16) {
 	r.D, r.E = byte(nn>>8), byte(nn)
 }
 
-func (r *registers) getHL() word {
+func (r *registers) getHL() uint16 {
 	switch r.prefix {
 	case useIX:
-		return word(r.IX[0])<<8 | word(r.IX[1])
+		return uint16(r.IX[0])<<8 | uint16(r.IX[1])
 	case useIY:
-		return word(r.IY[0])<<8 | word(r.IY[1])
+		return uint16(r.IY[0])<<8 | uint16(r.IY[1])
 	default:
-		return word(r.H)<<8 | word(r.L)
+		return uint16(r.H)<<8 | uint16(r.L)
 	}
 }
 
-func (r *registers) setHLw(value word) {
+func (r *registers) setHLw(value uint16) {
 	h, l := byte(value>>8), byte(value)
 	switch r.prefix {
 	case useIX:

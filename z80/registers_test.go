@@ -22,9 +22,9 @@ func Test_getRR(t *testing.T) {
 	r := newRegisters()
 	r.B, r.C, r.D, r.E, r.H, r.L = 2, 3, 4, 5, 6, 7
 
-	assert.Equal(t, word(0x0203), r.getBC())
-	assert.Equal(t, word(0x0405), r.getDE())
-	assert.Equal(t, word(0x0607), r.getHL())
+	assert.Equal(t, uint16(0x0203), r.getBC())
+	assert.Equal(t, uint16(0x0405), r.getDE())
+	assert.Equal(t, uint16(0x0607), r.getHL())
 }
 
 func Test_setRR(t *testing.T) {
