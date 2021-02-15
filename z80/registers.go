@@ -42,13 +42,13 @@ type registers struct {
 	I, R   byte
 	// Helper register index
 	get      []*byte
-	prefixed map[byte][]*byte
+	prefixed [][]*byte
 	prefix   byte
 }
 
 func newRegisters() *registers {
 	r := &registers{}
-	r.prefixed = map[byte][]*byte{
+	r.prefixed = [][]*byte{
 		noPrefix: {
 			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
 			r_E: &r.E, r_H: &r.H, r_L: &r.L,
