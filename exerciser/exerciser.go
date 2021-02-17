@@ -27,6 +27,7 @@ func Run(program string) {
 	}
 
 	// Setup print routine and self modify address to halt when test is finished since it does jp 0
+	// The test code is using BDOS function 2 (C_WRITE) &  BDOS function 9 (C_WRITESTR)
 	code := []byte{
 		0x18, 0x1E, // jr 0x0020; nop
 		0x05:       0x79, // ld a,c

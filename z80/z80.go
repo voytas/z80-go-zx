@@ -36,7 +36,6 @@ func (cpu *CPU) readWord() uint16 {
 }
 
 func (cpu *CPU) wait() {
-	//fmt.Printf("t-states %d\n", cpu.t)
 }
 
 func (cpu *CPU) Reset() {
@@ -749,7 +748,20 @@ func (cpu *CPU) prefixED(opcode byte) {
 
 	switch opcode {
 	case neg, 0x54, 0x64, 0x74, 0x4C, 0x5C, 0x6C, 0x7C:
-		// TODO: Implement
+		a := cpu.reg.A
+		cpu.reg.A = ^a + 1
+		cpu.reg.F = f_N
+		cpu.reg.F |= f_S & cpu.reg.A
+		if cpu.reg.A == 0 {
+			cpu.reg.F |= f_Z
+		}
+		cpu.reg.F |= byte(a^cpu.reg.A) & f_H
+		if cpu.reg.A == 0x80 {
+			cpu.reg.F |= f_P
+		}
+		if a != 0 {
+			cpu.reg.F |= f_C
+		}
 	case adc_hl_bc, adc_hl_de, adc_hl_hl, adc_hl_sp:
 		// TODO: Implement
 	case sbc_hl_bc, sbc_hl_de, sbc_hl_hl, sbc_hl_sp:

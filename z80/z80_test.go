@@ -1775,6 +1775,36 @@ func Test_LD_IXY_nn(t *testing.T) {
 	assert.Equal(t, byte(0x08), cpu.reg.L)
 }
 
+func Test_NEG(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x55, prefix_ed, neg, halt}}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0xAB), cpu.reg.A)
+	assert.Equal(t, f_S|f_H|f_N|f_C, cpu.reg.F)
+
+	mem = &memory.BasicMemory{Cells: []byte{ld_a_n, 0x00, prefix_ed, neg, halt}}
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x00), cpu.reg.A)
+	assert.Equal(t, f_Z|f_N, cpu.reg.F)
+
+	mem = &memory.BasicMemory{Cells: []byte{ld_a_n, 0x80, prefix_ed, neg, halt}}
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x80), cpu.reg.A)
+	assert.Equal(t, f_S|f_P|f_N|f_C, cpu.reg.F)
+
+	mem = &memory.BasicMemory{Cells: []byte{ld_a_n, 0xAA, prefix_ed, neg, halt}}
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x56), cpu.reg.A)
+	assert.Equal(t, f_H|f_N|f_C, cpu.reg.F)
+}
+
 func Test_shouldJump(t *testing.T) {
 	var tests = []struct {
 		flags    byte
@@ -1797,29 +1827,6 @@ func Test_shouldJump(t *testing.T) {
 		result := cpu.shouldJump(test.code)
 
 		assert.Equal(t, test.expected, result)
-	}
-}
-
-func Test_getHL(t *testing.T) {
-	mem := &memory.BasicMemory{Cells: []byte{ld_hl_nn, 0x01, 0x02, halt}}
-	cpu := NewCPU(mem)
-	cpu.Run()
-
-	result := cpu.reg.getHL()
-	assert.Equal(t, uint16(0x0201), result)
-
-	for _, prefix := range []byte{useIX, useIY} {
-		mem = &memory.BasicMemory{Cells: []byte{prefix, ld_a_hl, 0x05, halt, 0x00, 0xE5}}
-		cpu = NewCPU(mem)
-		cpu.Run()
-
-		assert.Equal(t, byte(0xE5), cpu.reg.A)
-
-		mem = &memory.BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x40, 0x00, prefix, ld_a_hl, 0xC9, halt, 0x00, 0xE5}}
-		cpu = NewCPU(mem)
-		cpu.Run()
-
-		assert.Equal(t, byte(0xE5), cpu.reg.A)
 	}
 }
 
