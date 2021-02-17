@@ -659,7 +659,7 @@ func (cpu *CPU) prefixCB(opcode byte) {
 	var hl uint16
 
 	reg := opcode & 0b00000111
-	if reg == r_HL {
+	if reg == 0b110 {
 		hl = cpu.reg.getHL()
 		v = cpu.mem.Read(hl)
 		cpu.t += 15 // the only exception is bit operation that takes 12 t-states
@@ -670,7 +670,7 @@ func (cpu *CPU) prefixCB(opcode byte) {
 
 	var cy byte
 	write := func() {
-		if reg == r_HL {
+		if reg == 0b110 {
 			cpu.mem.Write(hl, v)
 		} else {
 			*cpu.reg.get[reg] = v
@@ -720,7 +720,7 @@ func (cpu *CPU) prefixCB(opcode byte) {
 		bit := (opcode & 0b00111000) >> 3
 		switch opcode & 0b11000000 {
 		case bit_b:
-			if reg == r_HL {
+			if reg == 0b110 {
 				cpu.t -= 3 // for bit operation it is 12 t-states, not usual 15
 			}
 			cpu.reg.F &= ^(f_Z | f_N)
@@ -763,7 +763,24 @@ func (cpu *CPU) prefixED(opcode byte) {
 			cpu.reg.F |= f_C
 		}
 	case adc_hl_bc, adc_hl_de, adc_hl_hl, adc_hl_sp:
-		// TODO: Implement
+		hl := cpu.reg.getHL()
+		nn := cpu.reg.getReg16(opcode & 0b00110000 >> 4)
+		sum := hl + nn + uint16(cpu.reg.F&f_C)
+		cpu.reg.F = f_NONE
+		if sum > 0x7FFF {
+			cpu.reg.F |= f_S
+		}
+		if sum == 0 {
+			cpu.reg.F |= f_Z
+		}
+		cpu.reg.F |= byte((hl^nn^sum)>>8) & f_H
+		if (hl^nn)&0x8000 == 0 && (hl^sum)&0x8000 > 0 {
+			cpu.reg.F |= f_P
+		}
+		if sum < hl {
+			cpu.reg.F |= f_C
+		}
+		cpu.reg.setHLw(sum)
 	case sbc_hl_bc, sbc_hl_de, sbc_hl_hl, sbc_hl_sp:
 		// TODO: Implement
 	case rld:

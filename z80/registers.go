@@ -1,14 +1,20 @@
 package z80
 
+import "fmt"
+
 const (
-	r_B  = 0b000
-	r_C  = 0b001
-	r_D  = 0b010
-	r_E  = 0b011
-	r_H  = 0b100
-	r_L  = 0b101
-	r_HL = 0b110
-	r_A  = 0b111
+	r_B = 0b000
+	r_C = 0b001
+	r_D = 0b010
+	r_E = 0b011
+	r_H = 0b100
+	r_L = 0b101
+	r_A = 0b111
+
+	r_BC = 0b00
+	r_DE = 0b01
+	r_HL = 0b10
+	r_SP = 0b11
 )
 
 // The Flag registers, F and F', supply information to the user about the status of the Z80
@@ -73,6 +79,21 @@ func (r *registers) getReg(reg byte) *byte {
 
 func (r *registers) setReg(reg, value byte) {
 	*r.prefixed[r.prefix][reg] = value
+}
+
+func (r *registers) getReg16(reg byte) uint16 {
+	switch reg {
+	case r_BC:
+		return r.getBC()
+	case r_DE:
+		return r.getDE()
+	case r_HL:
+		return r.getHL()
+	case r_SP:
+		return r.SP
+	}
+
+	panic(fmt.Sprintf("Invalid 16 bit register %v", reg))
 }
 
 func (r *registers) getBC() uint16 {
