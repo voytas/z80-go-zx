@@ -803,7 +803,16 @@ func (cpu *CPU) prefixED(opcode byte) {
 		}
 		cpu.reg.F |= parity[cpu.reg.A]
 	case rrd:
-		// TODO: Implement
+		hl := cpu.reg.getHL()
+		w := (uint16(cpu.reg.A)<<8 | uint16(cpu.mem.Read(hl)))
+		cpu.mem.Write(hl, byte(w>>4))
+		cpu.reg.A = cpu.reg.A&0xF0 | byte(w)&0x0F
+		cpu.reg.F &= f_C
+		cpu.reg.F |= cpu.reg.A & f_S
+		if cpu.reg.A == 0 {
+			cpu.reg.F |= f_Z
+		}
+		cpu.reg.F |= parity[cpu.reg.A]
 	case in_a_c, in_b_c, in_c_c, in_d_c, in_e_c, in_f_c, in_h_c, in_l_c:
 		// TODO: Implement
 	case out_c_a, out_c_b, out_c_c, out_c_d, out_c_e, out_c_f, out_c_h, out_c_l:
