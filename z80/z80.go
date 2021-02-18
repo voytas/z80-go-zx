@@ -171,9 +171,8 @@ func (cpu *CPU) Run() {
 			}
 			cpu.reg.A += n
 			cpu.reg.F = f_NONE
-			if cpu.reg.A > 0x7F {
-				cpu.reg.F |= f_S
-			} else if cpu.reg.A == 0 {
+			cpu.reg.F |= cpu.reg.A & f_S
+			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
 			cpu.reg.F |= (a ^ n ^ cpu.reg.A) & f_H
@@ -418,9 +417,7 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_H
 			}
 			*r += 1
-			if *r > 0x7F {
-				cpu.reg.F |= f_S
-			}
+			cpu.reg.F |= *r & f_S
 			if *r == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -446,9 +443,7 @@ func (cpu *CPU) Run() {
 			if b == 0x00 {
 				cpu.reg.F |= f_Z
 			}
-			if b > 0x7F {
-				cpu.reg.F |= f_S
-			}
+			cpu.reg.F |= b & f_S
 			cpu.mem.Write(mm, b)
 		case dec_a, dec_b, dec_c, dec_d, dec_e, dec_h, dec_l:
 			r := cpu.reg.getReg(opcode & 0b00111000 >> 3)
@@ -460,9 +455,7 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_H
 			}
 			*r -= 1
-			if *r > 0x7F {
-				cpu.reg.F |= f_S
-			}
+			cpu.reg.F |= *r & f_S
 			if *r == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -489,9 +482,7 @@ func (cpu *CPU) Run() {
 			if b == 0x00 {
 				cpu.reg.F |= f_Z
 			}
-			if b > 0x7F {
-				cpu.reg.F |= f_S
-			}
+			cpu.reg.F |= b & f_S
 			cpu.mem.Write(mm, b)
 		case jr_o:
 			o := cpu.readByte()
@@ -801,7 +792,16 @@ func (cpu *CPU) prefixED(opcode byte) {
 		}
 		cpu.reg.setHLw(sub)
 	case rld:
-		// TODO: Implement
+		hl := cpu.reg.getHL()
+		w := (uint16(cpu.reg.A)<<8 | uint16(cpu.mem.Read(hl))) << 4
+		cpu.mem.Write(hl, byte(w)|cpu.reg.A&0x0F)
+		cpu.reg.A = cpu.reg.A&0xF0 | byte(w>>8)&0x0F
+		cpu.reg.F &= f_C
+		cpu.reg.F |= cpu.reg.A & f_S
+		if cpu.reg.A == 0 {
+			cpu.reg.F |= f_Z
+		}
+		cpu.reg.F |= parity[cpu.reg.A]
 	case rrd:
 		// TODO: Implement
 	case in_a_c, in_b_c, in_c_c, in_d_c, in_e_c, in_f_c, in_h_c, in_l_c:

@@ -1184,6 +1184,26 @@ func Test_RLA(t *testing.T) {
 	assert.Equal(t, f_NONE, cpu.reg.F)
 }
 
+func Test_RLD(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x7A, ld_hl_nn, 0x08, 0x00, prefix_ed, rld, halt, 0x31}}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_ALL
+	cpu.Run()
+
+	assert.Equal(t, byte(0x73), cpu.reg.A)
+	assert.Equal(t, byte(0x1A), cpu.mem.Read(8))
+	assert.Equal(t, f_C, cpu.reg.F)
+
+	mem = &memory.BasicMemory{Cells: []byte{ld_a_n, 0x0F, ld_hl_nn, 0x08, 0x00, prefix_ed, rld, halt, 0x0A}}
+	cpu = NewCPU(mem)
+	cpu.reg.F = f_ALL
+	cpu.Run()
+
+	assert.Equal(t, byte(0), cpu.reg.A)
+	assert.Equal(t, byte(0xAF), cpu.mem.Read(8))
+	assert.Equal(t, f_Z|f_P|f_C, cpu.reg.F)
+}
+
 func Test_RRA(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x80, rra, halt}}
 	cpu := NewCPU(mem)
