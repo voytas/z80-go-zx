@@ -159,6 +159,7 @@ func (cpu *CPU) Run() {
 			cpu.mem.Write(cpu.reg.SP, l)
 			cpu.mem.Write(cpu.reg.SP+1, h)
 		case add_a_n, add_a_a, add_a_b, add_a_c, add_a_d, add_a_e, add_a_h, add_a_l, add_a_hl:
+			a := cpu.reg.A
 			var n byte
 			switch opcode {
 			case add_a_n:
@@ -168,21 +169,20 @@ func (cpu *CPU) Run() {
 			default:
 				n = *cpu.reg.getReg(opcode & 0b00000111)
 			}
+			cpu.reg.A += n
 			cpu.reg.F = f_NONE
-			sum := cpu.reg.A + n
-			if sum > 0x7F {
+			if cpu.reg.A > 0x7F {
 				cpu.reg.F |= f_S
-			} else if sum == 0 {
+			} else if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
-			cpu.reg.F |= (cpu.reg.A ^ n ^ sum) & f_H
-			if (cpu.reg.A^n)&0x80 == 0 && (cpu.reg.A^sum)&0x80 > 0 {
+			cpu.reg.F |= (a ^ n ^ cpu.reg.A) & f_H
+			if (a^n)&0x80 == 0 && (a^cpu.reg.A)&0x80 != 0 {
 				cpu.reg.F |= f_P
 			}
-			if sum < cpu.reg.A {
+			if cpu.reg.A < a {
 				cpu.reg.F |= f_C
 			}
-			cpu.reg.A = sum
 		case adc_a_n, adc_a_a, adc_a_b, adc_a_c, adc_a_d, adc_a_e, adc_a_h, adc_a_l, adc_a_hl:
 			var n byte
 			switch opcode {
@@ -202,7 +202,7 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_Z
 			}
 			cpu.reg.F |= (cpu.reg.A ^ n ^ sum_b) & f_H
-			if (cpu.reg.A^n)&0x80 == 0 && (cpu.reg.A^sum_b)&0x80 > 0 {
+			if (cpu.reg.A^n)&0x80 == 0 && (cpu.reg.A^sum_b)&0x80 != 0 {
 				cpu.reg.F |= f_P
 			}
 			if sum_w > 0xff {
@@ -246,8 +246,8 @@ func (cpu *CPU) Run() {
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
-			cpu.reg.F |= byte(a^n^cpu.reg.A) & f_H
-			if (a^n)&0x80 > 0 && (a^cpu.reg.A)&0x80 > 0 {
+			cpu.reg.F |= (a ^ n ^ cpu.reg.A) & f_H
+			if (a^n)&0x80 != 0 && (a^cpu.reg.A)&0x80 != 0 {
 				cpu.reg.F |= f_P
 			}
 			if cpu.reg.A > a {
@@ -270,7 +270,7 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_Z
 			}
 			cpu.reg.F |= byte(cpu.reg.A^n^test) & f_H
-			if (cpu.reg.A^n)&0x80 > 0 && (cpu.reg.A^test)&0x80 > 0 {
+			if (cpu.reg.A^n)&0x80 != 0 && (cpu.reg.A^test)&0x80 != 0 {
 				cpu.reg.F |= f_P
 			}
 			if test > cpu.reg.A {
@@ -295,7 +295,7 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_Z
 			}
 			cpu.reg.F |= byte(cpu.reg.A^n^sub_b) & f_H
-			if (cpu.reg.A^n)&0x80 > 0 && (sub_b^cpu.reg.A)&0x80 > 0 {
+			if (cpu.reg.A^n)&0x80 != 0 && (sub_b^cpu.reg.A)&0x80 != 0 {
 				cpu.reg.F |= f_P
 			}
 			if sub_w > 0xff {
@@ -774,7 +774,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 			cpu.reg.F |= f_Z
 		}
 		cpu.reg.F |= byte((hl^nn^sum)>>8) & f_H
-		if (hl^nn)&0x8000 == 0 && (hl^sum)&0x8000 > 0 {
+		if (hl^nn)&0x8000 == 0 && (hl^sum)&0x8000 != 0 {
 			cpu.reg.F |= f_P
 		}
 		if sum < hl {
@@ -782,7 +782,24 @@ func (cpu *CPU) prefixED(opcode byte) {
 		}
 		cpu.reg.setHLw(sum)
 	case sbc_hl_bc, sbc_hl_de, sbc_hl_hl, sbc_hl_sp:
-		// TODO: Implement
+		hl := cpu.reg.getHL()
+		nn := cpu.reg.getReg16(opcode & 0b00110000 >> 4)
+		sub := hl - nn - uint16(cpu.reg.F&f_C)
+		cpu.reg.F = f_N
+		if sub > 0x7FFF {
+			cpu.reg.F |= f_S
+		}
+		if sub == 0 {
+			cpu.reg.F |= f_Z
+		}
+		cpu.reg.F |= byte((hl^nn^sub)>>8) & f_H
+		if (hl^nn)&0x8000 != 0 && (hl^sub)&0x8000 != 0 {
+			cpu.reg.F |= f_P
+		}
+		if sub > hl {
+			cpu.reg.F |= f_C
+		}
+		cpu.reg.setHLw(sub)
 	case rld:
 		// TODO: Implement
 	case rrd:
