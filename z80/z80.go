@@ -6,14 +6,16 @@ import (
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
+// Represents emulated Z80 CPU
 type CPU struct {
-	PC               uint16
-	IN               func(hi, lo byte) byte
-	OUT              func(hi, lo, data byte)
-	mem              memory.Memory
-	reg              *registers
-	t                byte
-	halt, iff1, iff2 bool
+	PC               uint16                  // program counter
+	IN               func(hi, lo byte) byte  // callback function to execute on IN instruction
+	OUT              func(hi, lo, data byte) // callback function to execute on OUT instruction
+	mem              memory.Memory           // memory
+	reg              *registers              // registers
+	t                byte                    // t-states
+	halt, iff1, iff2 bool                    // states of halt, iff1 and iff2
+	im               byte                    // interrupt mode (im0, im1 or in2)
 }
 
 func NewCPU(mem memory.Memory) *CPU {
@@ -834,11 +836,11 @@ func (cpu *CPU) prefixED(opcode byte) {
 			cpu.OUT(cpu.reg.B, cpu.reg.C, *r)
 		}
 	case im0, im1, im2:
-		// TODO: Implement
-	case retn, 0x55, 0x65, 0x75, 0x5D, 0x6D:
-		// TODO: Implement
-	case reti, 0x7D:
-		// TODO: Implement
+		cpu.im = opcode
+	case retn, 0x55, 0x65, 0x75, 0x5D, 0x6D, reti, 0x7D:
+		cpu.iff1 = cpu.iff2
+		cpu.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
+		cpu.reg.SP += 2
 	case ld_mm_bc, ld_mm_hl2, ld_mm_de, ld_mm_sp:
 		// TODO: Implement
 	case ld_bc_mm, ld_de_mm, ld_hl_mm2, ld_sp_mm:

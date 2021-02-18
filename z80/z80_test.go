@@ -34,6 +34,14 @@ func Test_EI(t *testing.T) {
 	assert.Equal(t, true, cpu.iff2)
 }
 
+func Test_IM_x(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{prefix_ed, im1, halt}}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, im1, cpu.im)
+}
+
 func Test_EX_AF_AF(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ex_af_af, halt}}
 	cpu := NewCPU(mem)
@@ -1519,6 +1527,17 @@ func Test_RET_cc(t *testing.T) {
 	}
 }
 
+func Test_RETN_RETI(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{ld_sp_nn, 0x0B, 0x00, prefix_ed, retn, ld_a_n, 0xAA, halt, ld_a_n, 0x55, halt, 0x08, 0x00}}
+	cpu := NewCPU(mem)
+	cpu.iff2 = true
+	cpu.Run()
+
+	assert.Equal(t, byte(0x55), cpu.reg.A)
+	assert.Equal(t, true, cpu.iff1)
+	assert.Equal(t, true, cpu.iff2)
+}
+
 func Test_RST_xx(t *testing.T) {
 	mem := &memory.BasicMemory{
 		Cells: []byte{
@@ -1650,7 +1669,7 @@ func Test_OUT_n_A(t *testing.T) {
 
 func Test_OUT_C_R(t *testing.T) {
 	mem := &memory.BasicMemory{
-		Cells: []byte{ld_bc_nn, 0x11, 0x22, prefix_ed, ld_h_n, 0x33, out_c_h, halt},
+		Cells: []byte{ld_bc_nn, 0x11, 0x22, ld_h_n, 0x33, prefix_ed, out_c_h, halt},
 	}
 	cpu := NewCPU(mem)
 	cpu.OUT = func(hi, lo, data byte) {
