@@ -55,9 +55,9 @@ func Run(program string) {
 	mem := memory.BasicMemory{}
 	mem.Configure(cells, 0)
 	cpu := z80.NewCPU(&mem)
-	cpu.OUT = func(a, n byte) {
-		if n == 5 {
-			fmt.Print(string(a))
+	cpu.OUT = func(hi, lo, data byte) {
+		if lo == 5 {
+			fmt.Print(string(data))
 		}
 	}
 	cpu.Run()

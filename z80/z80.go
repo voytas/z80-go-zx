@@ -8,8 +8,8 @@ import (
 
 type CPU struct {
 	PC               uint16
-	IN               func(a, n byte) byte
-	OUT              func(a, n byte)
+	IN               func(hi, lo byte) byte
+	OUT              func(hi, lo, data byte)
 	mem              memory.Memory
 	reg              *registers
 	t                byte
@@ -615,11 +615,13 @@ func (cpu *CPU) Run() {
 			n := cpu.readByte()
 			if cpu.IN != nil {
 				cpu.reg.A = cpu.IN(cpu.reg.A, n)
+			} else {
+				cpu.reg.A = 0xFF
 			}
 		case out_n_a:
 			n := cpu.readByte()
 			if cpu.OUT != nil {
-				cpu.OUT(cpu.reg.A, n)
+				cpu.OUT(cpu.reg.A, n, cpu.reg.A)
 			}
 		case prefix_cb:
 			cpu.prefixCB(cpu.readByte())
@@ -814,9 +816,23 @@ func (cpu *CPU) prefixED(opcode byte) {
 		}
 		cpu.reg.F |= parity[cpu.reg.A]
 	case in_a_c, in_b_c, in_c_c, in_d_c, in_e_c, in_f_c, in_h_c, in_l_c:
-		// TODO: Implement
+		r := cpu.reg.getReg(opcode & 0b00111000 >> 3)
+		if cpu.IN != nil {
+			*r = cpu.IN(cpu.reg.B, cpu.reg.C)
+		} else {
+			*r = 0xFF
+		}
+		cpu.reg.F &= f_C
+		cpu.reg.F |= *r & f_S
+		if *r == 0 {
+			cpu.reg.F |= f_Z
+		}
+		cpu.reg.F |= parity[*r]
 	case out_c_a, out_c_b, out_c_c, out_c_d, out_c_e, out_c_f, out_c_h, out_c_l:
-		// TODO: Implement
+		if cpu.OUT != nil {
+			r := cpu.reg.getReg(opcode & 0b00111000 >> 3)
+			cpu.OUT(cpu.reg.B, cpu.reg.C, *r)
+		}
 	case im0, im1, im2:
 		// TODO: Implement
 	case retn, 0x55, 0x65, 0x75, 0x5D, 0x6D:

@@ -1597,17 +1597,42 @@ func Test_IN_A_n(t *testing.T) {
 	cpu := NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, byte(0x23), cpu.reg.A)
+	assert.Equal(t, byte(0xFF), cpu.reg.A)
 
 	cpu.Reset()
-	cpu.IN = func(a, n byte) byte {
-		if a == 0x23 && n == 0x01 {
+	cpu.IN = func(hi, lo byte) byte {
+		if hi == 0x23 && lo == 0x01 {
 			return 0xA5
 		}
 		return 0
 	}
 	cpu.Run()
+
 	assert.Equal(t, byte(0xA5), cpu.reg.A)
+}
+
+func Test_IN_R_C(t *testing.T) {
+	mem := &memory.BasicMemory{
+		Cells: []byte{ld_bc_nn, 0x23, 0x01, ld_d_n, 0x01, prefix_ed, in_d_c, halt},
+	}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_ALL
+	cpu.Run()
+
+	assert.Equal(t, byte(0xFF), cpu.reg.D)
+	assert.Equal(t, f_S|f_P|f_C, cpu.reg.F)
+
+	cpu.Reset()
+	cpu.IN = func(hi, lo byte) byte {
+		if hi == 0x01 && lo == 0x23 {
+			return 0
+		}
+		return 0xA5
+	}
+	cpu.Run()
+
+	assert.Equal(t, byte(0), cpu.reg.D)
+	assert.Equal(t, f_Z|f_P, cpu.reg.F)
 }
 
 func Test_OUT_n_A(t *testing.T) {
@@ -1615,9 +1640,23 @@ func Test_OUT_n_A(t *testing.T) {
 		Cells: []byte{ld_a_n, 0x23, out_n_a, 0x01, halt},
 	}
 	cpu := NewCPU(mem)
-	cpu.OUT = func(a, n byte) {
-		assert.Equal(t, byte(0x23), a)
-		assert.Equal(t, byte(0x01), n)
+	cpu.OUT = func(hi, lo, data byte) {
+		assert.Equal(t, byte(0x23), hi)
+		assert.Equal(t, byte(0x01), lo)
+		assert.Equal(t, byte(0x23), data)
+	}
+	cpu.Run()
+}
+
+func Test_OUT_C_R(t *testing.T) {
+	mem := &memory.BasicMemory{
+		Cells: []byte{ld_bc_nn, 0x11, 0x22, prefix_ed, ld_h_n, 0x33, out_c_h, halt},
+	}
+	cpu := NewCPU(mem)
+	cpu.OUT = func(hi, lo, data byte) {
+		assert.Equal(t, byte(0x22), hi)
+		assert.Equal(t, byte(0x11), lo)
+		assert.Equal(t, byte(0x33), data)
 	}
 	cpu.Run()
 }
