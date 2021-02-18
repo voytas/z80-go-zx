@@ -891,6 +891,15 @@ func Test_LD_mm_HL(t *testing.T) {
 	}
 }
 
+func Test_LD_mm_RR(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{ld_sp_nn, 0x3A, 0x48, prefix_ed, ld_mm_sp, 0x08, 0x00, halt, 0, 0}}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x3A), mem.Cells[8])
+	assert.Equal(t, byte(0x48), mem.Cells[9])
+}
+
 func Test_LD_HL_mm(t *testing.T) {
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
 		mem := &memory.BasicMemory{Cells: []byte{prefix, ld_hl_mm, 0x05, 0x00, halt, 0x34, 0x12}}

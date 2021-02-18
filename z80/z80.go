@@ -841,9 +841,12 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.iff1 = cpu.iff2
 		cpu.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
 		cpu.reg.SP += 2
-	case ld_mm_bc, ld_mm_hl2, ld_mm_de, ld_mm_sp:
-		// TODO: Implement
-	case ld_bc_mm, ld_de_mm, ld_hl_mm2, ld_sp_mm:
+	case ld_mm_bc, ld_mm_hl_ed, ld_mm_de, ld_mm_sp:
+		w := cpu.readWord()
+		rr := cpu.reg.getReg16(0b00110000 >> 4)
+		cpu.mem.Write(w, byte(rr))
+		cpu.mem.Write(w+1, byte(rr>>8))
+	case ld_bc_mm, ld_de_mm, ld_hl_mm_ed, ld_sp_mm:
 		// TODO: Implement
 	case ld_a_r:
 		// TODO: Implement
