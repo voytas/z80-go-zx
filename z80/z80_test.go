@@ -1000,12 +1000,31 @@ func Test_LD_A_BC(t *testing.T) {
 }
 
 func Test_LD_A_DE(t *testing.T) {
-	var n byte = 0x76
-	mem := &memory.BasicMemory{Cells: []byte{ld_de_nn, 0x05, 0x00, ld_a_de, halt, n}}
+	mem := &memory.BasicMemory{Cells: []byte{ld_de_nn, 0x05, 0x00, ld_a_de, halt, 0x76}}
 	cpu := NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, n, cpu.reg.A)
+	assert.Equal(t, byte(0x76), cpu.reg.A)
+}
+
+func Test_LD_A_R(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x05, prefix_ed, ld_a_r, halt}}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_H | f_N | f_C
+	cpu.iff2 = true
+	cpu.Run()
+
+	assert.Equal(t, byte(0), cpu.reg.A)
+	assert.Equal(t, f_Z|f_P|f_C, cpu.reg.F)
+
+	mem = &memory.BasicMemory{Cells: []byte{prefix_ed, ld_a_r, halt}}
+	cpu = NewCPU(mem)
+	cpu.reg.R = 0xFF
+	cpu.iff2 = false
+	cpu.Run()
+
+	assert.Equal(t, byte(0xFF), cpu.reg.A)
+	assert.Equal(t, f_S, cpu.reg.F)
 }
 
 func Test_LD_R_n(t *testing.T) {

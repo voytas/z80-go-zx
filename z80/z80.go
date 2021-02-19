@@ -849,7 +849,15 @@ func (cpu *CPU) prefixED(opcode byte) {
 		addr := cpu.readWord()
 		cpu.reg.setReg16(opcode&0b00110000>>4, uint16(cpu.mem.Read(addr))|uint16(cpu.mem.Read(addr+1))<<8)
 	case ld_a_r:
-		// TODO: Implement
+		cpu.reg.A = cpu.reg.R
+		cpu.reg.F &= f_C
+		cpu.reg.F |= cpu.reg.A & f_S
+		if cpu.reg.A == 0 {
+			cpu.reg.F |= f_Z
+		}
+		if cpu.iff2 {
+			cpu.reg.F |= f_P
+		}
 	case ld_r_a:
 		// TODO: Implement
 	case ld_a_i:
