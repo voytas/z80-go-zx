@@ -873,7 +873,17 @@ func (cpu *CPU) prefixED(opcode byte) {
 	case ld_i_a:
 		cpu.reg.I = cpu.reg.A
 	case ldi:
-		// TODO: Implement
+		hl := cpu.reg.getHL()
+		de := cpu.reg.getDE()
+		bc := cpu.reg.getBC()
+		cpu.mem.Write(de, cpu.mem.Read(hl))
+		cpu.reg.setHLw(hl + 1)
+		cpu.reg.setDE(de + 1)
+		cpu.reg.setBC(bc - 1)
+		cpu.reg.F &= ^(f_H | f_P | f_N)
+		if bc != 1 {
+			cpu.reg.F |= f_P
+		}
 	case ldir:
 		// TODO: Implement
 	case cpi:
