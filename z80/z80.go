@@ -385,18 +385,16 @@ func (cpu *CPU) Run() {
 			*l = cpu.mem.Read(addr)
 			*h = cpu.mem.Read(addr + 1)
 		case ld_mm_hl:
-			w := cpu.readWord()
+			addr := cpu.readWord()
 			h, l := cpu.reg.getReg(r_H), cpu.reg.getReg(r_L)
-			cpu.mem.Write(w, *l)
-			cpu.mem.Write(w+1, *h)
+			cpu.mem.Write(addr, *l)
+			cpu.mem.Write(addr+1, *h)
 		case ld_mhl_n:
 			cpu.mem.Write(cpu.getHL(true), cpu.readByte())
 		case ld_mm_a:
-			w := cpu.readWord()
-			cpu.mem.Write(w, cpu.reg.A)
+			cpu.mem.Write(cpu.readWord(), cpu.reg.A)
 		case ld_a_mm:
-			w := cpu.readWord()
-			cpu.reg.A = cpu.mem.Read(w)
+			cpu.reg.A = cpu.mem.Read(cpu.readWord())
 		case ld_bc_a:
 			cpu.mem.Write(cpu.reg.getBC(), cpu.reg.A)
 		case ld_de_a:
@@ -657,10 +655,10 @@ func (cpu *CPU) prefixCB(opcode byte) {
 	if reg == 0b110 {
 		hl = cpu.reg.getHL()
 		v = cpu.mem.Read(hl)
-		cpu.t += 15 // the only exception is bit operation that takes 12 t-states
+		cpu.t = 15 // the only exception is bit operation that takes 12 t-states
 	} else {
 		v = *cpu.reg.get[reg]
-		cpu.t += 8
+		cpu.t = 8
 	}
 
 	var cy byte
@@ -734,11 +732,12 @@ func (cpu *CPU) prefixCB(opcode byte) {
 }
 
 func (cpu *CPU) prefixED(opcode byte) {
-	t := t_states[opcode]
+	// TODO: check t-states calc
+	t := t_states_ed[opcode]
 	if t != 0 {
-		cpu.t += t
+		cpu.t = t
 	} else {
-		cpu.t += 2 * t_states[nop]
+		cpu.t = 2 * t_states[nop]
 	}
 
 	switch opcode {
@@ -842,12 +841,13 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
 		cpu.reg.SP += 2
 	case ld_mm_bc, ld_mm_hl_ed, ld_mm_de, ld_mm_sp:
-		w := cpu.readWord()
-		rr := cpu.reg.getReg16(0b00110000 >> 4)
-		cpu.mem.Write(w, byte(rr))
-		cpu.mem.Write(w+1, byte(rr>>8))
+		addr := cpu.readWord()
+		rr := cpu.reg.getReg16(opcode & 0b00110000 >> 4)
+		cpu.mem.Write(addr, byte(rr))
+		cpu.mem.Write(addr+1, byte(rr>>8))
 	case ld_bc_mm, ld_de_mm, ld_hl_mm_ed, ld_sp_mm:
-		// TODO: Implement
+		addr := cpu.readWord()
+		cpu.reg.setReg16(opcode&0b00110000>>4, uint16(cpu.mem.Read(addr))|uint16(cpu.mem.Read(addr+1))<<8)
 	case ld_a_r:
 		// TODO: Implement
 	case ld_r_a:

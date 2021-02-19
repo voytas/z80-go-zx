@@ -81,6 +81,7 @@ func (r *registers) setReg(reg, value byte) {
 	*r.prefixed[r.prefix][reg] = value
 }
 
+// Gets the value of one of the specified 16-bit registers
 func (r *registers) getReg16(reg byte) uint16 {
 	switch reg {
 	case r_BC:
@@ -94,6 +95,20 @@ func (r *registers) getReg16(reg byte) uint16 {
 	}
 
 	panic(fmt.Sprintf("Invalid 16 bit register %v", reg))
+}
+
+// Sets the value of one of the specified 16-bit registers
+func (r *registers) setReg16(reg byte, value uint16) {
+	switch reg {
+	case r_BC:
+		r.setBC(value)
+	case r_DE:
+		r.setDE(value)
+	case r_HL:
+		r.setHLw(value)
+	case r_SP:
+		r.SP = value
+	}
 }
 
 func (r *registers) getBC() uint16 {
@@ -123,6 +138,7 @@ func (r *registers) getHL() uint16 {
 	}
 }
 
+// Sets HL register using 16-bit value
 func (r *registers) setHLw(value uint16) {
 	h, l := byte(value>>8), byte(value)
 	switch r.prefix {
@@ -135,6 +151,7 @@ func (r *registers) setHLw(value uint16) {
 	}
 }
 
+// Sets HL register using two 8-bit values
 func (r *registers) setHLb(h, l byte) {
 	switch r.prefix {
 	case useIX:
