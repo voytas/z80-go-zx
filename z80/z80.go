@@ -861,7 +861,15 @@ func (cpu *CPU) prefixED(opcode byte) {
 	case ld_r_a:
 		cpu.reg.R = cpu.reg.A
 	case ld_a_i:
-		// TODO: Implement
+		cpu.reg.A = cpu.reg.I
+		cpu.reg.F &= f_C
+		cpu.reg.F |= cpu.reg.A & f_S
+		if cpu.reg.A == 0 {
+			cpu.reg.F |= f_Z
+		}
+		if cpu.iff2 {
+			cpu.reg.F |= f_P
+		}
 	case ld_i_a:
 		// TODO: Implement
 	case ldi:
