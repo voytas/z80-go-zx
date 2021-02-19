@@ -1027,6 +1027,14 @@ func Test_LD_A_R(t *testing.T) {
 	assert.Equal(t, f_S, cpu.reg.F)
 }
 
+func Test_LD_R_A(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x85, prefix_ed, ld_r_a, halt}}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x85), cpu.reg.R)
+}
+
 func Test_LD_R_n(t *testing.T) {
 	var a, b, c, d, e, h, l, ixh, ixl, iyh, iyl byte = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 	mem := &memory.BasicMemory{
