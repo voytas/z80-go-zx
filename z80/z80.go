@@ -892,7 +892,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 			cpu.reg.PC -= 2
 			cpu.t += 5
 		}
-	case ini:
+	case ini, inir:
 		hl := cpu.reg.getHL()
 		cpu.mem.Write(hl, cpu.IN(cpu.reg.B, cpu.reg.C))
 		cpu.reg.B -= 1
@@ -900,9 +900,10 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.reg.F = cpu.reg.F & ^f_Z | f_N
 		if cpu.reg.B == 0 {
 			cpu.reg.F |= f_Z
+		} else if opcode == inir {
+			cpu.reg.PC -= 2
+			cpu.t += 5
 		}
-	case inir:
-		// TODO: Implement
 	case outi:
 		// TODO: Implement
 	case otir:

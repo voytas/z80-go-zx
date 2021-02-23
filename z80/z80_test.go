@@ -2107,7 +2107,33 @@ func Test_INI(t *testing.T) {
 	}
 	cpu.Run()
 
+	assert.Equal(t, uint16(0x34), cpu.reg.getBC())
 	assert.Equal(t, byte(0x5E), cpu.mem.Read((9)))
+	assert.Equal(t, uint16(0x0A), cpu.reg.getHL())
+	assert.Equal(t, f_Z|f_N|f_C, cpu.reg.F)
+}
+
+func Test_INIR(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x09, 0x00, ld_bc_nn, 0x34, 0x05,
+		prefix_ed, inir, halt, 0x00, 0x00, 0x00, 0x00, 0x00}}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_C
+	cpu.IN = func(hi, lo byte) byte {
+		if lo == 0x34 {
+			return hi + 0x20
+		}
+		return 0
+	}
+	cpu.Run()
+
+	assert.Equal(t, uint16(0x34), cpu.reg.getBC())
+	assert.Equal(t, byte(0x25), cpu.mem.Read((9)))
+	assert.Equal(t, byte(0x24), cpu.mem.Read((10)))
+	assert.Equal(t, byte(0x23), cpu.mem.Read((11)))
+	assert.Equal(t, byte(0x22), cpu.mem.Read((12)))
+	assert.Equal(t, byte(0x21), cpu.mem.Read((13)))
+	assert.Equal(t, uint16(0x0E), cpu.reg.getHL())
 	assert.Equal(t, f_Z|f_N|f_C, cpu.reg.F)
 }
 
