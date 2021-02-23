@@ -45,6 +45,7 @@ type registers struct {
 	// Other & special registers
 	IX, IY [2]byte
 	SP     uint16
+	PC     uint16
 	I, R   byte
 	// Helper register index
 	get      []*byte

@@ -8,7 +8,6 @@ import (
 
 // Represents emulated Z80 CPU
 type CPU struct {
-	PC               uint16                  // program counter
 	IN               func(hi, lo byte) byte  // callback function to execute on IN instruction
 	OUT              func(hi, lo, data byte) // callback function to execute on OUT instruction
 	mem              memory.Memory           // memory
@@ -26,14 +25,14 @@ func NewCPU(mem memory.Memory) *CPU {
 }
 
 func (cpu *CPU) readByte() byte {
-	b := cpu.mem.Read(cpu.PC)
-	cpu.PC += 1
+	b := cpu.mem.Read(cpu.reg.PC)
+	cpu.reg.PC += 1
 	return b
 }
 
 func (cpu *CPU) readWord() uint16 {
-	w := uint16(cpu.mem.Read(cpu.PC)) | uint16(cpu.mem.Read(cpu.PC+1))<<8
-	cpu.PC += 2
+	w := uint16(cpu.mem.Read(cpu.reg.PC)) | uint16(cpu.mem.Read(cpu.reg.PC+1))<<8
+	cpu.reg.PC += 2
 	return w
 }
 
@@ -41,8 +40,8 @@ func (cpu *CPU) wait() {
 }
 
 func (cpu *CPU) Reset() {
-	cpu.PC = 0
 	cpu.reg = newRegisters()
+	cpu.reg.PC = 0
 	cpu.halt = false
 	cpu.iff1, cpu.iff2 = true, true
 }
@@ -487,17 +486,17 @@ func (cpu *CPU) Run() {
 		case jr_o:
 			o := cpu.readByte()
 			if o&0x80 == 0 {
-				cpu.PC += uint16(o)
+				cpu.reg.PC += uint16(o)
 			} else {
-				cpu.PC -= uint16(^o + 1)
+				cpu.reg.PC -= uint16(^o + 1)
 			}
 		case jr_z_o:
 			o := cpu.readByte()
 			if cpu.reg.F&f_Z == f_Z {
 				if o&0x80 == 0 {
-					cpu.PC += uint16(o)
+					cpu.reg.PC += uint16(o)
 				} else {
-					cpu.PC -= uint16(^o + 1)
+					cpu.reg.PC -= uint16(^o + 1)
 				}
 				cpu.t += 5
 			}
@@ -505,9 +504,9 @@ func (cpu *CPU) Run() {
 			o := cpu.readByte()
 			if cpu.reg.F&f_Z == 0 {
 				if o&0x80 == 0 {
-					cpu.PC += uint16(o)
+					cpu.reg.PC += uint16(o)
 				} else {
-					cpu.PC -= uint16(^o + 1)
+					cpu.reg.PC -= uint16(^o + 1)
 				}
 				cpu.t += 5
 			}
@@ -515,9 +514,9 @@ func (cpu *CPU) Run() {
 			o := cpu.readByte()
 			if cpu.reg.F&f_C == f_C {
 				if o&0x80 == 0 {
-					cpu.PC += uint16(o)
+					cpu.reg.PC += uint16(o)
 				} else {
-					cpu.PC -= uint16(^o + 1)
+					cpu.reg.PC -= uint16(^o + 1)
 				}
 				cpu.t += 5
 			}
@@ -525,9 +524,9 @@ func (cpu *CPU) Run() {
 			o := cpu.readByte()
 			if cpu.reg.F&f_C == 0 {
 				if o&0x80 == 0 {
-					cpu.PC += uint16(o)
+					cpu.reg.PC += uint16(o)
 				} else {
-					cpu.PC -= uint16(^o + 1)
+					cpu.reg.PC -= uint16(^o + 1)
 				}
 				cpu.t += 5
 			}
@@ -536,49 +535,49 @@ func (cpu *CPU) Run() {
 			cpu.reg.B -= 1
 			if cpu.reg.B != 0 {
 				if o&0x80 == 0 {
-					cpu.PC += uint16(o)
+					cpu.reg.PC += uint16(o)
 				} else {
-					cpu.PC -= uint16(^o + 1)
+					cpu.reg.PC -= uint16(^o + 1)
 				}
 				cpu.t += 5
 			}
 		case jp_nn:
-			cpu.PC = cpu.readWord()
+			cpu.reg.PC = cpu.readWord()
 		case jp_c_nn, jp_m_nn, jp_nc_nn, jp_nz_nn, jp_p_nn, jp_pe_nn, jp_po_nn, jp_z_nn:
 			if cpu.shouldJump(opcode) {
-				cpu.PC = cpu.readWord()
+				cpu.reg.PC = cpu.readWord()
 			} else {
-				cpu.PC += 2
+				cpu.reg.PC += 2
 			}
 		case jp_hl:
-			cpu.PC = cpu.reg.getHL()
+			cpu.reg.PC = cpu.reg.getHL()
 		case call_nn, call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
 			if cpu.shouldJump(opcode) {
 				pc := cpu.readWord()
 				cpu.reg.SP -= 1
-				cpu.mem.Write(cpu.reg.SP, byte(cpu.PC>>8))
+				cpu.mem.Write(cpu.reg.SP, byte(cpu.reg.PC>>8))
 				cpu.reg.SP -= 1
-				cpu.mem.Write(cpu.reg.SP, byte(cpu.PC))
-				cpu.PC = pc
+				cpu.mem.Write(cpu.reg.SP, byte(cpu.reg.PC))
+				cpu.reg.PC = pc
 				cpu.t += 7
 			} else {
-				cpu.PC += 2
+				cpu.reg.PC += 2
 			}
 		case ret:
-			cpu.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
+			cpu.reg.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
 			cpu.reg.SP += 2
 		case ret_c, ret_m, ret_nc, ret_nz, ret_p, ret_pe, ret_po, ret_z:
 			if cpu.shouldJump(opcode) {
-				cpu.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
+				cpu.reg.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
 				cpu.reg.SP += 2
 				cpu.t += 6
 			}
 		case rst_00h, rst_08h, rst_10h, rst_18h, rst_20h, rst_28h, rst_30h, rst_38h:
 			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, byte(cpu.PC>>8))
+			cpu.mem.Write(cpu.reg.SP, byte(cpu.reg.PC>>8))
 			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, byte(cpu.PC))
-			cpu.PC = uint16(8 * ((opcode & 0b00111000) >> 3))
+			cpu.mem.Write(cpu.reg.SP, byte(cpu.reg.PC))
+			cpu.reg.PC = uint16(8 * ((opcode & 0b00111000) >> 3))
 		case push_af:
 			cpu.reg.SP -= 1
 			cpu.mem.Write(cpu.reg.SP, cpu.reg.A)
@@ -838,7 +837,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.im = opcode
 	case retn, 0x55, 0x65, 0x75, 0x5D, 0x6D, reti, 0x7D:
 		cpu.iff1 = cpu.iff2
-		cpu.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
+		cpu.reg.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
 		cpu.reg.SP += 2
 	case ld_mm_bc, ld_mm_hl_ed, ld_mm_de, ld_mm_sp:
 		addr := cpu.readWord()
@@ -885,6 +884,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 			cpu.reg.F |= f_P
 		}
 	case ldir:
+
 		// TODO: Implement
 	case cpi:
 		// TODO: Implement

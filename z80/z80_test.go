@@ -56,7 +56,7 @@ func Test_EX_AF_AF(t *testing.T) {
 	assert.Equal(t, f_, cpu.reg.F)
 	assert.Equal(t, f, cpu.reg.F_)
 
-	cpu.PC = 0
+	cpu.reg.PC = 0
 	cpu.Run()
 	assert.Equal(t, a, cpu.reg.A)
 	assert.Equal(t, a_, cpu.reg.A_)
@@ -1613,7 +1613,7 @@ func Test_RST_xx(t *testing.T) {
 		},
 	}
 	cpu := NewCPU(mem)
-	cpu.PC = 0x40
+	cpu.reg.PC = 0x40
 	cpu.Run()
 
 	assert.Equal(t, byte(0xFF), cpu.reg.A)
