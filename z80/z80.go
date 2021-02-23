@@ -904,7 +904,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 			cpu.reg.PC -= 2
 			cpu.t += 5
 		}
-	case outi:
+	case outi, otir:
 		hl := cpu.reg.getHL()
 		cpu.reg.B -= 1
 		cpu.OUT(cpu.reg.B, cpu.reg.C, cpu.mem.Read(hl))
@@ -912,9 +912,10 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.reg.F = cpu.reg.F & ^f_Z | f_N
 		if cpu.reg.B == 0 {
 			cpu.reg.F |= f_Z
+		} else if opcode == otir {
+			cpu.reg.PC -= 2
+			cpu.t += 5
 		}
-	case otir:
-		// TODO: Implement
 	case ldd:
 		// TODO: Implement
 	case lddr:

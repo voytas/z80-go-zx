@@ -2155,6 +2155,23 @@ func Test_OUTI(t *testing.T) {
 	assert.Equal(t, f_Z|f_N|f_C, cpu.reg.F)
 }
 
+func Test_OTIR(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x09, 0x00, ld_bc_nn, 0x34, 0x04,
+		prefix_ed, otir, halt, 0x87, 0x88, 0x89, 0x8A}}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_C
+	cpu.OUT = func(hi, lo, data byte) {
+		assert.Equal(t, byte(0x34), lo)
+		assert.Equal(t, byte(0x87+0x03-hi), data)
+	}
+	cpu.Run()
+
+	assert.Equal(t, uint16(0x34), cpu.reg.getBC())
+	assert.Equal(t, uint16(0x0D), cpu.reg.getHL())
+	assert.Equal(t, f_Z|f_N|f_C, cpu.reg.F)
+}
+
 func Test_shouldJump(t *testing.T) {
 	var tests = []struct {
 		flags    byte
