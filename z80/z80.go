@@ -886,7 +886,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 				cpu.t += 5
 			}
 		}
-	case cpi:
+	case cpi, cpir:
 		hl := cpu.reg.getHL()
 		bc := cpu.reg.getBC() - 1
 		cpu.reg.setHL(hl + 1)
@@ -901,8 +901,10 @@ func (cpu *CPU) prefixED(opcode byte) {
 		if bc != 0 {
 			cpu.reg.F |= f_P
 		}
-	case cpir:
-		// TODO: Implement
+		if opcode == cpir && bc != 0 && test != 0 {
+			cpu.reg.PC -= 2
+			cpu.t += 5
+		}
 	case ini:
 		// TODO: Implement
 	case inir:
