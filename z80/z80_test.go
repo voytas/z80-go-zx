@@ -2035,6 +2035,20 @@ func Test_LDI(t *testing.T) {
 	assert.Equal(t, f_P, cpu.reg.F)
 }
 
+func Test_LDIR(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x0C, 0x00, ld_de_nn, 0x0F, 0x00, ld_bc_nn, 0x03, 0x00,
+		prefix_ed, ldir, halt, 0x88, 0x36, 0xA5, 0x00, 0x00, 0x00}}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_ALL
+	cpu.Run()
+
+	assert.Equal(t, byte(0x88), cpu.mem.Read(0x0F))
+	assert.Equal(t, byte(0x36), cpu.mem.Read(0x10))
+	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x11))
+	assert.Equal(t, f_S|f_Z|f_C, cpu.reg.F)
+}
+
 func Test_shouldJump(t *testing.T) {
 	var tests = []struct {
 		flags    byte

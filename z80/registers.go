@@ -107,7 +107,7 @@ func (r *registers) setReg16(reg byte, value uint16) {
 	case r_DE:
 		r.setDE(value)
 	case r_HL:
-		r.setHLw(value)
+		r.setHL(value)
 	case r_SP:
 		r.SP = value
 	}
@@ -141,20 +141,8 @@ func (r *registers) getHL() uint16 {
 }
 
 // Sets HL register using 16-bit value
-func (r *registers) setHLw(value uint16) {
+func (r *registers) setHL(value uint16) {
 	h, l := byte(value>>8), byte(value)
-	switch r.prefix {
-	case useIX:
-		r.IXH, r.IXL = h, l
-	case useIY:
-		r.IYH, r.IYL = h, l
-	default:
-		r.H, r.L = h, l
-	}
-}
-
-// Sets HL register using two 8-bit values
-func (r *registers) setHLb(h, l byte) {
 	switch r.prefix {
 	case useIX:
 		r.IXH, r.IXL = h, l

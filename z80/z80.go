@@ -155,10 +155,11 @@ func (cpu *CPU) Run() {
 		case ex_de_hl:
 			cpu.reg.D, cpu.reg.E, cpu.reg.H, cpu.reg.L = cpu.reg.H, cpu.reg.L, cpu.reg.D, cpu.reg.E
 		case ex_sp_hl:
-			h, l := *cpu.reg.getReg(r_H), *cpu.reg.getReg(r_L)
-			cpu.reg.setHLb(cpu.mem.Read(cpu.reg.SP+1), cpu.mem.Read(cpu.reg.SP))
-			cpu.mem.Write(cpu.reg.SP, l)
-			cpu.mem.Write(cpu.reg.SP+1, h)
+			h, l := cpu.reg.getReg(r_H), cpu.reg.getReg(r_L)
+			x, y := cpu.mem.Read(cpu.reg.SP+1), cpu.mem.Read(cpu.reg.SP)
+			cpu.mem.Write(cpu.reg.SP, *l)
+			cpu.mem.Write(cpu.reg.SP+1, *h)
+			*h, *l = x, y
 		case add_a_n, add_a_a, add_a_b, add_a_c, add_a_d, add_a_e, add_a_h, add_a_l, add_a_hl:
 			a := cpu.reg.A
 			var n byte
@@ -223,7 +224,7 @@ func (cpu *CPU) Run() {
 				nn = cpu.reg.SP
 			}
 			sum := hl + nn
-			cpu.reg.setHLw(sum)
+			cpu.reg.setHL(sum)
 			cpu.reg.F &= ^(f_H | f_N | f_C)
 			if sum < hl {
 				cpu.reg.F |= f_C
@@ -425,7 +426,7 @@ func (cpu *CPU) Run() {
 		case inc_de:
 			cpu.reg.setDE(cpu.reg.getDE() + 1)
 		case inc_hl:
-			cpu.reg.setHLw(cpu.reg.getHL() + 1)
+			cpu.reg.setHL(cpu.reg.getHL() + 1)
 		case inc_sp:
 			cpu.reg.SP += 1
 		case inc_mhl:
@@ -463,7 +464,7 @@ func (cpu *CPU) Run() {
 		case dec_de:
 			cpu.reg.setDE(cpu.reg.getDE() - 1)
 		case dec_hl:
-			cpu.reg.setHLw(cpu.reg.getHL() - 1)
+			cpu.reg.setHL(cpu.reg.getHL() - 1)
 		case dec_sp:
 			cpu.reg.SP -= 1
 		case dec_mhl:
@@ -773,7 +774,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 		if sum < hl {
 			cpu.reg.F |= f_C
 		}
-		cpu.reg.setHLw(sum)
+		cpu.reg.setHL(sum)
 	case sbc_hl_bc, sbc_hl_de, sbc_hl_hl, sbc_hl_sp:
 		hl := cpu.reg.getHL()
 		nn := cpu.reg.getReg16(opcode & 0b00110000 >> 4)
@@ -792,7 +793,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 		if sub > hl {
 			cpu.reg.F |= f_C
 		}
-		cpu.reg.setHLw(sub)
+		cpu.reg.setHL(sub)
 	case rld:
 		hl := cpu.reg.getHL()
 		w := (uint16(cpu.reg.A)<<8 | uint16(cpu.mem.Read(hl))) << 4
@@ -871,21 +872,21 @@ func (cpu *CPU) prefixED(opcode byte) {
 		}
 	case ld_i_a:
 		cpu.reg.I = cpu.reg.A
-	case ldi:
+	case ldi, ldir:
 		hl := cpu.reg.getHL()
 		de := cpu.reg.getDE()
 		bc := cpu.reg.getBC()
 		cpu.mem.Write(de, cpu.mem.Read(hl))
-		cpu.reg.setHLw(hl + 1)
+		cpu.reg.setHL(hl + 1)
 		cpu.reg.setDE(de + 1)
 		cpu.reg.setBC(bc - 1)
 		cpu.reg.F &= ^(f_H | f_P | f_N)
 		if bc != 1 {
 			cpu.reg.F |= f_P
+			if opcode == ldir {
+				cpu.reg.PC -= 2
+			}
 		}
-	case ldir:
-
-		// TODO: Implement
 	case cpi:
 		// TODO: Implement
 	case cpir:
