@@ -10,7 +10,6 @@ import (
 type instruction struct {
 	mnemonic string
 	args     int // number of bytes to read to get arguments (0, 1 or 2)
-	relative bool
 }
 
 func Decode(addr uint16, mem memory.Memory) string {

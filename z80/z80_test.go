@@ -115,11 +115,11 @@ func Test_EX_SP_HL(t *testing.T) {
 
 		switch prefix {
 		case useIX:
-			assert.Equal(t, byte(0x22), byte(cpu.reg.IX[0]))
-			assert.Equal(t, byte(0x11), byte(cpu.reg.IX[1]))
+			assert.Equal(t, byte(0x22), byte(cpu.reg.IXH))
+			assert.Equal(t, byte(0x11), byte(cpu.reg.IXL))
 		case useIY:
-			assert.Equal(t, byte(0x22), byte(cpu.reg.IY[0]))
-			assert.Equal(t, byte(0x11), byte(cpu.reg.IY[1]))
+			assert.Equal(t, byte(0x22), byte(cpu.reg.IYH))
+			assert.Equal(t, byte(0x11), byte(cpu.reg.IYL))
 		}
 		assert.Equal(t, byte(0x12), cpu.mem.Read(10))
 		assert.Equal(t, byte(0x70), cpu.mem.Read(11))
@@ -727,8 +727,8 @@ func Test_INC_RR(t *testing.T) {
 	assert.Equal(t, uint16(0x1336), cpu.reg.getDE())
 	assert.Equal(t, uint16(0x1437), cpu.reg.getHL())
 	assert.Equal(t, uint16(0x1538), cpu.reg.SP)
-	assert.Equal(t, uint16(0x1639), uint16(cpu.reg.IX[0])<<8|uint16(cpu.reg.IX[1]))
-	assert.Equal(t, uint16(0x173A), uint16(cpu.reg.IY[0])<<8|uint16(cpu.reg.IY[1]))
+	assert.Equal(t, uint16(0x1639), uint16(cpu.reg.IXH)<<8|uint16(cpu.reg.IXL))
+	assert.Equal(t, uint16(0x173A), uint16(cpu.reg.IYH)<<8|uint16(cpu.reg.IYL))
 }
 
 func Test_INC_mHL(t *testing.T) {
@@ -826,8 +826,8 @@ func Test_DEC_RR(t *testing.T) {
 	assert.Equal(t, uint16(0x1334), cpu.reg.getDE())
 	assert.Equal(t, uint16(0x1435), cpu.reg.getHL())
 	assert.Equal(t, uint16(0x1536), cpu.reg.SP)
-	assert.Equal(t, uint16(0x1637), uint16(cpu.reg.IX[0])<<8|uint16(cpu.reg.IX[1]))
-	assert.Equal(t, uint16(0x1738), uint16(cpu.reg.IY[0])<<8|uint16(cpu.reg.IY[1]))
+	assert.Equal(t, uint16(0x1637), uint16(cpu.reg.IXH)<<8|uint16(cpu.reg.IXL))
+	assert.Equal(t, uint16(0x1738), uint16(cpu.reg.IYH)<<8|uint16(cpu.reg.IYL))
 }
 
 func Test_DEC_mHL(t *testing.T) {
@@ -1066,10 +1066,10 @@ func Test_LD_R_n(t *testing.T) {
 	assert.Equal(t, e, cpu.reg.E)
 	assert.Equal(t, h, cpu.reg.H)
 	assert.Equal(t, l, cpu.reg.L)
-	assert.Equal(t, ixh, cpu.reg.IX[0])
-	assert.Equal(t, ixl, cpu.reg.IX[1])
-	assert.Equal(t, iyh, cpu.reg.IY[0])
-	assert.Equal(t, iyl, cpu.reg.IY[1])
+	assert.Equal(t, ixh, cpu.reg.IXH)
+	assert.Equal(t, ixl, cpu.reg.IXL)
+	assert.Equal(t, iyh, cpu.reg.IYH)
+	assert.Equal(t, iyl, cpu.reg.IYL)
 }
 
 func Test_LD_R_R(t *testing.T) {
@@ -1087,8 +1087,8 @@ func Test_LD_R_R(t *testing.T) {
 	assert.Equal(t, byte(0x56), cpu.reg.E)
 	assert.Equal(t, byte(0x56), cpu.reg.H)
 	assert.Equal(t, byte(0x56), cpu.reg.L)
-	assert.Equal(t, byte(0x56), cpu.reg.IX[0])
-	assert.Equal(t, byte(0x56), cpu.reg.IX[1])
+	assert.Equal(t, byte(0x56), cpu.reg.IXH)
+	assert.Equal(t, byte(0x56), cpu.reg.IXL)
 }
 
 func Test_LD_R_HL(t *testing.T) {
@@ -1639,10 +1639,10 @@ func Test_PUSH_rr(t *testing.T) {
 	assert.Equal(t, cpu.mem.Read(29), cpu.reg.E)
 	assert.Equal(t, cpu.mem.Read(28), cpu.reg.H)
 	assert.Equal(t, cpu.mem.Read(27), cpu.reg.L)
-	assert.Equal(t, cpu.mem.Read(26), cpu.reg.IX[0])
-	assert.Equal(t, cpu.mem.Read(25), cpu.reg.IX[1])
-	assert.Equal(t, cpu.mem.Read(24), cpu.reg.IY[0])
-	assert.Equal(t, cpu.mem.Read(23), cpu.reg.IY[1])
+	assert.Equal(t, cpu.mem.Read(26), cpu.reg.IXH)
+	assert.Equal(t, cpu.mem.Read(25), cpu.reg.IXL)
+	assert.Equal(t, cpu.mem.Read(24), cpu.reg.IYH)
+	assert.Equal(t, cpu.mem.Read(23), cpu.reg.IYL)
 }
 
 func Test_POP_rr(t *testing.T) {
@@ -1661,10 +1661,10 @@ func Test_POP_rr(t *testing.T) {
 	assert.Equal(t, byte(0x45), cpu.reg.E)
 	assert.Equal(t, byte(0x24), cpu.reg.H)
 	assert.Equal(t, byte(0x46), cpu.reg.L)
-	assert.Equal(t, byte(0x25), cpu.reg.IX[0])
-	assert.Equal(t, byte(0x47), cpu.reg.IX[1])
-	assert.Equal(t, byte(0x26), cpu.reg.IY[0])
-	assert.Equal(t, byte(0x48), cpu.reg.IY[1])
+	assert.Equal(t, byte(0x25), cpu.reg.IXH)
+	assert.Equal(t, byte(0x47), cpu.reg.IXL)
+	assert.Equal(t, byte(0x26), cpu.reg.IYH)
+	assert.Equal(t, byte(0x48), cpu.reg.IYL)
 	assert.Equal(t, uint16(0x18), cpu.reg.SP)
 }
 
@@ -2006,10 +2006,10 @@ func Test_LD_IXY_nn(t *testing.T) {
 	cpu := NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, byte(0x01), cpu.reg.IX[0])
-	assert.Equal(t, byte(0x06), cpu.reg.IX[1])
-	assert.Equal(t, byte(0x02), cpu.reg.IY[0])
-	assert.Equal(t, byte(0x07), cpu.reg.IY[1])
+	assert.Equal(t, byte(0x01), cpu.reg.IXH)
+	assert.Equal(t, byte(0x06), cpu.reg.IXL)
+	assert.Equal(t, byte(0x02), cpu.reg.IYH)
+	assert.Equal(t, byte(0x07), cpu.reg.IYL)
 	assert.Equal(t, byte(0x03), cpu.reg.H)
 	assert.Equal(t, byte(0x08), cpu.reg.L)
 }

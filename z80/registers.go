@@ -42,11 +42,12 @@ type registers struct {
 	A, B, C, D, E, H, L, F byte
 	// Shadow registers
 	A_, B_, C_, D_, E_, H_, L_, F_ byte
+	// Unofficial registers
+	IXH, IXL, IYH, IYL byte
 	// Other & special registers
-	IX, IY [2]byte
-	SP     uint16
-	PC     uint16
-	I, R   byte
+	SP   uint16
+	PC   uint16
+	I, R byte
 	// Helper register index
 	get      []*byte
 	prefixed [][]*byte
@@ -62,11 +63,11 @@ func newRegisters() *registers {
 		},
 		useIX: {
 			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
-			r_E: &r.E, r_H: &r.IX[0], r_L: &r.IX[1],
+			r_E: &r.E, r_H: &r.IXH, r_L: &r.IXL,
 		},
 		useIY: {
 			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
-			r_E: &r.E, r_H: &r.IY[0], r_L: &r.IY[1],
+			r_E: &r.E, r_H: &r.IYH, r_L: &r.IYL,
 		},
 	}
 	r.get = r.prefixed[noPrefix]
@@ -131,9 +132,9 @@ func (r *registers) setDE(nn uint16) {
 func (r *registers) getHL() uint16 {
 	switch r.prefix {
 	case useIX:
-		return uint16(r.IX[0])<<8 | uint16(r.IX[1])
+		return uint16(r.IXH)<<8 | uint16(r.IXL)
 	case useIY:
-		return uint16(r.IY[0])<<8 | uint16(r.IY[1])
+		return uint16(r.IYH)<<8 | uint16(r.IYL)
 	default:
 		return uint16(r.H)<<8 | uint16(r.L)
 	}
@@ -144,9 +145,9 @@ func (r *registers) setHLw(value uint16) {
 	h, l := byte(value>>8), byte(value)
 	switch r.prefix {
 	case useIX:
-		r.IX[0], r.IX[1] = h, l
+		r.IXH, r.IXL = h, l
 	case useIY:
-		r.IY[0], r.IY[1] = h, l
+		r.IYH, r.IYL = h, l
 	default:
 		r.H, r.L = h, l
 	}
@@ -156,9 +157,9 @@ func (r *registers) setHLw(value uint16) {
 func (r *registers) setHLb(h, l byte) {
 	switch r.prefix {
 	case useIX:
-		r.IX[0], r.IX[1] = h, l
+		r.IXH, r.IXL = h, l
 	case useIY:
-		r.IY[0], r.IY[1] = h, l
+		r.IYH, r.IYL = h, l
 	default:
 		r.H, r.L = h, l
 	}
