@@ -2093,6 +2093,24 @@ func Test_CPIR(t *testing.T) {
 	assert.Equal(t, f_Z|f_P|f_N, cpu.reg.F)
 }
 
+func Test_INI(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x09, 0x00, ld_bc_nn, 0x34, 0x01,
+		prefix_ed, ini, halt, 0x00}}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_C
+	cpu.IN = func(hi, lo byte) byte {
+		if hi == 0x01 && lo == 0x34 {
+			return 0x5E
+		}
+		return 0
+	}
+	cpu.Run()
+
+	assert.Equal(t, byte(0x5E), cpu.mem.Read((9)))
+	assert.Equal(t, f_Z|f_N|f_C, cpu.reg.F)
+}
+
 func Test_shouldJump(t *testing.T) {
 	var tests = []struct {
 		flags    byte

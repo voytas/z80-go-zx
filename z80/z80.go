@@ -20,6 +20,8 @@ type CPU struct {
 func NewCPU(mem memory.Memory) *CPU {
 	cpu := &CPU{}
 	cpu.mem = mem
+	cpu.IN = func(_, _ byte) byte { return 0xFF }
+	cpu.OUT = func(hi, lo, data byte) {}
 	cpu.Reset()
 	return cpu
 }
@@ -612,17 +614,9 @@ func (cpu *CPU) Run() {
 			*cpu.reg.getReg(r_H), *cpu.reg.getReg(r_L) = cpu.mem.Read(cpu.reg.SP+1), cpu.mem.Read(cpu.reg.SP)
 			cpu.reg.SP += 2
 		case in_a_n:
-			n := cpu.readByte()
-			if cpu.IN != nil {
-				cpu.reg.A = cpu.IN(cpu.reg.A, n)
-			} else {
-				cpu.reg.A = 0xFF
-			}
+			cpu.reg.A = cpu.IN(cpu.reg.A, cpu.readByte())
 		case out_n_a:
-			n := cpu.readByte()
-			if cpu.OUT != nil {
-				cpu.OUT(cpu.reg.A, n, cpu.reg.A)
-			}
+			cpu.OUT(cpu.reg.A, cpu.readByte(), cpu.reg.A)
 		case prefix_cb:
 			cpu.prefixCB(cpu.readByte())
 		case prefix_ed:
@@ -818,11 +812,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.reg.F |= parity[cpu.reg.A]
 	case in_a_c, in_b_c, in_c_c, in_d_c, in_e_c, in_f_c, in_h_c, in_l_c:
 		r := cpu.reg.getReg(opcode & 0b00111000 >> 3)
-		if cpu.IN != nil {
-			*r = cpu.IN(cpu.reg.B, cpu.reg.C)
-		} else {
-			*r = 0xFF
-		}
+		*r = cpu.IN(cpu.reg.B, cpu.reg.C)
 		cpu.reg.F &= f_C
 		cpu.reg.F |= *r & f_S
 		if *r == 0 {
@@ -830,10 +820,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 		}
 		cpu.reg.F |= parity[*r]
 	case out_c_a, out_c_b, out_c_c, out_c_d, out_c_e, out_c_f, out_c_h, out_c_l:
-		if cpu.OUT != nil {
-			r := cpu.reg.getReg(opcode & 0b00111000 >> 3)
-			cpu.OUT(cpu.reg.B, cpu.reg.C, *r)
-		}
+		cpu.OUT(cpu.reg.B, cpu.reg.C, *cpu.reg.getReg(opcode & 0b00111000 >> 3))
 	case im0, im1, im2:
 		cpu.im = opcode
 	case retn, 0x55, 0x65, 0x75, 0x5D, 0x6D, reti, 0x7D:
@@ -906,7 +893,14 @@ func (cpu *CPU) prefixED(opcode byte) {
 			cpu.t += 5
 		}
 	case ini:
-		// TODO: Implement
+		hl := cpu.reg.getHL()
+		cpu.mem.Write(hl, cpu.IN(cpu.reg.B, cpu.reg.C))
+		cpu.reg.B -= 1
+		cpu.reg.setHL(hl + 1)
+		cpu.reg.F = cpu.reg.F & ^f_Z | f_N
+		if cpu.reg.B == 0 {
+			cpu.reg.F |= f_Z
+		}
 	case inir:
 		// TODO: Implement
 	case outi:
