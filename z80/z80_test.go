@@ -2023,6 +2023,9 @@ func Test_LDI(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x0D))
+	assert.Equal(t, uint16(0), cpu.reg.getBC())
+	assert.Equal(t, uint16(0x0E), cpu.reg.getDE())
+	assert.Equal(t, uint16(0x0D), cpu.reg.getHL())
 	assert.Equal(t, f_S|f_Z|f_C, cpu.reg.F)
 
 	mem = &memory.BasicMemory{Cells: []byte{
@@ -2032,6 +2035,9 @@ func Test_LDI(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x0D))
+	assert.Equal(t, uint16(1), cpu.reg.getBC())
+	assert.Equal(t, uint16(0x0E), cpu.reg.getDE())
+	assert.Equal(t, uint16(0x0D), cpu.reg.getHL())
 	assert.Equal(t, f_P, cpu.reg.F)
 }
 
@@ -2046,7 +2052,33 @@ func Test_LDIR(t *testing.T) {
 	assert.Equal(t, byte(0x88), cpu.mem.Read(0x0F))
 	assert.Equal(t, byte(0x36), cpu.mem.Read(0x10))
 	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x11))
+	assert.Equal(t, uint16(0), cpu.reg.getBC())
+	assert.Equal(t, uint16(0x12), cpu.reg.getDE())
+	assert.Equal(t, uint16(0x0F), cpu.reg.getHL())
 	assert.Equal(t, f_S|f_Z|f_C, cpu.reg.F)
+}
+
+func Test_CPI(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x0B, 0x00, ld_bc_nn, 0x03, 0x00, ld_a_n, 0x88,
+		prefix_ed, cpi, halt, 0x88}}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_C
+	cpu.Run()
+
+	assert.Equal(t, uint16(0x02), cpu.reg.getBC())
+	assert.Equal(t, uint16(0x0C), cpu.reg.getHL())
+	assert.Equal(t, f_Z|f_P|f_N|f_C, cpu.reg.F)
+
+	mem = &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x0B, 0x00, ld_bc_nn, 0x01, 0x00, ld_a_n, 0x88,
+		prefix_ed, cpi, halt, 0x89}}
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, uint16(0x00), cpu.reg.getBC())
+	assert.Equal(t, uint16(0x0C), cpu.reg.getHL())
+	assert.Equal(t, f_S|f_H|f_N, cpu.reg.F)
 }
 
 func Test_shouldJump(t *testing.T) {

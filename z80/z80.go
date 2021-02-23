@@ -850,8 +850,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.reg.setReg16(opcode&0b00110000>>4, uint16(cpu.mem.Read(addr))|uint16(cpu.mem.Read(addr+1))<<8)
 	case ld_a_r:
 		cpu.reg.A = cpu.reg.R
-		cpu.reg.F &= f_C
-		cpu.reg.F |= cpu.reg.A & f_S
+		cpu.reg.F = cpu.reg.F&f_C | cpu.reg.A&f_S
 		if cpu.reg.A == 0 {
 			cpu.reg.F |= f_Z
 		}
@@ -862,8 +861,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.reg.R = cpu.reg.A
 	case ld_a_i:
 		cpu.reg.A = cpu.reg.I
-		cpu.reg.F &= f_C
-		cpu.reg.F |= cpu.reg.A & f_S
+		cpu.reg.F = cpu.reg.F&f_C | cpu.reg.A&f_S
 		if cpu.reg.A == 0 {
 			cpu.reg.F |= f_Z
 		}
@@ -875,20 +873,34 @@ func (cpu *CPU) prefixED(opcode byte) {
 	case ldi, ldir:
 		hl := cpu.reg.getHL()
 		de := cpu.reg.getDE()
-		bc := cpu.reg.getBC()
+		bc := cpu.reg.getBC() - 1
 		cpu.mem.Write(de, cpu.mem.Read(hl))
 		cpu.reg.setHL(hl + 1)
 		cpu.reg.setDE(de + 1)
-		cpu.reg.setBC(bc - 1)
+		cpu.reg.setBC(bc)
 		cpu.reg.F &= ^(f_H | f_P | f_N)
-		if bc != 1 {
+		if bc != 0 {
 			cpu.reg.F |= f_P
 			if opcode == ldir {
 				cpu.reg.PC -= 2
+				cpu.t += 5
 			}
 		}
 	case cpi:
-		// TODO: Implement
+		hl := cpu.reg.getHL()
+		bc := cpu.reg.getBC() - 1
+		cpu.reg.setHL(hl + 1)
+		cpu.reg.setBC(bc)
+		n := cpu.mem.Read(hl)
+		test := cpu.reg.A - n
+		cpu.reg.F = cpu.reg.F&f_C | f_N | test&f_S
+		if test == 0 {
+			cpu.reg.F |= f_Z
+		}
+		cpu.reg.F |= byte(cpu.reg.A^n^test) & f_H
+		if bc != 0 {
+			cpu.reg.F |= f_P
+		}
 	case cpir:
 		// TODO: Implement
 	case ini:
