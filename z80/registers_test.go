@@ -9,22 +9,22 @@ import (
 func Test_getR(t *testing.T) {
 	r := newRegisters()
 	r.A, r.B, r.C, r.D, r.E, r.H, r.L = 1, 2, 3, 4, 5, 6, 7
-	assert.Equal(t, &r.A, r.get[r_A])
-	assert.Equal(t, &r.B, r.get[r_B])
-	assert.Equal(t, &r.C, r.get[r_C])
-	assert.Equal(t, &r.D, r.get[r_D])
-	assert.Equal(t, &r.E, r.get[r_E])
-	assert.Equal(t, &r.H, r.get[r_H])
-	assert.Equal(t, &r.L, r.get[r_L])
+	assert.Equal(t, &r.A, r.raw[r_A])
+	assert.Equal(t, &r.B, r.raw[r_B])
+	assert.Equal(t, &r.C, r.raw[r_C])
+	assert.Equal(t, &r.D, r.raw[r_D])
+	assert.Equal(t, &r.E, r.raw[r_E])
+	assert.Equal(t, &r.H, r.raw[r_H])
+	assert.Equal(t, &r.L, r.raw[r_L])
 }
 
 func Test_getRR(t *testing.T) {
 	r := newRegisters()
 	r.B, r.C, r.D, r.E, r.H, r.L = 2, 3, 4, 5, 6, 7
 
-	assert.Equal(t, uint16(0x0203), r.getBC())
-	assert.Equal(t, uint16(0x0405), r.getDE())
-	assert.Equal(t, uint16(0x0607), r.getHL())
+	assert.Equal(t, uint16(0x0203), r.BC())
+	assert.Equal(t, uint16(0x0405), r.DE())
+	assert.Equal(t, uint16(0x0607), r.HL())
 }
 
 func Test_setRR(t *testing.T) {
@@ -50,7 +50,7 @@ func Test_getReg(t *testing.T) {
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
 		for _, reg := range []byte{r_A, r_B, r_C, r_D, r_E, r_H, r_L} {
 			r.prefix = prefix
-			result := *r.getReg(reg)
+			result := *r.r(reg)
 			switch reg {
 			case r_A:
 				assert.Equal(t, r.A, result)
@@ -91,7 +91,7 @@ func Test_setReg(t *testing.T) {
 			var val byte = 0x76
 			r := newRegisters()
 			r.prefix = prefix
-			r.setReg(reg, val)
+			r.setR(reg, val)
 
 			switch reg {
 			case r_A:

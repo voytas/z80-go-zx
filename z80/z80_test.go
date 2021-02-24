@@ -723,9 +723,9 @@ func Test_INC_RR(t *testing.T) {
 	cpu := NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, uint16(0x1235), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x1336), cpu.reg.getDE())
-	assert.Equal(t, uint16(0x1437), cpu.reg.getHL())
+	assert.Equal(t, uint16(0x1235), cpu.reg.BC())
+	assert.Equal(t, uint16(0x1336), cpu.reg.DE())
+	assert.Equal(t, uint16(0x1437), cpu.reg.HL())
 	assert.Equal(t, uint16(0x1538), cpu.reg.SP)
 	assert.Equal(t, uint16(0x1639), uint16(cpu.reg.IXH)<<8|uint16(cpu.reg.IXL))
 	assert.Equal(t, uint16(0x173A), uint16(cpu.reg.IYH)<<8|uint16(cpu.reg.IYL))
@@ -822,9 +822,9 @@ func Test_DEC_RR(t *testing.T) {
 	cpu := NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, uint16(0x1233), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x1334), cpu.reg.getDE())
-	assert.Equal(t, uint16(0x1435), cpu.reg.getHL())
+	assert.Equal(t, uint16(0x1233), cpu.reg.BC())
+	assert.Equal(t, uint16(0x1334), cpu.reg.DE())
+	assert.Equal(t, uint16(0x1435), cpu.reg.HL())
 	assert.Equal(t, uint16(0x1536), cpu.reg.SP)
 	assert.Equal(t, uint16(0x1637), uint16(cpu.reg.IXH)<<8|uint16(cpu.reg.IXL))
 	assert.Equal(t, uint16(0x1738), uint16(cpu.reg.IYH)<<8|uint16(cpu.reg.IYL))
@@ -868,7 +868,7 @@ func Test_LD_RR_nn(t *testing.T) {
 	cpu := NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, uint16(0x1234), cpu.reg.getBC())
+	assert.Equal(t, uint16(0x1234), cpu.reg.BC())
 
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
 		mem = &memory.BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x34, 0x12, halt}}
@@ -2023,9 +2023,9 @@ func Test_LDI(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x0D))
-	assert.Equal(t, uint16(0), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x0E), cpu.reg.getDE())
-	assert.Equal(t, uint16(0x0D), cpu.reg.getHL())
+	assert.Equal(t, uint16(0), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0E), cpu.reg.DE())
+	assert.Equal(t, uint16(0x0D), cpu.reg.HL())
 	assert.Equal(t, f_S|f_Z|f_C, cpu.reg.F)
 
 	mem = &memory.BasicMemory{Cells: []byte{
@@ -2035,9 +2035,9 @@ func Test_LDI(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x0D))
-	assert.Equal(t, uint16(1), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x0E), cpu.reg.getDE())
-	assert.Equal(t, uint16(0x0D), cpu.reg.getHL())
+	assert.Equal(t, uint16(1), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0E), cpu.reg.DE())
+	assert.Equal(t, uint16(0x0D), cpu.reg.HL())
 	assert.Equal(t, f_P, cpu.reg.F)
 }
 
@@ -2052,9 +2052,9 @@ func Test_LDIR(t *testing.T) {
 	assert.Equal(t, byte(0x88), cpu.mem.Read(0x0F))
 	assert.Equal(t, byte(0x36), cpu.mem.Read(0x10))
 	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x11))
-	assert.Equal(t, uint16(0), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x12), cpu.reg.getDE())
-	assert.Equal(t, uint16(0x0F), cpu.reg.getHL())
+	assert.Equal(t, uint16(0), cpu.reg.BC())
+	assert.Equal(t, uint16(0x12), cpu.reg.DE())
+	assert.Equal(t, uint16(0x0F), cpu.reg.HL())
 	assert.Equal(t, f_S|f_Z|f_C, cpu.reg.F)
 }
 
@@ -2066,8 +2066,8 @@ func Test_CPI(t *testing.T) {
 	cpu.reg.F = f_C
 	cpu.Run()
 
-	assert.Equal(t, uint16(0x02), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x0C), cpu.reg.getHL())
+	assert.Equal(t, uint16(0x02), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0C), cpu.reg.HL())
 	assert.Equal(t, f_Z|f_P|f_N|f_C, cpu.reg.F)
 
 	mem = &memory.BasicMemory{Cells: []byte{
@@ -2076,8 +2076,8 @@ func Test_CPI(t *testing.T) {
 	cpu = NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, uint16(0x00), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x0C), cpu.reg.getHL())
+	assert.Equal(t, uint16(0x00), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0C), cpu.reg.HL())
 	assert.Equal(t, f_S|f_H|f_N, cpu.reg.F)
 }
 
@@ -2088,8 +2088,8 @@ func Test_CPIR(t *testing.T) {
 	cpu := NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, uint16(0xFB), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x0F), cpu.reg.getHL())
+	assert.Equal(t, uint16(0xFB), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0F), cpu.reg.HL())
 	assert.Equal(t, f_Z|f_P|f_N, cpu.reg.F)
 }
 
@@ -2107,9 +2107,9 @@ func Test_INI(t *testing.T) {
 	}
 	cpu.Run()
 
-	assert.Equal(t, uint16(0x34), cpu.reg.getBC())
+	assert.Equal(t, uint16(0x34), cpu.reg.BC())
 	assert.Equal(t, byte(0x5E), cpu.mem.Read((9)))
-	assert.Equal(t, uint16(0x0A), cpu.reg.getHL())
+	assert.Equal(t, uint16(0x0A), cpu.reg.HL())
 	assert.Equal(t, f_Z|f_N|f_C, cpu.reg.F)
 }
 
@@ -2127,13 +2127,13 @@ func Test_INIR(t *testing.T) {
 	}
 	cpu.Run()
 
-	assert.Equal(t, uint16(0x34), cpu.reg.getBC())
+	assert.Equal(t, uint16(0x34), cpu.reg.BC())
 	assert.Equal(t, byte(0x25), cpu.mem.Read((9)))
 	assert.Equal(t, byte(0x24), cpu.mem.Read((10)))
 	assert.Equal(t, byte(0x23), cpu.mem.Read((11)))
 	assert.Equal(t, byte(0x22), cpu.mem.Read((12)))
 	assert.Equal(t, byte(0x21), cpu.mem.Read((13)))
-	assert.Equal(t, uint16(0x0E), cpu.reg.getHL())
+	assert.Equal(t, uint16(0x0E), cpu.reg.HL())
 	assert.Equal(t, f_Z|f_N|f_C, cpu.reg.F)
 }
 
@@ -2150,8 +2150,8 @@ func Test_OUTI(t *testing.T) {
 	}
 	cpu.Run()
 
-	assert.Equal(t, uint16(0x34), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x0A), cpu.reg.getHL())
+	assert.Equal(t, uint16(0x34), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0A), cpu.reg.HL())
 	assert.Equal(t, f_Z|f_N|f_C, cpu.reg.F)
 }
 
@@ -2167,9 +2167,53 @@ func Test_OTIR(t *testing.T) {
 	}
 	cpu.Run()
 
-	assert.Equal(t, uint16(0x34), cpu.reg.getBC())
-	assert.Equal(t, uint16(0x0D), cpu.reg.getHL())
+	assert.Equal(t, uint16(0x34), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0D), cpu.reg.HL())
 	assert.Equal(t, f_Z|f_N|f_C, cpu.reg.F)
+}
+
+func Test_LDD(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x0C, 0x00, ld_de_nn, 0x0D, 0x00, ld_bc_nn, 0x01, 0x00,
+		prefix_ed, ldd, halt, 0xA5, 0x00}}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_ALL
+	cpu.Run()
+
+	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x0D))
+	assert.Equal(t, uint16(0x00), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0C), cpu.reg.DE())
+	assert.Equal(t, uint16(0x0B), cpu.reg.HL())
+	assert.Equal(t, f_S|f_Z|f_C, cpu.reg.F)
+
+	mem = &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x0C, 0x00, ld_de_nn, 0x0D, 0x00, ld_bc_nn, 0x02, 0x00,
+		prefix_ed, ldd, halt, 0xA5, 0x00}}
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x0D))
+	assert.Equal(t, uint16(0x01), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0C), cpu.reg.DE())
+	assert.Equal(t, uint16(0x0B), cpu.reg.HL())
+	assert.Equal(t, f_P, cpu.reg.F)
+}
+
+func Test_LDDR(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x0E, 0x00, ld_de_nn, 0x11, 0x00, ld_bc_nn, 0x03, 0x00,
+		prefix_ed, lddr, halt, 0x88, 0x36, 0xA5, 0x00, 0x00, 0x00}}
+	cpu := NewCPU(mem)
+	cpu.reg.F = f_ALL
+	cpu.Run()
+
+	assert.Equal(t, byte(0x88), cpu.mem.Read(0x0F))
+	assert.Equal(t, byte(0x36), cpu.mem.Read(0x10))
+	assert.Equal(t, byte(0xA5), cpu.mem.Read(0x11))
+	assert.Equal(t, uint16(0x00), cpu.reg.BC())
+	assert.Equal(t, uint16(0x0E), cpu.reg.DE())
+	assert.Equal(t, uint16(0x0B), cpu.reg.HL())
+	assert.Equal(t, f_S|f_Z|f_C, cpu.reg.F)
 }
 
 func Test_shouldJump(t *testing.T) {

@@ -38,22 +38,18 @@ const (
 )
 
 type registers struct {
-	// Standard registers
-	A, B, C, D, E, H, L, F byte
-	// Shadow registers
-	A_, B_, C_, D_, E_, H_, L_, F_ byte
-	// Unofficial registers
-	IXH, IXL, IYH, IYL byte
-	// Other & special registers
-	SP   uint16
-	PC   uint16
-	I, R byte
-	// Helper register index
-	get      []*byte
-	prefixed [][]*byte
-	prefix   byte
+	A, B, C, D, E, H, L, F         byte      // Standard registers
+	A_, B_, C_, D_, E_, H_, L_, F_ byte      // Shadow registers
+	IXH, IXL, IYH, IYL             byte      // Index registers, supports unofficial
+	SP                             uint16    // Stack Pointer
+	PC                             uint16    // Program Counter
+	I, R                           byte      // Interrupt Vector / Memory Refresh
+	raw                            []*byte   // raw index of 8-bit registers
+	prefixed                       [][]*byte // index of registered for IX, IY or no prefix
+	prefix                         byte      // indicates IX or IY prefix, or no prefix
 }
 
+// Initialises new instance of the registers struct.
 func newRegisters() *registers {
 	r := &registers{}
 	r.prefixed = [][]*byte{
@@ -70,28 +66,30 @@ func newRegisters() *registers {
 			r_E: &r.E, r_H: &r.IYH, r_L: &r.IYL,
 		},
 	}
-	r.get = r.prefixed[noPrefix]
+	r.raw = r.prefixed[noPrefix]
 
 	return r
 }
 
-func (r *registers) getReg(reg byte) *byte {
+// Gets the specified 8-bit register, respecting operation may be prefixed.
+func (r *registers) r(reg byte) *byte {
 	return r.prefixed[r.prefix][reg]
 }
 
-func (r *registers) setReg(reg, value byte) {
+// Sets the value of the specified 8-bit register, respecting operation may be prefixed.
+func (r *registers) setR(reg, value byte) {
 	*r.prefixed[r.prefix][reg] = value
 }
 
-// Gets the value of one of the specified 16-bit registers
-func (r *registers) getReg16(reg byte) uint16 {
+// Gets the value of the specified 16-bit register, respecting operation may be prefixed.
+func (r *registers) rr(reg byte) uint16 {
 	switch reg {
 	case r_BC:
-		return r.getBC()
+		return r.BC()
 	case r_DE:
-		return r.getDE()
+		return r.DE()
 	case r_HL:
-		return r.getHL()
+		return r.HL()
 	case r_SP:
 		return r.SP
 	}
@@ -99,8 +97,8 @@ func (r *registers) getReg16(reg byte) uint16 {
 	panic(fmt.Sprintf("Invalid 16 bit register %v", reg))
 }
 
-// Sets the value of one of the specified 16-bit registers
-func (r *registers) setReg16(reg byte, value uint16) {
+// Sets the value of the specified 16-bit registers, respecting operation may be prefixed.
+func (r *registers) setRR(reg byte, value uint16) {
 	switch reg {
 	case r_BC:
 		r.setBC(value)
@@ -113,23 +111,28 @@ func (r *registers) setReg16(reg byte, value uint16) {
 	}
 }
 
-func (r *registers) getBC() uint16 {
+// Gets the BC register value.
+func (r *registers) BC() uint16 {
 	return uint16(r.B)<<8 | uint16(r.C)
 }
 
+// Sets the BC register value.
 func (r *registers) setBC(nn uint16) {
 	r.B, r.C = byte(nn>>8), byte(nn)
 }
 
-func (r *registers) getDE() uint16 {
+// Gets the DE register value.
+func (r *registers) DE() uint16 {
 	return uint16(r.D)<<8 | uint16(r.E)
 }
 
+// Sets the DE register value.
 func (r *registers) setDE(nn uint16) {
 	r.D, r.E = byte(nn>>8), byte(nn)
 }
 
-func (r *registers) getHL() uint16 {
+// Gets the HL register value, respecting operation may be prefixed.
+func (r *registers) HL() uint16 {
 	switch r.prefix {
 	case useIX:
 		return uint16(r.IXH)<<8 | uint16(r.IXL)
@@ -140,7 +143,7 @@ func (r *registers) getHL() uint16 {
 	}
 }
 
-// Sets HL register using 16-bit value
+// Sets the HL register value, respecting operation may be prefixed.
 func (r *registers) setHL(value uint16) {
 	h, l := byte(value>>8), byte(value)
 	switch r.prefix {
