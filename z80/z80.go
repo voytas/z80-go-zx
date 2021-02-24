@@ -857,26 +857,35 @@ func (cpu *CPU) prefixED(opcode byte) {
 		}
 	case ld_i_a:
 		cpu.reg.I = cpu.reg.A
-	case ldi, ldir:
+	case ldi, ldir, ldd, lddr:
 		hl := cpu.reg.HL()
 		de := cpu.reg.DE()
 		bc := cpu.reg.BC() - 1
 		cpu.mem.Write(de, cpu.mem.Read(hl))
-		cpu.reg.setHL(hl + 1)
-		cpu.reg.setDE(de + 1)
+		if opcode == ldi || opcode == ldir {
+			cpu.reg.setHL(hl + 1)
+			cpu.reg.setDE(de + 1)
+		} else {
+			cpu.reg.setHL(hl - 1)
+			cpu.reg.setDE(de - 1)
+		}
 		cpu.reg.setBC(bc)
 		cpu.reg.F &= ^(f_H | f_P | f_N)
 		if bc != 0 {
 			cpu.reg.F |= f_P
-			if opcode == ldir {
+			if opcode == ldir || opcode == lddr {
 				cpu.reg.PC -= 2
 				cpu.t += 5
 			}
 		}
-	case cpi, cpir:
+	case cpi, cpir, cpd, cpdr:
 		hl := cpu.reg.HL()
 		bc := cpu.reg.BC() - 1
-		cpu.reg.setHL(hl + 1)
+		if opcode == cpi || opcode == cpir {
+			cpu.reg.setHL(hl + 1)
+		} else {
+			cpu.reg.setHL(hl - 1)
+		}
 		cpu.reg.setBC(bc)
 		n := cpu.mem.Read(hl)
 		test := cpu.reg.A - n
@@ -888,64 +897,42 @@ func (cpu *CPU) prefixED(opcode byte) {
 		if bc != 0 {
 			cpu.reg.F |= f_P
 		}
-		if opcode == cpir && bc != 0 && test != 0 {
+		if (opcode == cpir || opcode == cpdr) && bc != 0 && test != 0 {
 			cpu.reg.PC -= 2
 			cpu.t += 5
 		}
-	case ini, inir:
+	case ini, inir, ind, indr:
 		hl := cpu.reg.HL()
 		cpu.mem.Write(hl, cpu.IN(cpu.reg.B, cpu.reg.C))
 		cpu.reg.B -= 1
-		cpu.reg.setHL(hl + 1)
+		if opcode == ini || opcode == inir {
+			cpu.reg.setHL(hl + 1)
+		} else {
+			cpu.reg.setHL(hl - 1)
+		}
 		cpu.reg.F = cpu.reg.F & ^f_Z | f_N
 		if cpu.reg.B == 0 {
 			cpu.reg.F |= f_Z
-		} else if opcode == inir {
+		} else if opcode == inir || opcode == indr {
 			cpu.reg.PC -= 2
 			cpu.t += 5
 		}
-	case outi, otir:
+	case outi, otir, outd, otdr:
 		hl := cpu.reg.HL()
 		cpu.reg.B -= 1
 		cpu.OUT(cpu.reg.B, cpu.reg.C, cpu.mem.Read(hl))
-		cpu.reg.setHL(hl + 1)
+		if opcode == outi || opcode == otir {
+			cpu.reg.setHL(hl + 1)
+		} else {
+			cpu.reg.setHL(hl - 1)
+		}
 		cpu.reg.F = cpu.reg.F & ^f_Z | f_N
 		if cpu.reg.B == 0 {
 			cpu.reg.F |= f_Z
-		} else if opcode == otir {
+		} else if opcode == otir || opcode == otdr {
 			cpu.reg.PC -= 2
 			cpu.t += 5
 		}
-	case ldd, lddr:
-		hl := cpu.reg.HL()
-		de := cpu.reg.DE()
-		bc := cpu.reg.BC() - 1
-		cpu.mem.Write(de, cpu.mem.Read(hl))
-		cpu.reg.setHL(hl - 1)
-		cpu.reg.setDE(de - 1)
-		cpu.reg.setBC(bc)
-		cpu.reg.F &= ^(f_H | f_P | f_N)
-		if bc != 0 {
-			cpu.reg.F |= f_P
-			if opcode == lddr {
-				cpu.reg.PC -= 2
-				cpu.t += 5
-			}
-		}
-	case cpd:
-		// TODO: Implement
-	case cpdr:
-		// TODO: Implement
-	case ind:
-		// TODO: Implement
-	case indr:
-		// TODO: Implement
-	case outd:
-		// TODO: Implement
-	case otdr:
-		// TODO: Implement
-	default:
-		// NOP
 	}
 }
 
