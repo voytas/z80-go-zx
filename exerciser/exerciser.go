@@ -4,18 +4,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/voytas/z80-go-zx/z80"
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
 func Run(program string) {
-	root, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	content, err := ioutil.ReadFile(root + fmt.Sprintf("/exercises/%s", program))
+	fmt.Printf("Running %s\n", program)
+	content, err := ioutil.ReadFile(program)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,5 +57,5 @@ func Run(program string) {
 		}
 	}
 	cpu.Run()
-
+	fmt.Println("")
 }

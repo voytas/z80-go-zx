@@ -2355,6 +2355,29 @@ func Test_shouldJump(t *testing.T) {
 	}
 }
 
+func Test_getHL(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{
+		ld_hl_nn, 0x34, 0x12, useIX, ld_hl_nn, 0x45, 0x23, halt, 0x00, 0x02, 0xFE}}
+	cpu := NewCPU(mem)
+	cpu.Run()
+
+	hl := cpu.getHL(false)
+	assert.Equal(t, uint16(0x1234), hl)
+
+	hl = cpu.getHL(true)
+	assert.Equal(t, uint16(0x1234), hl)
+
+	cpu.reg.prefix = useIX
+	hl = cpu.getHL(true)
+	assert.Equal(t, uint16(0x2345), hl)
+
+	hl = cpu.getHL(true)
+	assert.Equal(t, uint16(0x2347), hl)
+
+	hl = cpu.getHL(true)
+	assert.Equal(t, uint16(0x2343), hl)
+}
+
 func Test_dasm(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{useIX, useIY, useIY, useIY, ld_hl_nn, 0xFF, 0xFF, halt}}
 	cpu := NewCPU(mem)
