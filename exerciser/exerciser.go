@@ -22,11 +22,17 @@ func Run(program string) {
 		cells[0x100+i] = content[i]
 	}
 
+	// Setup boot
+	boot := []byte{
+		0xC3, 0x00, 0xF1, // jp 0xF100
+		0x00, 0x00, // nop, nop
+		0xC3, 0x00, 0xF0, // jp 0xF000
+	}
+	copy(cells, boot)
 	// Setup print routine and self modify address to halt when test is finished since it does jp 0
 	// The test code is using BDOS function 2 (C_WRITE) &  BDOS function 9 (C_WRITESTR)
-	code := []byte{
-		0x18, 0x1E, // jr 0x0020; nop
-		0x05:       0x79, // ld a,c
+	bdos := []byte{
+		0x79,       // ld a,c
 		0xFE, 0x02, // cp 2
 		0x20, 0x04, // jr nz, +4
 		0x7B,       // ld a,e
@@ -41,19 +47,23 @@ func Run(program string) {
 		0x13,       // inc de
 		0x18, 0xF7, // jr, -9
 		0xED, 0x59, 0xC9, // out (c),e ret
-		0x20: 0x31, 0xFF, 0xFF, // ld sp,0xFFFF
-		0x21, 0x00, 0x00, // ld hl,0x0000
-		0x36, 0x76, // ld (hl),0x76 - so we halt if jp 0
-		0xC3, 0x00, 0x01, // jp 0x0100
+		0x100:            0x00, // nop - will be modified to halt
+		0x21, 0x00, 0xF1, // ld hl,0xF100,
+		0x36, 0x76, // ld (hl),0x76 - halt
+		0x31, 0x00, 0xF0, // ld sp,0xF000
+		0xC3, 0x00, 0x01, // jp 0x100
 	}
-	copy(cells, code)
+	for i, b := range bdos {
+		cells[0xF000+i] = b
+	}
 
 	mem := memory.BasicMemory{}
 	mem.Configure(cells, 0)
 	cpu := z80.NewCPU(&mem)
 	cpu.OUT = func(hi, lo, data byte) {
 		if lo == 5 {
-			fmt.Print(string(data))
+			ch := string(data)
+			fmt.Print(ch)
 		}
 	}
 	cpu.Run()

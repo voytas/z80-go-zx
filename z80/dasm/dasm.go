@@ -14,7 +14,7 @@ type instruction struct {
 
 func Decode(addr uint16, mem memory.Memory) string {
 	opcode := mem.Read(addr)
-	s := fmt.Sprintf("%04X ", addr)
+	s := fmt.Sprintf("%04X: ", addr)
 	bytes := append([]byte{}, opcode)
 
 	var inst *instruction
@@ -32,6 +32,7 @@ func Decode(addr uint16, mem memory.Memory) string {
 			bytes = append(bytes, opcode)
 		}
 	case 0xED:
+		addr += 1
 		opcode = mem.Read(addr)
 		inst = edInstructions[opcode]
 		if inst != nil {

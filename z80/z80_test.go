@@ -2377,11 +2377,3 @@ func Test_getHL(t *testing.T) {
 	hl = cpu.getHL(true)
 	assert.Equal(t, uint16(0x2343), hl)
 }
-
-func Test_dasm(t *testing.T) {
-	mem := &memory.BasicMemory{Cells: []byte{useIX, useIY, useIY, useIY, ld_hl_nn, 0xFF, 0xFF, halt}}
-	cpu := NewCPU(mem)
-	cpu.Run()
-
-	assert.Equal(t, byte(0x00), cpu.reg.A)
-}

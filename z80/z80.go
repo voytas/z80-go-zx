@@ -52,8 +52,6 @@ func (cpu *CPU) Run() {
 	for {
 		opcode := cpu.readByte()
 
-		//cpu.debug(opcode)
-
 		// Get the t-state for the current instruction
 		if cpu.reg.prefix == useIX || cpu.reg.prefix == useIY {
 			t := tStatesIXY[opcode]

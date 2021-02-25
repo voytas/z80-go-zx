@@ -1,6 +1,8 @@
 package memory
 
-import "log"
+import (
+	"log"
+)
 
 // Memory provides required methods for the emulated memory implementation
 type Memory interface {
