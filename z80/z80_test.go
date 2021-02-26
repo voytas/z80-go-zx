@@ -1777,6 +1777,13 @@ func Test_RLC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x02), cpu.mem.Read(0x06))
 	assert.Equal(t, f_NONE, cpu.reg.F)
+
+	mem = &memory.BasicMemory{Cells: []byte{useIX, ld_hl_nn, 0x04, 0x00, useIX, prefix_cb, 0x05, rlc_r | 0b110, halt, 0x01}}
+	cpu = NewCPU(mem)
+	cpu.Run()
+
+	assert.Equal(t, byte(0x02), cpu.mem.Read(0x09))
+	assert.Equal(t, f_NONE, cpu.reg.F)
 }
 
 func Test_RRC_r(t *testing.T) {
@@ -1997,6 +2004,14 @@ func Test_SET_b(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, byte(0x04), cpu.mem.Read(0x06))
+
+	mem = &memory.BasicMemory{Cells: []byte{useIY, ld_hl_nn, 0x06, 0x00, useIY, prefix_cb, 0x03, set_b | bit_2, halt, 0x00}}
+	cpu = NewCPU(mem)
+	cpu.reg.F = f_Z | f_N
+	cpu.Run()
+
+	assert.Equal(t, byte(0x04), cpu.mem.Read(0x09))
+	assert.Equal(t, byte(0x04), cpu.reg.B)
 }
 
 func Test_LD_IXY_nn(t *testing.T) {
@@ -2361,19 +2376,19 @@ func Test_getHL(t *testing.T) {
 	cpu := NewCPU(mem)
 	cpu.Run()
 
-	hl := cpu.getHL(false)
+	hl := cpu.getHL()
 	assert.Equal(t, uint16(0x1234), hl)
 
-	hl = cpu.getHL(true)
+	hl = cpu.getHL()
 	assert.Equal(t, uint16(0x1234), hl)
 
 	cpu.reg.prefix = useIX
-	hl = cpu.getHL(true)
+	hl = cpu.getHL()
 	assert.Equal(t, uint16(0x2345), hl)
 
-	hl = cpu.getHL(true)
+	hl = cpu.getHL()
 	assert.Equal(t, uint16(0x2347), hl)
 
-	hl = cpu.getHL(true)
+	hl = cpu.getHL()
 	assert.Equal(t, uint16(0x2343), hl)
 }
