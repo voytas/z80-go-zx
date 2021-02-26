@@ -29,54 +29,56 @@ func (cpu *CPU) prefixCB() {
 	}
 
 	var cy byte
-	write := func() {
+	write := func(flags bool) {
 		if reg != 0b110 {
 			*cpu.reg.raw[reg] = v
 		}
 		if reg == 0b110 || cpu.reg.prefix != noPrefix {
 			cpu.mem.Write(hl, v)
 		}
-		cpu.reg.F = f_NONE
-		cpu.reg.F |= f_S & v
-		if v == 0 {
-			cpu.reg.F |= f_Z
+		if flags {
+			cpu.reg.F = f_NONE
+			cpu.reg.F |= f_S & v
+			if v == 0 {
+				cpu.reg.F |= f_Z
+			}
+			cpu.reg.F |= parity[v] | cy
 		}
-		cpu.reg.F |= parity[v] | cy
 	}
 
 	switch opcode & 0b11111000 {
 	case rlc_r:
 		cy = v >> 7
 		v = v<<1 | cy
-		write()
+		write(true)
 	case rrc_r:
 		cy = v & f_C
 		v = v>>1 | cy<<7
-		write()
+		write(true)
 	case rl_r:
 		cy = v >> 7
 		v = v<<1 | f_C&cpu.reg.F
-		write()
+		write(true)
 	case rr_r:
 		cy = v & f_C
 		v = v>>1 | f_C&cpu.reg.F<<7
-		write()
+		write(true)
 	case sla_r:
 		cy = v >> 7
 		v = v << 1
-		write()
+		write(true)
 	case sra_r:
 		cy = v & f_C
 		v = v&0x80 | v>>1
-		write()
+		write(true)
 	case sll_r:
 		cy = v >> 7
 		v = v<<1 | 0x01
-		write()
+		write(true)
 	case srl_r:
 		cy = v & f_C
 		v = v >> 1
-		write()
+		write(true)
 	default:
 		bit := (opcode & 0b00111000) >> 3
 		switch opcode & 0b11000000 {
@@ -91,10 +93,10 @@ func (cpu *CPU) prefixCB() {
 			}
 		case res_b:
 			v &= ^bit_mask[bit]
-			write()
+			write(false)
 		case set_b:
 			v |= bit_mask[bit]
-			write()
+			write(false)
 		}
 	}
 }

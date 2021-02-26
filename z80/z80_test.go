@@ -1148,13 +1148,13 @@ func Test_CCF(t *testing.T) {
 	cpu.reg.F = f_ALL
 	cpu.Run()
 
-	assert.Equal(t, f_S|f_Z|f_P, cpu.reg.F)
+	assert.Equal(t, f_S|f_H|f_Z|f_P, cpu.reg.F)
 
 	cpu.Reset()
-	cpu.reg.F = f_Z | f_N | f_C
+	cpu.reg.F = f_Z | f_N
 	cpu.Run()
 
-	assert.Equal(t, f_Z|f_H, cpu.reg.F)
+	assert.Equal(t, f_Z|f_C, cpu.reg.F)
 }
 
 func Test_RLCA(t *testing.T) {

@@ -23,7 +23,7 @@ const (
 // 		 S   Z   Y   H   X   P   N   C
 // S = sign, Z = zero, H = half carry, P = parity/overflow, N = add/substract, C = carry
 //
-// X and Y are undocumented and currently not used in the implementation.
+// X and Y flags are undocumented.
 const (
 	f_NONE byte = 0x00
 	f_C    byte = 0x01

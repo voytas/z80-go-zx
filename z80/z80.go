@@ -79,13 +79,11 @@ func (cpu *CPU) Run() {
 			cpu.iff1, cpu.iff2 = true, true
 		case cpl:
 			cpu.reg.A = ^cpu.reg.A
-			cpu.reg.F |= f_H | f_N
+			cpu.reg.F |= f_H | f_N | cpu.reg.A&(f_Y|f_X)
 		case scf:
-			cpu.reg.F &= ^(f_H | f_N)
-			cpu.reg.F |= f_C
+			cpu.reg.F = cpu.reg.F & ^(f_Y|f_H|f_X|f_N) | f_C | cpu.reg.A&(f_Y|f_X)
 		case ccf:
-			cpu.reg.F &= ^(f_N)
-			cpu.reg.F ^= f_H | f_C
+			cpu.reg.F = (cpu.reg.F^f_C) & ^(f_Y|f_H|f_X|f_N) | cpu.reg.F&f_C<<4 | cpu.reg.A&(f_Y|f_X)
 		case rlca:
 			cpu.reg.F &= ^(f_H | f_N | f_C)
 			a7 := cpu.reg.A >> 7
@@ -109,7 +107,7 @@ func (cpu *CPU) Run() {
 			cpu.reg.A = cpu.reg.A>>1 | fc<<7
 			cpu.reg.F |= a0
 		case daa:
-			cpu.reg.F &= ^(f_S | f_Z | f_P)
+			cpu.reg.F &= ^(f_S | f_Z | f_Y | f_X | f_P)
 			a := cpu.reg.A
 			if a&0xF > 9 || cpu.reg.F&f_H != 0 {
 				if cpu.reg.F&f_N > 0 {
@@ -142,7 +140,7 @@ func (cpu *CPU) Run() {
 					cpu.reg.F &= ^f_H
 				}
 			}
-			cpu.reg.F |= parity[a]
+			cpu.reg.F |= parity[a] | cpu.reg.A&(f_Y|f_X)
 			if cpu.reg.A > 0x99 {
 				cpu.reg.F |= f_C
 			}
