@@ -9,66 +9,54 @@ import (
 
 type instruction struct {
 	mnemonic string
-	args     int // number of bytes to read to get arguments (0, 1 or 2)
+	size     int   // instruction size in bytes
+	args     []int // index of arguments positions
 }
 
 func Decode(addr uint16, mem memory.Memory) string {
 	opcode := mem.Read(addr)
-	s := fmt.Sprintf("%04X: ", addr)
-	bytes := append([]byte{}, opcode)
-
 	var inst *instruction
 	switch opcode {
 	case 0xCB:
-		addr += 1
-		opcode = mem.Read(addr)
-		bytes = append(bytes, opcode)
+		opcode = mem.Read(addr + 1)
 		inst = cbInstructions[opcode]
 	case 0xDD:
-		addr += 1
-		opcode = mem.Read(addr)
-		inst = ddInstructions[opcode]
-		if inst != nil {
-			bytes = append(bytes, opcode)
+		opcode = mem.Read(addr + 1)
+		if opcode == 0xCB {
+			inst = ddcbInstructions[mem.Read(addr+3)]
+		} else {
+			inst = ddInstructions[opcode]
 		}
 	case 0xED:
-		addr += 1
-		opcode = mem.Read(addr)
+		opcode = mem.Read(addr + 1)
 		inst = edInstructions[opcode]
-		if inst != nil {
-			bytes = append(bytes, opcode)
-		}
 	case 0xFD:
-		addr += 1
-		opcode = mem.Read(addr)
-		inst = fdInstructions[opcode]
-		if inst != nil {
-			bytes = append(bytes, opcode)
+		opcode = mem.Read(addr + 1)
+		if opcode == 0xCB {
+			inst = fdcbInstructions[mem.Read(addr+3)]
+		} else {
+			inst = fdInstructions[opcode]
 		}
 	default:
 		inst = primaryInstructions[opcode]
 	}
 
-	var mnemonic string
 	if inst == nil {
-		mnemonic = "[NOP]" // invalid opcode works like NOP
-	} else if inst.args == 1 {
-		v := mem.Read(addr + 1)
-		bytes = append(bytes, v)
-		mnemonic = strings.ReplaceAll(inst.mnemonic, "$1", fmt.Sprintf("%02X", v))
-	} else if inst.args == 2 {
-		l := mem.Read(addr + 1)
-		bytes = append(bytes, l)
-		h := mem.Read(addr + 2)
-		bytes = append(bytes, h)
-		mnemonic = strings.ReplaceAll(
-			strings.ReplaceAll(inst.mnemonic, "$1", fmt.Sprintf("%02X", h)), "$2", fmt.Sprintf("%02X", l))
-	} else {
-		mnemonic = inst.mnemonic
+		inst = &instruction{mnemonic: "[INVALID]", size: 2}
 	}
 
-	s += fmtBytes(bytes) + mnemonic
-	return s
+	var bytes []byte
+	for i := 0; i < inst.size; i++ {
+		bytes = append(bytes, mem.Read(addr+uint16(i)))
+	}
+	s := fmt.Sprintf("%04X: ", addr) + fmtBytes(bytes)
+
+	mnemonic := inst.mnemonic
+	for i, arg := range inst.args {
+		mnemonic = strings.ReplaceAll(mnemonic, fmt.Sprintf("$%v", i+1), fmt.Sprintf("%02X", bytes[arg]))
+	}
+
+	return s + mnemonic
 }
 
 func fmtBytes(bytes []byte) string {
@@ -77,5 +65,5 @@ func fmtBytes(bytes []byte) string {
 		s += fmt.Sprintf("%02X ", b)
 	}
 
-	return fmt.Sprintf("%-12s ", s)
+	return fmt.Sprintf("%-13s ", s)
 }
