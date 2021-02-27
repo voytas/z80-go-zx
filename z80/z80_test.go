@@ -752,7 +752,7 @@ func Test_INC_mHL(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, byte(0x21), mem.Cells[5])
-	assert.Equal(t, f_NONE, cpu.reg.F)
+	assert.Equal(t, f_Y, cpu.reg.F)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem := &memory.BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x05, 0x00, prefix, inc_mhl, 0x03, halt, 0x3F}}
@@ -837,7 +837,7 @@ func Test_DEC_mHL(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, byte(0xFF), mem.Cells[5])
-	assert.Equal(t, f_S|f_H|f_N|f_C, cpu.reg.F)
+	assert.Equal(t, f_S|f_Y|f_H|f_X|f_N|f_C, cpu.reg.F)
 
 	cpu.Reset()
 	mem.Cells[5] = 0x01
@@ -851,7 +851,7 @@ func Test_DEC_mHL(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, byte(0x7F), mem.Cells[5])
-	assert.Equal(t, f_P|f_H|f_N, cpu.reg.F)
+	assert.Equal(t, f_P|f_Y|f_H|f_X|f_N, cpu.reg.F)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem := &memory.BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x05, 0x00, prefix, dec_mhl, 0x03, halt, 0x3F}}
@@ -859,7 +859,7 @@ func Test_DEC_mHL(t *testing.T) {
 		cpu.Run()
 
 		assert.Equal(t, byte(0x3E), mem.Cells[8])
-		assert.Equal(t, f_N, cpu.reg.F)
+		assert.Equal(t, f_Y|f_X|f_N, cpu.reg.F)
 	}
 }
 

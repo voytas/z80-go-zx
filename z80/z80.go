@@ -424,7 +424,7 @@ func (cpu *CPU) Run() {
 		case inc_mhl:
 			addr := cpu.getHL()
 			b := cpu.mem.Read(addr)
-			cpu.reg.F &= ^(f_S | f_Z | f_H | f_P | f_N)
+			cpu.reg.F &= f_C
 			if b == 0x7F {
 				cpu.reg.F |= f_P
 			}
@@ -435,7 +435,7 @@ func (cpu *CPU) Run() {
 			if b == 0x00 {
 				cpu.reg.F |= f_Z
 			}
-			cpu.reg.F |= b & f_S
+			cpu.reg.F |= b & (f_S | f_Y | f_X)
 			cpu.mem.Write(addr, b)
 		case dec_a, dec_b, dec_c, dec_d, dec_e, dec_h, dec_l:
 			r := cpu.reg.r(opcode & 0b00111000 >> 3)
@@ -462,7 +462,7 @@ func (cpu *CPU) Run() {
 		case dec_mhl:
 			addr := cpu.getHL()
 			b := cpu.mem.Read(addr)
-			cpu.reg.F = cpu.reg.F & ^(f_S|f_Z|f_H|f_P) | f_N
+			cpu.reg.F = cpu.reg.F&f_C | f_N
 			if b == 0x80 {
 				cpu.reg.F |= f_P
 			}
@@ -473,7 +473,7 @@ func (cpu *CPU) Run() {
 			if b == 0x00 {
 				cpu.reg.F |= f_Z
 			}
-			cpu.reg.F |= b & f_S
+			cpu.reg.F |= b & (f_S | f_Y | f_X)
 			cpu.mem.Write(addr, b)
 		case jr_o:
 			o := cpu.readByte()
