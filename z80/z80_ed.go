@@ -37,13 +37,14 @@ func (cpu *CPU) prefixED(opcode byte) {
 		if sum == 0 {
 			cpu.reg.F |= f_Z
 		}
-		cpu.reg.F |= byte((hl^nn^sum)>>8) & f_H
+		cpu.reg.F |= byte((hl^nn^sum)>>8)&f_H | byte(sum>>8)&(f_Y|f_X)
 		if (hl^nn)&0x8000 == 0 && (hl^sum)&0x8000 != 0 {
 			cpu.reg.F |= f_P
 		}
 		if sum < hl {
 			cpu.reg.F |= f_C
 		}
+
 		cpu.reg.setHL(sum)
 	case sbc_hl_bc, sbc_hl_de, sbc_hl_hl, sbc_hl_sp:
 		hl := cpu.reg.HL()
@@ -56,7 +57,7 @@ func (cpu *CPU) prefixED(opcode byte) {
 		if sub == 0 {
 			cpu.reg.F |= f_Z
 		}
-		cpu.reg.F |= byte((hl^nn^sub)>>8) & f_H
+		cpu.reg.F |= byte((hl^nn^sub)>>8)&f_H | byte(sub>>8)&(f_Y|f_X)
 		if (hl^nn)&0x8000 != 0 && (hl^sub)&0x8000 != 0 {
 			cpu.reg.F |= f_P
 		}

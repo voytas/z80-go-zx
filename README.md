@@ -1,4 +1,10 @@
-#
+# Z80 CPU Emulator
+This is just my fun project to see how to write CPU emulator in Go. There is no real goal here apart
+from having fun and learn Go.
+My first computer I had was Sinclair ZX Spectrum 48k and hence my first assembler programs were
+written for Z80 CPU. I am fan of retro computing as well and wanted to see how easy or hard it is
+to write some kind of emulator. Obvious choice was Z80 CPU which features are well documented, including
+many "undocumented" features.
 
 ### Flags
 * S - sign, typically set if result of an operation is negative
@@ -6,6 +12,8 @@
 * H - half carry, typically set if result of an operation causes carry from lower nibble
 * PV - parity or overflow
 * C - carry, typically set if result of an operation exceeds the register size
+* Y - undocumented flag, typically set to bit 5 or the result
+* X - undocumented flag, typically set to bit 3 or the result
 
 ### Half carry (H flag) calculation logic:
 a7 a6 a5 a4 a3 a2 a1 a0

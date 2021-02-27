@@ -172,8 +172,7 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A += n
-			cpu.reg.F = f_NONE
-			cpu.reg.F |= cpu.reg.A & f_S
+			cpu.reg.F = cpu.reg.A&f_S | cpu.reg.A&(f_Y|f_X)
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -195,10 +194,9 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cf := cpu.reg.F & f_C
-			cpu.reg.F = f_NONE
 			sum_w := uint16(cpu.reg.A) + uint16(n) + uint16(cf)
 			sum_b := byte(sum_w)
-			cpu.reg.F |= f_S & sum_b
+			cpu.reg.F = f_S&sum_b | sum_b&(f_Y|f_X)
 			if sum_b == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -229,7 +227,7 @@ func (cpu *CPU) Run() {
 			if sum < hl {
 				cpu.reg.F |= f_C
 			}
-			cpu.reg.F |= byte((hl^nn^sum)>>8) & f_H
+			cpu.reg.F |= byte((hl^nn^sum)>>8)&f_H | byte(sum>>8)&(f_Y|f_X)
 		case sub_a, sub_b, sub_c, sub_d, sub_e, sub_h, sub_l, sub_hl, sub_n:
 			a := cpu.reg.A
 			var n byte
@@ -242,8 +240,7 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A -= n
-			cpu.reg.F = f_N
-			cpu.reg.F |= f_S & cpu.reg.A
+			cpu.reg.F = f_S&cpu.reg.A | f_N | cpu.reg.A&(f_Y|f_X)
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -265,8 +262,7 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			test := cpu.reg.A - n
-			cpu.reg.F = f_N
-			cpu.reg.F |= f_S & test
+			cpu.reg.F = f_N | f_S&test | n&(f_Y|f_X)
 			if test == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -288,10 +284,9 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cf := cpu.reg.F & f_C
-			cpu.reg.F = f_N
 			sub_w := uint16(cpu.reg.A) - uint16(n) - uint16(cf)
 			sub_b := byte(sub_w)
-			cpu.reg.F |= f_S & sub_b
+			cpu.reg.F = f_S&sub_b | f_N | sub_b&(f_Y|f_X)
 			if sub_b == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -313,9 +308,8 @@ func (cpu *CPU) Run() {
 			default:
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
-			cpu.reg.F = f_H
 			cpu.reg.A &= n
-			cpu.reg.F |= f_S & cpu.reg.A
+			cpu.reg.F = f_S&cpu.reg.A | f_H | cpu.reg.A&(f_Y|f_X)
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -330,9 +324,8 @@ func (cpu *CPU) Run() {
 			default:
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
-			cpu.reg.F = f_NONE
 			cpu.reg.A |= n
-			cpu.reg.F |= f_S & cpu.reg.A
+			cpu.reg.F = f_S&cpu.reg.A | cpu.reg.A&(f_Y|f_X)
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -347,9 +340,8 @@ func (cpu *CPU) Run() {
 			default:
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
-			cpu.reg.F = f_NONE
 			cpu.reg.A ^= n
-			cpu.reg.F |= f_S & cpu.reg.A
+			cpu.reg.F = f_S&cpu.reg.A | cpu.reg.A&(f_Y|f_X)
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
