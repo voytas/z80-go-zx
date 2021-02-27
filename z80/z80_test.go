@@ -1966,7 +1966,7 @@ func Test_BIT_b(t *testing.T) {
 	cpu = NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, f_Z|f_H|f_P, cpu.reg.F)
+	assert.Equal(t, f_Z|f_Y|f_H|f_X|f_P, cpu.reg.F)
 
 	mem = &memory.BasicMemory{Cells: []byte{ld_hl_nn, 0x06, 0x00, prefix_cb, bit_b | 0b110 | bit_2, halt, 0xFD}}
 	cpu = NewCPU(mem)

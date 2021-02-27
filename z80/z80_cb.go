@@ -82,15 +82,18 @@ func (cpu *CPU) prefixCB() {
 		bit := (opcode & 0b00111000) >> 3
 		switch opcode & 0b11000000 {
 		case bit_b:
-			if reg == HL {
-				cpu.t -= 3 // bit and HL is 12 t-states
-			}
-			cpu.reg.F &= f_C
+			cpu.reg.F = cpu.reg.F&f_C | f_H
 			test := v & bit_mask[bit]
 			if test == 0 {
 				cpu.reg.F |= f_Z | f_P
 			}
-			cpu.reg.F |= f_H | (f_S|f_Y|f_X)&test
+			if reg == HL {
+				// Might not be 100%, this undocumented behaviour is not clear, but it passses test
+				cpu.reg.F |= f_S&test | (f_Y|f_X)&byte(hl>>8)
+				cpu.t -= 3 // bit and HL is 12 t-states
+			} else {
+				cpu.reg.F |= f_S&test | (f_Y|f_X)&v
+			}
 		case res_b:
 			v &= ^bit_mask[bit]
 			write(false)
