@@ -37,8 +37,7 @@ func (cpu *CPU) prefixCB() {
 			cpu.mem.Write(hl, v)
 		}
 		if flags {
-			cpu.reg.F = f_NONE
-			cpu.reg.F |= f_S & v
+			cpu.reg.F = (f_S | f_Y | f_X) & v
 			if v == 0 {
 				cpu.reg.F |= f_Z
 			}

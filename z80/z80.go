@@ -79,33 +79,27 @@ func (cpu *CPU) Run() {
 			cpu.iff1, cpu.iff2 = true, true
 		case cpl:
 			cpu.reg.A = ^cpu.reg.A
-			cpu.reg.F |= f_H | f_N | cpu.reg.A&(f_Y|f_X)
+			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P|f_C) | f_H | f_N | cpu.reg.A&(f_Y|f_X)
 		case scf:
 			cpu.reg.F = cpu.reg.F & ^(f_Y|f_H|f_X|f_N) | f_C | cpu.reg.A&(f_Y|f_X)
 		case ccf:
 			cpu.reg.F = (cpu.reg.F^f_C) & ^(f_Y|f_H|f_X|f_N) | cpu.reg.F&f_C<<4 | cpu.reg.A&(f_Y|f_X)
 		case rlca:
-			cpu.reg.F &= ^(f_H | f_N | f_C)
 			a7 := cpu.reg.A >> 7
-			cpu.reg.F |= a7
 			cpu.reg.A = cpu.reg.A<<1 | a7
+			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | cpu.reg.A&(f_Y|f_X) | a7
 		case rrca:
-			cpu.reg.F &= ^(f_H | f_N | f_C)
-			a7 := cpu.reg.A & 0x01
-			cpu.reg.F |= a7
-			cpu.reg.A = cpu.reg.A>>1 | a7<<7
-		case rla:
-			fc := cpu.reg.F & f_C
-			cpu.reg.F &= ^(f_H | f_N | f_C)
-			a7 := cpu.reg.A >> 7
-			cpu.reg.A = cpu.reg.A<<1 | fc
-			cpu.reg.F |= a7
-		case rra:
-			fc := cpu.reg.F & f_C
-			cpu.reg.F &= ^(f_H | f_N | f_C)
 			a0 := cpu.reg.A & 0x01
-			cpu.reg.A = cpu.reg.A>>1 | fc<<7
-			cpu.reg.F |= a0
+			cpu.reg.A = cpu.reg.A>>1 | a0<<7
+			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | cpu.reg.A&(f_Y|f_X) | a0
+		case rla:
+			a7 := cpu.reg.A >> 7
+			cpu.reg.A = cpu.reg.A<<1 | cpu.reg.F&f_C
+			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | cpu.reg.A&(f_Y|f_X) | a7
+		case rra:
+			a0 := cpu.reg.A & 0x01
+			cpu.reg.A = cpu.reg.A>>1 | cpu.reg.F&f_C<<7
+			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | cpu.reg.A&(f_Y|f_X) | a0
 		case daa:
 			cpu.reg.F &= ^(f_S | f_Z | f_Y | f_X | f_P)
 			a := cpu.reg.A
