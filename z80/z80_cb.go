@@ -2,22 +2,22 @@ package z80
 
 // Handles opcodes with CB prefix
 func (cpu *CPU) prefixCB() {
+	const HL = 0b110
 	var v byte
 	var hl uint16
 
 	opcode := cpu.readByte()
 	var offset byte
 	if cpu.reg.prefix != noPrefix {
-		// for IX and IY the actual opcode comes after the offset
 		offset = opcode
-		opcode = cpu.readByte()
-		cpu.t = 8
+		opcode = cpu.readByte() // for IX and IY the actual opcode comes after the offset
+		cpu.t = 8               // extra 8 t-states for IX and IY
 	}
 	reg := opcode & 0b00000111
-	if reg == 0b110 {
+	if reg == HL {
 		hl = cpu.getHLOffset(offset)
 		v = cpu.mem.Read(hl)
-		cpu.t += 15 // the only exception is bit operation that takes 12 t-states
+		cpu.t += 15 // 15 t-states for HL with one exception for bit
 	} else {
 		if cpu.reg.prefix == noPrefix {
 			v = *cpu.reg.raw[reg]
@@ -25,15 +25,15 @@ func (cpu *CPU) prefixCB() {
 			hl = cpu.getHLOffset(offset)
 			v = cpu.mem.Read(hl)
 		}
-		cpu.t += 8
+		cpu.t += 8 // 8 t-states for registers
 	}
 
 	var cy byte
 	write := func(flags bool) {
-		if reg != 0b110 {
+		if reg != HL {
 			*cpu.reg.raw[reg] = v
 		}
-		if reg == 0b110 || cpu.reg.prefix != noPrefix {
+		if reg == HL || cpu.reg.prefix != noPrefix {
 			cpu.mem.Write(hl, v)
 		}
 		if flags {
@@ -83,14 +83,15 @@ func (cpu *CPU) prefixCB() {
 		bit := (opcode & 0b00111000) >> 3
 		switch opcode & 0b11000000 {
 		case bit_b:
-			if reg == 0b110 {
-				cpu.t -= 3 // for bit operation it is 12 t-states, not usual 15
+			if reg == HL {
+				cpu.t -= 3 // bit and HL is 12 t-states
 			}
-			cpu.reg.F &= ^(f_Z | f_N)
-			cpu.reg.F |= f_H
-			if v&bit_mask[bit] == 0 {
-				cpu.reg.F |= f_Z
+			cpu.reg.F &= f_C
+			test := v & bit_mask[bit]
+			if test == 0 {
+				cpu.reg.F |= f_Z | f_P
 			}
+			cpu.reg.F |= f_H | (f_S|f_Y|f_X)&test
 		case res_b:
 			v &= ^bit_mask[bit]
 			write(false)

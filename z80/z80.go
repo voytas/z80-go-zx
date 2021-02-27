@@ -172,7 +172,7 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A += n
-			cpu.reg.F = cpu.reg.A&f_S | cpu.reg.A&(f_Y|f_X)
+			cpu.reg.F = (f_S | f_Y | f_X) & cpu.reg.A
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -196,7 +196,7 @@ func (cpu *CPU) Run() {
 			cf := cpu.reg.F & f_C
 			sum_w := uint16(cpu.reg.A) + uint16(n) + uint16(cf)
 			sum_b := byte(sum_w)
-			cpu.reg.F = f_S&sum_b | sum_b&(f_Y|f_X)
+			cpu.reg.F = (f_S | f_Y | f_X) & sum_b
 			if sum_b == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -240,7 +240,7 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A -= n
-			cpu.reg.F = f_S&cpu.reg.A | f_N | cpu.reg.A&(f_Y|f_X)
+			cpu.reg.F = (f_S|f_Y|f_X)&cpu.reg.A | f_N
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -286,7 +286,7 @@ func (cpu *CPU) Run() {
 			cf := cpu.reg.F & f_C
 			sub_w := uint16(cpu.reg.A) - uint16(n) - uint16(cf)
 			sub_b := byte(sub_w)
-			cpu.reg.F = f_S&sub_b | f_N | sub_b&(f_Y|f_X)
+			cpu.reg.F = (f_S|f_Y|f_X)&sub_b | f_N
 			if sub_b == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -309,7 +309,7 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A &= n
-			cpu.reg.F = f_S&cpu.reg.A | f_H | cpu.reg.A&(f_Y|f_X)
+			cpu.reg.F = (f_S|f_Y|f_X)&cpu.reg.A | f_H
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -325,7 +325,7 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A |= n
-			cpu.reg.F = f_S&cpu.reg.A | cpu.reg.A&(f_Y|f_X)
+			cpu.reg.F = (f_S | f_Y | f_X) & cpu.reg.A
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -341,7 +341,7 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A ^= n
-			cpu.reg.F = f_S&cpu.reg.A | cpu.reg.A&(f_Y|f_X)
+			cpu.reg.F = (f_S | f_Y | f_X) & cpu.reg.A
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -401,7 +401,7 @@ func (cpu *CPU) Run() {
 			cpu.mem.Write(cpu.getHL(), *cpu.reg.raw[opcode&0b00000111])
 		case inc_a, inc_b, inc_c, inc_d, inc_e, inc_h, inc_l:
 			r := cpu.reg.r(opcode & 0b00111000 >> 3)
-			cpu.reg.F &= ^(f_S | f_Z | f_H | f_P | f_N)
+			cpu.reg.F &= f_C
 			if *r == 0x7F {
 				cpu.reg.F |= f_P
 			}
@@ -409,7 +409,7 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_H
 			}
 			*r += 1
-			cpu.reg.F |= *r & f_S
+			cpu.reg.F |= *r & (f_S | f_Y | f_X)
 			if *r == 0 {
 				cpu.reg.F |= f_Z
 			}
@@ -439,7 +439,7 @@ func (cpu *CPU) Run() {
 			cpu.mem.Write(addr, b)
 		case dec_a, dec_b, dec_c, dec_d, dec_e, dec_h, dec_l:
 			r := cpu.reg.r(opcode & 0b00111000 >> 3)
-			cpu.reg.F = cpu.reg.F & ^(f_S|f_Z|f_H|f_P) | f_N
+			cpu.reg.F = cpu.reg.F&f_C | f_N
 			if *r == 0x80 {
 				cpu.reg.F |= f_P
 			}
@@ -447,7 +447,7 @@ func (cpu *CPU) Run() {
 				cpu.reg.F |= f_H
 			}
 			*r -= 1
-			cpu.reg.F |= *r & f_S
+			cpu.reg.F |= *r & (f_S | f_Y | f_X)
 			if *r == 0 {
 				cpu.reg.F |= f_Z
 			}

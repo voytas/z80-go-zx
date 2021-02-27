@@ -705,7 +705,7 @@ func Test_INC_R(t *testing.T) {
 		cpu = NewCPU(mem)
 		cpu.Run()
 
-		assert.Equal(t, f_NONE, cpu.reg.F)
+		assert.Equal(t, f_Y, cpu.reg.F)
 		assert.Equal(t, byte(0x11), *cpu.reg.prefixed[prefix][r_H])
 		assert.Equal(t, byte(0x21), *cpu.reg.prefixed[prefix][r_L])
 	}
@@ -778,7 +778,7 @@ func Test_DEC_R(t *testing.T) {
 	mem.Cells[1] = 0
 	cpu.Run()
 
-	assert.Equal(t, f_S|f_H|f_N|f_C, cpu.reg.F)
+	assert.Equal(t, f_S|f_H|f_Y|f_X|f_N|f_C, cpu.reg.F)
 	assert.Equal(t, byte(0xFF), cpu.reg.A)
 
 	cpu.Reset()
@@ -786,7 +786,7 @@ func Test_DEC_R(t *testing.T) {
 	mem.Cells[1] = 0x80
 	cpu.Run()
 
-	assert.Equal(t, f_H|f_P|f_N, cpu.reg.F)
+	assert.Equal(t, f_Y|f_H|f_X|f_P|f_N, cpu.reg.F)
 	assert.Equal(t, byte(0x7F), cpu.reg.A)
 
 	cpu.Reset()
@@ -794,7 +794,7 @@ func Test_DEC_R(t *testing.T) {
 	mem.Cells[1] = 0xAB
 	cpu.Run()
 
-	assert.Equal(t, f_S|f_N|f_C, cpu.reg.F)
+	assert.Equal(t, f_S|f_Y|f_X|f_N|f_C, cpu.reg.F)
 	assert.Equal(t, byte(0xAA), cpu.reg.A)
 
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
@@ -1966,7 +1966,7 @@ func Test_BIT_b(t *testing.T) {
 	cpu = NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, f_Z|f_H, cpu.reg.F)
+	assert.Equal(t, f_Z|f_H|f_P, cpu.reg.F)
 
 	mem = &memory.BasicMemory{Cells: []byte{ld_hl_nn, 0x06, 0x00, prefix_cb, bit_b | 0b110 | bit_2, halt, 0xFD}}
 	cpu = NewCPU(mem)
