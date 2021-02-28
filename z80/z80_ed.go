@@ -135,7 +135,8 @@ func (cpu *CPU) prefixED(opcode byte) {
 		hl := cpu.reg.HL()
 		de := cpu.reg.DE()
 		bc := cpu.reg.BC() - 1
-		cpu.mem.Write(de, cpu.mem.Read(hl))
+		n := cpu.mem.Read(hl)
+		cpu.mem.Write(de, n)
 		if opcode == ldi || opcode == ldir {
 			cpu.reg.setHL(hl + 1)
 			cpu.reg.setDE(de + 1)
@@ -144,7 +145,9 @@ func (cpu *CPU) prefixED(opcode byte) {
 			cpu.reg.setDE(de - 1)
 		}
 		cpu.reg.setBC(bc)
-		cpu.reg.F &= ^(f_H | f_P | f_N)
+		cpu.reg.F = cpu.reg.F & (f_S | f_Z | f_C)
+		n += cpu.reg.A
+		cpu.reg.F |= f_Y&(n<<4) | f_X&n
 		if bc != 0 {
 			cpu.reg.F |= f_P
 			if opcode == ldir || opcode == lddr {
@@ -171,6 +174,8 @@ func (cpu *CPU) prefixED(opcode byte) {
 		if bc != 0 {
 			cpu.reg.F |= f_P
 		}
+		n = test - (cpu.reg.F&f_H)>>4
+		cpu.reg.F |= f_Y&(n<<4) | f_X&n
 		if (opcode == cpir || opcode == cpdr) && bc != 0 && test != 0 {
 			cpu.reg.PC -= 2
 			cpu.t += 5
