@@ -14,11 +14,10 @@ func (cpu *CPU) prefixED(opcode byte) {
 	case neg, 0x54, 0x64, 0x74, 0x4C, 0x5C, 0x6C, 0x7C:
 		a := cpu.reg.A
 		cpu.reg.A = ^a + 1
-		cpu.reg.F = (fS|fY|fX)&cpu.reg.A | fN
+		cpu.reg.F = (fS|fY|fX)&cpu.reg.A | fN | byte(a^cpu.reg.A)&fH
 		if cpu.reg.A == 0 {
 			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= byte(a^cpu.reg.A) & fH
 		if cpu.reg.A == 0x80 {
 			cpu.reg.F |= fP
 		}
@@ -29,14 +28,13 @@ func (cpu *CPU) prefixED(opcode byte) {
 		hl := cpu.reg.HL()
 		nn := cpu.reg.rr(opcode & 0b00110000 >> 4)
 		sum := hl + nn + uint16(cpu.reg.F&fC)
-		cpu.reg.F = fNONE
+		cpu.reg.F = byte((hl^nn^sum)>>8)&fH | byte(sum>>8)&(fY|fX)
 		if sum > 0x7FFF {
 			cpu.reg.F |= fS
 		}
 		if sum == 0 {
 			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= byte((hl^nn^sum)>>8)&fH | byte(sum>>8)&(fY|fX)
 		if (hl^nn)&0x8000 == 0 && (hl^sum)&0x8000 != 0 {
 			cpu.reg.F |= fP
 		}
@@ -49,14 +47,13 @@ func (cpu *CPU) prefixED(opcode byte) {
 		hl := cpu.reg.HL()
 		nn := cpu.reg.rr(opcode & 0b00110000 >> 4)
 		sub := hl - nn - uint16(cpu.reg.F&fC)
-		cpu.reg.F = fN
+		cpu.reg.F = fN | byte((hl^nn^sub)>>8)&fH | byte(sub>>8)&(fY|fX)
 		if sub > 0x7FFF {
 			cpu.reg.F |= fS
 		}
 		if sub == 0 {
 			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= byte((hl^nn^sub)>>8)&fH | byte(sub>>8)&(fY|fX)
 		if (hl^nn)&0x8000 != 0 && (hl^sub)&0x8000 != 0 {
 			cpu.reg.F |= fP
 		}
@@ -69,30 +66,26 @@ func (cpu *CPU) prefixED(opcode byte) {
 		w := (uint16(cpu.reg.A)<<8 | uint16(cpu.mem.Read(hl))) << 4
 		cpu.mem.Write(hl, byte(w)|cpu.reg.A&0x0F)
 		cpu.reg.A = cpu.reg.A&0xF0 | byte(w>>8)&0x0F
-		cpu.reg.F = cpu.reg.F&fC | cpu.reg.A&(fS|fY|fX)
+		cpu.reg.F = cpu.reg.F&fC | cpu.reg.A&(fS|fY|fX) | parity[cpu.reg.A]
 		if cpu.reg.A == 0 {
 			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= parity[cpu.reg.A]
 	case rrd:
 		hl := cpu.reg.HL()
 		w := (uint16(cpu.reg.A)<<8 | uint16(cpu.mem.Read(hl)))
 		cpu.mem.Write(hl, byte(w>>4))
 		cpu.reg.A = cpu.reg.A&0xF0 | byte(w)&0x0F
-		cpu.reg.F = cpu.reg.F&fC | cpu.reg.A&(fS|fY|fX)
+		cpu.reg.F = cpu.reg.F&fC | cpu.reg.A&(fS|fY|fX) | parity[cpu.reg.A]
 		if cpu.reg.A == 0 {
 			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= parity[cpu.reg.A]
 	case in_a_c, in_b_c, in_c_c, in_d_c, in_e_c, in_f_c, in_h_c, in_l_c:
 		r := cpu.reg.r(opcode & 0b00111000 >> 3)
 		*r = cpu.IN(cpu.reg.B, cpu.reg.C)
-		cpu.reg.F &= fC
-		cpu.reg.F |= *r & fS
+		cpu.reg.F = cpu.reg.F&fC | *r&fS | parity[*r]
 		if *r == 0 {
 			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= parity[*r]
 	case out_c_a, out_c_b, out_c_c, out_c_d, out_c_e, out_c_f, out_c_h, out_c_l:
 		cpu.OUT(cpu.reg.B, cpu.reg.C, *cpu.reg.r(opcode & 0b00111000 >> 3))
 	case im0, im1, im2:

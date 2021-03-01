@@ -205,11 +205,10 @@ func (cpu *CPU) Run() {
 			}
 			sum := hl + nn
 			cpu.reg.setHL(sum)
-			cpu.reg.F &= ^(fH | fN | fC)
+			cpu.reg.F = cpu.reg.F & ^(fH|fN|fC) | byte((hl^nn^sum)>>8)&fH | byte(sum>>8)&(fY|fX)
 			if sum < hl {
 				cpu.reg.F |= fC
 			}
-			cpu.reg.F |= byte((hl^nn^sum)>>8)&fH | byte(sum>>8)&(fY|fX)
 		case sub_a, sub_b, sub_c, sub_d, sub_e, sub_h, sub_l, sub_hl, sub_n:
 			a := cpu.reg.A
 			var n byte
@@ -222,11 +221,10 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A -= n
-			cpu.reg.F = (fS|fY|fX)&cpu.reg.A | fN
+			cpu.reg.F = (fS|fY|fX)&cpu.reg.A | fN | (a^n^cpu.reg.A)&fH
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= fZ
 			}
-			cpu.reg.F |= (a ^ n ^ cpu.reg.A) & fH
 			if (a^n)&0x80 != 0 && (a^cpu.reg.A)&0x80 != 0 {
 				cpu.reg.F |= fP
 			}
@@ -244,11 +242,10 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			test := cpu.reg.A - n
-			cpu.reg.F = fN | fS&test | n&(fY|fX)
+			cpu.reg.F = fN | fS&test | n&(fY|fX) | byte(cpu.reg.A^n^test)&fH
 			if test == 0 {
 				cpu.reg.F |= fZ
 			}
-			cpu.reg.F |= byte(cpu.reg.A^n^test) & fH
 			if (cpu.reg.A^n)&0x80 != 0 && (cpu.reg.A^test)&0x80 != 0 {
 				cpu.reg.F |= fP
 			}
@@ -268,11 +265,10 @@ func (cpu *CPU) Run() {
 			cf := cpu.reg.F & fC
 			sub_w := uint16(cpu.reg.A) - uint16(n) - uint16(cf)
 			sub_b := byte(sub_w)
-			cpu.reg.F = (fS|fY|fX)&sub_b | fN
+			cpu.reg.F = (fS|fY|fX)&sub_b | fN | byte(cpu.reg.A^n^sub_b)&fH
 			if sub_b == 0 {
 				cpu.reg.F |= fZ
 			}
-			cpu.reg.F |= byte(cpu.reg.A^n^sub_b) & fH
 			if (cpu.reg.A^n)&0x80 != 0 && (sub_b^cpu.reg.A)&0x80 != 0 {
 				cpu.reg.F |= fP
 			}
@@ -291,11 +287,10 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A &= n
-			cpu.reg.F = (fS|fY|fX)&cpu.reg.A | fH
+			cpu.reg.F = (fS|fY|fX)&cpu.reg.A | fH | parity[cpu.reg.A]
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= fZ
 			}
-			cpu.reg.F |= parity[cpu.reg.A]
 		case or_a, or_b, or_c, or_d, or_e, or_h, or_l, or_hl, or_n:
 			var n byte
 			switch opcode {
@@ -307,11 +302,10 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A |= n
-			cpu.reg.F = (fS | fY | fX) & cpu.reg.A
+			cpu.reg.F = (fS|fY|fX)&cpu.reg.A | parity[cpu.reg.A]
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= fZ
 			}
-			cpu.reg.F |= parity[cpu.reg.A]
 		case xor_a, xor_b, xor_c, xor_d, xor_e, xor_h, xor_l, xor_hl, xor_n:
 			var n byte
 			switch opcode {
@@ -323,11 +317,10 @@ func (cpu *CPU) Run() {
 				n = *cpu.reg.r(opcode & 0b00000111)
 			}
 			cpu.reg.A ^= n
-			cpu.reg.F = (fS | fY | fX) & cpu.reg.A
+			cpu.reg.F = (fS|fY|fX)&cpu.reg.A | parity[cpu.reg.A]
 			if cpu.reg.A == 0 {
 				cpu.reg.F |= fZ
 			}
-			cpu.reg.F |= parity[cpu.reg.A]
 		case ld_a_n, ld_b_n, ld_c_n, ld_d_n, ld_e_n, ld_h_n, ld_l_n:
 			r := cpu.reg.r(opcode & 0b00111000 >> 3)
 			*r = cpu.readByte()
