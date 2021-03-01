@@ -3,18 +3,18 @@ package z80
 import "fmt"
 
 const (
-	r_B = 0b000
-	r_C = 0b001
-	r_D = 0b010
-	r_E = 0b011
-	r_H = 0b100
-	r_L = 0b101
-	r_A = 0b111
+	rB = 0b000
+	rC = 0b001
+	rD = 0b010
+	rE = 0b011
+	rH = 0b100
+	rL = 0b101
+	rA = 0b111
 
-	r_BC = 0b00
-	r_DE = 0b01
-	r_HL = 0b10
-	r_SP = 0b11
+	rBC = 0b00
+	rDE = 0b01
+	rHL = 0b10
+	rSP = 0b11
 )
 
 // The Flag registers, F and F', supply information to the user about the status of the Z80
@@ -25,16 +25,16 @@ const (
 //
 // X and Y flags are undocumented.
 const (
-	f_NONE byte = 0x00
-	f_C    byte = 0x01
-	f_N    byte = 0x02
-	f_P    byte = 0x04
-	f_X    byte = 0x08
-	f_H    byte = 0x10
-	f_Y    byte = 0x20
-	f_Z    byte = 0x40
-	f_S    byte = 0x80
-	f_ALL  byte = 0xFF
+	fNONE byte = 0x00
+	fC    byte = 0x01
+	fN    byte = 0x02
+	fP    byte = 0x04
+	fX    byte = 0x08
+	fH    byte = 0x10
+	fY    byte = 0x20
+	fZ    byte = 0x40
+	fS    byte = 0x80
+	fALL  byte = 0xFF
 )
 
 type registers struct {
@@ -54,16 +54,16 @@ func newRegisters() *registers {
 	r := &registers{}
 	r.prefixed = [][]*byte{
 		noPrefix: {
-			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
-			r_E: &r.E, r_H: &r.H, r_L: &r.L,
+			rA: &r.A, rB: &r.B, rC: &r.C, rD: &r.D,
+			rE: &r.E, rH: &r.H, rL: &r.L,
 		},
 		useIX: {
-			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
-			r_E: &r.E, r_H: &r.IXH, r_L: &r.IXL,
+			rA: &r.A, rB: &r.B, rC: &r.C, rD: &r.D,
+			rE: &r.E, rH: &r.IXH, rL: &r.IXL,
 		},
 		useIY: {
-			r_A: &r.A, r_B: &r.B, r_C: &r.C, r_D: &r.D,
-			r_E: &r.E, r_H: &r.IYH, r_L: &r.IYL,
+			rA: &r.A, rB: &r.B, rC: &r.C, rD: &r.D,
+			rE: &r.E, rH: &r.IYH, rL: &r.IYL,
 		},
 	}
 	r.raw = r.prefixed[noPrefix]
@@ -84,13 +84,13 @@ func (r *registers) setR(reg, value byte) {
 // Gets the value of the specified 16-bit register, respecting operation may be prefixed.
 func (r *registers) rr(reg byte) uint16 {
 	switch reg {
-	case r_BC:
+	case rBC:
 		return r.BC()
-	case r_DE:
+	case rDE:
 		return r.DE()
-	case r_HL:
+	case rHL:
 		return r.HL()
-	case r_SP:
+	case rSP:
 		return r.SP
 	}
 
@@ -100,13 +100,13 @@ func (r *registers) rr(reg byte) uint16 {
 // Sets the value of the specified 16-bit registers, respecting operation may be prefixed.
 func (r *registers) setRR(reg byte, value uint16) {
 	switch reg {
-	case r_BC:
+	case rBC:
 		r.setBC(value)
-	case r_DE:
+	case rDE:
 		r.setDE(value)
-	case r_HL:
+	case rHL:
 		r.setHL(value)
-	case r_SP:
+	case rSP:
 		r.SP = value
 	}
 }

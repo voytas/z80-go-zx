@@ -37,9 +37,9 @@ func (cpu *CPU) prefixCB() {
 			cpu.mem.Write(hl, v)
 		}
 		if flags {
-			cpu.reg.F = (f_S | f_Y | f_X) & v
+			cpu.reg.F = (fS | fY | fX) & v
 			if v == 0 {
-				cpu.reg.F |= f_Z
+				cpu.reg.F |= fZ
 			}
 			cpu.reg.F |= parity[v] | cf
 		}
@@ -51,23 +51,23 @@ func (cpu *CPU) prefixCB() {
 		v = v<<1 | cf
 		write(true)
 	case rrc_r:
-		cf = v & f_C
+		cf = v & fC
 		v = v>>1 | cf<<7
 		write(true)
 	case rl_r:
 		cf = v >> 7
-		v = v<<1 | f_C&cpu.reg.F
+		v = v<<1 | fC&cpu.reg.F
 		write(true)
 	case rr_r:
-		cf = v & f_C
-		v = v>>1 | f_C&cpu.reg.F<<7
+		cf = v & fC
+		v = v>>1 | fC&cpu.reg.F<<7
 		write(true)
 	case sla_r:
 		cf = v >> 7
 		v = v << 1
 		write(true)
 	case sra_r:
-		cf = v & f_C
+		cf = v & fC
 		v = v&0x80 | v>>1
 		write(true)
 	case sll_r:
@@ -75,30 +75,30 @@ func (cpu *CPU) prefixCB() {
 		v = v<<1 | 0x01
 		write(true)
 	case srl_r:
-		cf = v & f_C
+		cf = v & fC
 		v = v >> 1
 		write(true)
 	default:
 		bit := (opcode & 0b00111000) >> 3
 		switch opcode & 0b11000000 {
 		case bit_b:
-			cpu.reg.F = cpu.reg.F&f_C | f_H
-			test := v & bit_mask[bit]
+			cpu.reg.F = cpu.reg.F&fC | fH
+			test := v & bitMask[bit]
 			if test == 0 {
-				cpu.reg.F |= f_Z | f_P
+				cpu.reg.F |= fZ | fP
 			}
 			if reg == HL {
 				// Might not be 100%, this undocumented behaviour is not clear, but it passses test
-				cpu.reg.F |= f_S&test | (f_Y|f_X)&byte(hl>>8)
+				cpu.reg.F |= fS&test | (fY|fX)&byte(hl>>8)
 				cpu.t -= 3 // bit and HL is 12 t-states
 			} else {
-				cpu.reg.F |= f_S&test | (f_Y|f_X)&v
+				cpu.reg.F |= fS&test | (fY|fX)&v
 			}
 		case res_b:
-			v &= ^bit_mask[bit]
+			v &= ^bitMask[bit]
 			write(false)
 		case set_b:
-			v |= bit_mask[bit]
+			v |= bitMask[bit]
 			write(false)
 		}
 	}

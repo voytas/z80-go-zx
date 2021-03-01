@@ -14,54 +14,54 @@ func (cpu *CPU) prefixED(opcode byte) {
 	case neg, 0x54, 0x64, 0x74, 0x4C, 0x5C, 0x6C, 0x7C:
 		a := cpu.reg.A
 		cpu.reg.A = ^a + 1
-		cpu.reg.F = (f_S|f_Y|f_X)&cpu.reg.A | f_N
+		cpu.reg.F = (fS|fY|fX)&cpu.reg.A | fN
 		if cpu.reg.A == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= byte(a^cpu.reg.A) & f_H
+		cpu.reg.F |= byte(a^cpu.reg.A) & fH
 		if cpu.reg.A == 0x80 {
-			cpu.reg.F |= f_P
+			cpu.reg.F |= fP
 		}
 		if a != 0 {
-			cpu.reg.F |= f_C
+			cpu.reg.F |= fC
 		}
 	case adc_hl_bc, adc_hl_de, adc_hl_hl, adc_hl_sp:
 		hl := cpu.reg.HL()
 		nn := cpu.reg.rr(opcode & 0b00110000 >> 4)
-		sum := hl + nn + uint16(cpu.reg.F&f_C)
-		cpu.reg.F = f_NONE
+		sum := hl + nn + uint16(cpu.reg.F&fC)
+		cpu.reg.F = fNONE
 		if sum > 0x7FFF {
-			cpu.reg.F |= f_S
+			cpu.reg.F |= fS
 		}
 		if sum == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= byte((hl^nn^sum)>>8)&f_H | byte(sum>>8)&(f_Y|f_X)
+		cpu.reg.F |= byte((hl^nn^sum)>>8)&fH | byte(sum>>8)&(fY|fX)
 		if (hl^nn)&0x8000 == 0 && (hl^sum)&0x8000 != 0 {
-			cpu.reg.F |= f_P
+			cpu.reg.F |= fP
 		}
 		if sum < hl {
-			cpu.reg.F |= f_C
+			cpu.reg.F |= fC
 		}
 
 		cpu.reg.setHL(sum)
 	case sbc_hl_bc, sbc_hl_de, sbc_hl_hl, sbc_hl_sp:
 		hl := cpu.reg.HL()
 		nn := cpu.reg.rr(opcode & 0b00110000 >> 4)
-		sub := hl - nn - uint16(cpu.reg.F&f_C)
-		cpu.reg.F = f_N
+		sub := hl - nn - uint16(cpu.reg.F&fC)
+		cpu.reg.F = fN
 		if sub > 0x7FFF {
-			cpu.reg.F |= f_S
+			cpu.reg.F |= fS
 		}
 		if sub == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= byte((hl^nn^sub)>>8)&f_H | byte(sub>>8)&(f_Y|f_X)
+		cpu.reg.F |= byte((hl^nn^sub)>>8)&fH | byte(sub>>8)&(fY|fX)
 		if (hl^nn)&0x8000 != 0 && (hl^sub)&0x8000 != 0 {
-			cpu.reg.F |= f_P
+			cpu.reg.F |= fP
 		}
 		if sub > hl {
-			cpu.reg.F |= f_C
+			cpu.reg.F |= fC
 		}
 		cpu.reg.setHL(sub)
 	case rld:
@@ -69,9 +69,9 @@ func (cpu *CPU) prefixED(opcode byte) {
 		w := (uint16(cpu.reg.A)<<8 | uint16(cpu.mem.Read(hl))) << 4
 		cpu.mem.Write(hl, byte(w)|cpu.reg.A&0x0F)
 		cpu.reg.A = cpu.reg.A&0xF0 | byte(w>>8)&0x0F
-		cpu.reg.F = cpu.reg.F&f_C | cpu.reg.A&(f_S|f_Y|f_X)
+		cpu.reg.F = cpu.reg.F&fC | cpu.reg.A&(fS|fY|fX)
 		if cpu.reg.A == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		}
 		cpu.reg.F |= parity[cpu.reg.A]
 	case rrd:
@@ -79,18 +79,18 @@ func (cpu *CPU) prefixED(opcode byte) {
 		w := (uint16(cpu.reg.A)<<8 | uint16(cpu.mem.Read(hl)))
 		cpu.mem.Write(hl, byte(w>>4))
 		cpu.reg.A = cpu.reg.A&0xF0 | byte(w)&0x0F
-		cpu.reg.F = cpu.reg.F&f_C | cpu.reg.A&(f_S|f_Y|f_X)
+		cpu.reg.F = cpu.reg.F&fC | cpu.reg.A&(fS|fY|fX)
 		if cpu.reg.A == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		}
 		cpu.reg.F |= parity[cpu.reg.A]
 	case in_a_c, in_b_c, in_c_c, in_d_c, in_e_c, in_f_c, in_h_c, in_l_c:
 		r := cpu.reg.r(opcode & 0b00111000 >> 3)
 		*r = cpu.IN(cpu.reg.B, cpu.reg.C)
-		cpu.reg.F &= f_C
-		cpu.reg.F |= *r & f_S
+		cpu.reg.F &= fC
+		cpu.reg.F |= *r & fS
 		if *r == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		}
 		cpu.reg.F |= parity[*r]
 	case out_c_a, out_c_b, out_c_c, out_c_d, out_c_e, out_c_f, out_c_h, out_c_l:
@@ -111,23 +111,23 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.reg.setRR(opcode&0b00110000>>4, uint16(cpu.mem.Read(addr))|uint16(cpu.mem.Read(addr+1))<<8)
 	case ld_a_r:
 		cpu.reg.A = cpu.reg.R
-		cpu.reg.F = cpu.reg.F&f_C | cpu.reg.A&f_S
+		cpu.reg.F = cpu.reg.F&fC | cpu.reg.A&fS
 		if cpu.reg.A == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		}
 		if cpu.iff2 {
-			cpu.reg.F |= f_P
+			cpu.reg.F |= fP
 		}
 	case ld_r_a:
 		cpu.reg.R = cpu.reg.A
 	case ld_a_i:
 		cpu.reg.A = cpu.reg.I
-		cpu.reg.F = cpu.reg.F&f_C | cpu.reg.A&f_S
+		cpu.reg.F = cpu.reg.F&fC | cpu.reg.A&fS
 		if cpu.reg.A == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		}
 		if cpu.iff2 {
-			cpu.reg.F |= f_P
+			cpu.reg.F |= fP
 		}
 	case ld_i_a:
 		cpu.reg.I = cpu.reg.A
@@ -145,11 +145,11 @@ func (cpu *CPU) prefixED(opcode byte) {
 			cpu.reg.setDE(de - 1)
 		}
 		cpu.reg.setBC(bc)
-		cpu.reg.F = cpu.reg.F & (f_S | f_Z | f_C)
+		cpu.reg.F = cpu.reg.F & (fS | fZ | fC)
 		n += cpu.reg.A
-		cpu.reg.F |= f_Y&(n<<4) | f_X&n
+		cpu.reg.F |= fY&(n<<4) | fX&n
 		if bc != 0 {
-			cpu.reg.F |= f_P
+			cpu.reg.F |= fP
 			if opcode == ldir || opcode == lddr {
 				cpu.reg.PC -= 2
 				cpu.t += 5
@@ -166,16 +166,16 @@ func (cpu *CPU) prefixED(opcode byte) {
 		cpu.reg.setBC(bc)
 		n := cpu.mem.Read(hl)
 		test := cpu.reg.A - n
-		cpu.reg.F = cpu.reg.F&f_C | f_N | test&f_S
+		cpu.reg.F = cpu.reg.F&fC | fN | test&fS
 		if test == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		}
-		cpu.reg.F |= byte(cpu.reg.A^n^test) & f_H
+		cpu.reg.F |= byte(cpu.reg.A^n^test) & fH
 		if bc != 0 {
-			cpu.reg.F |= f_P
+			cpu.reg.F |= fP
 		}
-		n = test - (cpu.reg.F&f_H)>>4
-		cpu.reg.F |= f_Y&(n<<4) | f_X&n
+		n = test - (cpu.reg.F&fH)>>4
+		cpu.reg.F |= fY&(n<<4) | fX&n
 		if (opcode == cpir || opcode == cpdr) && bc != 0 && test != 0 {
 			cpu.reg.PC -= 2
 			cpu.t += 5
@@ -189,9 +189,9 @@ func (cpu *CPU) prefixED(opcode byte) {
 		} else {
 			cpu.reg.setHL(hl - 1)
 		}
-		cpu.reg.F = cpu.reg.F & ^f_Z | f_N
+		cpu.reg.F = cpu.reg.F & ^fZ | fN
 		if cpu.reg.B == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		} else if opcode == inir || opcode == indr {
 			cpu.reg.PC -= 2
 			cpu.t += 5
@@ -205,9 +205,9 @@ func (cpu *CPU) prefixED(opcode byte) {
 		} else {
 			cpu.reg.setHL(hl - 1)
 		}
-		cpu.reg.F = cpu.reg.F & ^f_Z | f_N
+		cpu.reg.F = cpu.reg.F & ^fZ | fN
 		if cpu.reg.B == 0 {
-			cpu.reg.F |= f_Z
+			cpu.reg.F |= fZ
 		} else if opcode == otir || opcode == otdr {
 			cpu.reg.PC -= 2
 			cpu.t += 5
