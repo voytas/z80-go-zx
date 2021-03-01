@@ -1171,6 +1171,12 @@ func Test_CCF(t *testing.T) {
 	cpu.Run()
 
 	assert.Equal(t, f_Z|f_Y|f_X|f_C, cpu.reg.F)
+
+	cpu.Reset()
+	cpu.reg.F = f_Z | f_N | f_C
+	cpu.Run()
+
+	assert.Equal(t, f_Z|f_Y|f_H|f_X, cpu.reg.F)
 }
 
 func Test_RLCA(t *testing.T) {
@@ -1383,6 +1389,14 @@ func Test_DAA(t *testing.T) {
 
 	assert.Equal(t, byte(0x5F), cpu.reg.A)
 	assert.Equal(t, f_H|f_X|f_P|f_N|f_C, cpu.reg.F)
+
+	mem = &memory.BasicMemory{Cells: []byte{ld_a_n, 0xCA, daa, halt}}
+	cpu = NewCPU(mem)
+	cpu.reg.F = f_ALL
+	cpu.Run()
+
+	assert.Equal(t, byte(0x64), cpu.reg.A)
+	assert.Equal(t, f_Y|f_N|f_C, cpu.reg.F)
 }
 
 func Test_DJNZ(t *testing.T) {

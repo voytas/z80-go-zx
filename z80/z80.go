@@ -78,13 +78,6 @@ func (cpu *CPU) Run() {
 			cpu.iff1, cpu.iff2 = false, false
 		case ei:
 			cpu.iff1, cpu.iff2 = true, true
-		case cpl:
-			cpu.reg.A = ^cpu.reg.A
-			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P|f_C) | f_H | f_N | cpu.reg.A&(f_Y|f_X)
-		case scf:
-			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | f_C | cpu.reg.A&(f_Y|f_X)
-		case ccf:
-			cpu.reg.F = (cpu.reg.F&(f_S|f_Z|f_P|f_C) | cpu.reg.F&f_C<<4 | cpu.reg.A&(f_Y|f_X)) ^ f_C
 		case rlca:
 			a7 := cpu.reg.A >> 7
 			cpu.reg.A = cpu.reg.A<<1 | a7
@@ -101,45 +94,39 @@ func (cpu *CPU) Run() {
 			a0 := cpu.reg.A & 0x01
 			cpu.reg.A = cpu.reg.A>>1 | cpu.reg.F&f_C<<7
 			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | cpu.reg.A&(f_Y|f_X) | a0
+		case cpl:
+			cpu.reg.A = ^cpu.reg.A
+			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P|f_C) | f_H | f_N | cpu.reg.A&(f_Y|f_X)
+		case scf:
+			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | f_C | cpu.reg.A&(f_Y|f_X)
+		case ccf:
+			cpu.reg.F = (cpu.reg.F&(f_S|f_Z|f_P|f_C) | cpu.reg.F&f_C<<4 | cpu.reg.A&(f_Y|f_X)) ^ f_C
 		case daa:
-			cpu.reg.F &= ^(f_S | f_Z | f_Y | f_X | f_P)
-			a := cpu.reg.A
-			if a&0xF > 9 || cpu.reg.F&f_H != 0 {
-				if cpu.reg.F&f_N > 0 {
-					a -= 0x06
-				} else {
-					a += 0x06
-				}
-			}
-			if a > 0x99 || cpu.reg.F&f_C != 0 {
-				if cpu.reg.F&f_N > 0 {
-					a -= 0x60
-				} else {
-					a += 0x60
-				}
-			}
-			cpu.reg.F |= a & f_S
-			if a == 0 {
-				cpu.reg.F |= f_Z
-			}
-			if cpu.reg.F&f_N > 0 {
-				if cpu.reg.F&f_H > 0 && cpu.reg.A&0xF < 6 {
-					cpu.reg.F |= f_H
-				} else {
-					cpu.reg.F &= ^f_H
-				}
-			} else {
-				if cpu.reg.A&0xF > 9 {
-					cpu.reg.F |= f_H
-				} else {
-					cpu.reg.F &= ^f_H
-				}
-			}
-			cpu.reg.F |= parity[a] | a&(f_Y|f_X)
-			if cpu.reg.A > 0x99 {
+			cf := cpu.reg.F & f_C
+			hf := cpu.reg.F & f_H
+			nf := cpu.reg.F & f_N
+			lb := cpu.reg.A & 0x0F
+			diff := byte(0)
+			cpu.reg.F &= f_N
+			if cf != 0 || cpu.reg.A > 0x99 {
+				diff = 0x60
 				cpu.reg.F |= f_C
 			}
-			cpu.reg.A = a
+			if hf != 0 || lb > 0x09 {
+				diff += 0x06
+			}
+			if nf == 0 {
+				cpu.reg.A += diff
+			} else {
+				cpu.reg.A -= diff
+			}
+			cpu.reg.F |= parity[cpu.reg.A] | cpu.reg.A&(f_S|f_Y|f_X)
+			if cpu.reg.A == 0 {
+				cpu.reg.F |= f_Z
+			}
+			if nf == 0 && lb > 0x09 || nf != 0 && hf != 0 && lb < 0x06 {
+				cpu.reg.F |= f_H
+			}
 		case ex_af_af:
 			cpu.reg.A, cpu.reg.A_ = cpu.reg.A_, cpu.reg.A
 			cpu.reg.F, cpu.reg.F_ = cpu.reg.F_, cpu.reg.F

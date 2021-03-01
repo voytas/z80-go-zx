@@ -28,7 +28,7 @@ func (cpu *CPU) prefixCB() {
 		cpu.t += 8 // 8 t-states for registers
 	}
 
-	var cy byte
+	var cf byte
 	write := func(flags bool) {
 		if reg != HL {
 			*cpu.reg.raw[reg] = v
@@ -41,41 +41,41 @@ func (cpu *CPU) prefixCB() {
 			if v == 0 {
 				cpu.reg.F |= f_Z
 			}
-			cpu.reg.F |= parity[v] | cy
+			cpu.reg.F |= parity[v] | cf
 		}
 	}
 
 	switch opcode & 0b11111000 {
 	case rlc_r:
-		cy = v >> 7
-		v = v<<1 | cy
+		cf = v >> 7
+		v = v<<1 | cf
 		write(true)
 	case rrc_r:
-		cy = v & f_C
-		v = v>>1 | cy<<7
+		cf = v & f_C
+		v = v>>1 | cf<<7
 		write(true)
 	case rl_r:
-		cy = v >> 7
+		cf = v >> 7
 		v = v<<1 | f_C&cpu.reg.F
 		write(true)
 	case rr_r:
-		cy = v & f_C
+		cf = v & f_C
 		v = v>>1 | f_C&cpu.reg.F<<7
 		write(true)
 	case sla_r:
-		cy = v >> 7
+		cf = v >> 7
 		v = v << 1
 		write(true)
 	case sra_r:
-		cy = v & f_C
+		cf = v & f_C
 		v = v&0x80 | v>>1
 		write(true)
 	case sll_r:
-		cy = v >> 7
+		cf = v >> 7
 		v = v<<1 | 0x01
 		write(true)
 	case srl_r:
-		cy = v & f_C
+		cf = v & f_C
 		v = v >> 1
 		write(true)
 	default:
