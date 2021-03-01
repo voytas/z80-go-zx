@@ -34,7 +34,7 @@ const (
 	f_Y    byte = 0x20
 	f_Z    byte = 0x40
 	f_S    byte = 0x80
-	f_ALL  byte = f_S | f_Z | f_H | f_P | f_N | f_C
+	f_ALL  byte = 0xFF
 )
 
 type registers struct {

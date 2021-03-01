@@ -279,7 +279,7 @@ func Test_ADD_HL_RR(t *testing.T) {
 
 	assert.Equal(t, byte(0x53), cpu.reg.H)
 	assert.Equal(t, byte(0x52), cpu.reg.L)
-	assert.Equal(t, f_S|f_Z|f_P, cpu.reg.F)
+	assert.Equal(t, f_S|f_Z|f_Y|f_X|f_P, cpu.reg.F)
 
 	mem = &memory.BasicMemory{Cells: []byte{ld_hl_nn, 0x41, 0x42, add_hl_hl, halt}}
 	cpu = NewCPU(mem)
