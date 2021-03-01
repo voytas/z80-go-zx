@@ -43,9 +43,10 @@ func (cpu *CPU) wait() {
 
 func (cpu *CPU) Reset() {
 	cpu.reg = newRegisters()
-	cpu.reg.PC = 0
+	cpu.reg.PC, cpu.reg.SP = 0, 0xFFFF
 	cpu.halt = false
-	cpu.iff1, cpu.iff2 = true, true
+	cpu.iff1, cpu.iff2 = false, false
+	cpu.reg.A, cpu.reg.F, cpu.reg.I = 0xFF, 0xFF, 0x00
 }
 
 func (cpu *CPU) Run() {
