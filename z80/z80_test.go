@@ -1480,11 +1480,11 @@ func Test_JR_C(t *testing.T) {
 
 	assert.Equal(t, byte(0xFF), cpu.reg.B)
 
-	mem = &memory.BasicMemory{Cells: []byte{xor_a, ld_b_n, 0xAB, inc_a, add_a_n, 1, jr_c, 1, ld_b_a, halt}}
+	mem = &memory.BasicMemory{Cells: []byte{ld_b_n, 0xAB, scf, jr_c, 1, halt, ld_b_a, halt}}
 	cpu = NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, byte(2), cpu.reg.B)
+	assert.Equal(t, byte(0xFF), cpu.reg.B)
 
 	mem = &memory.BasicMemory{Cells: []byte{xor_a, dec_a, add_a_n, 1, jr_c, 0xFC, halt}}
 	cpu = NewCPU(mem)
@@ -1500,11 +1500,11 @@ func Test_JR_NC_o(t *testing.T) {
 
 	assert.Equal(t, byte(0xAB), cpu.reg.B)
 
-	mem = &memory.BasicMemory{Cells: []byte{xor_a, ld_b_n, 0xAB, dec_a, add_a_n, 1, jr_nc_o, 1, ld_b_a, halt}}
+	mem = &memory.BasicMemory{Cells: []byte{ld_b_n, 0xAB, scf, ccf, jr_nc_o, 1, halt, ld_b_a, halt}}
 	cpu = NewCPU(mem)
 	cpu.Run()
 
-	assert.Equal(t, byte(0), cpu.reg.B)
+	assert.Equal(t, byte(0xFF), cpu.reg.B)
 
 	mem = &memory.BasicMemory{Cells: []byte{add_a_n, 1, jr_nc_o, 0xFC, halt}}
 	cpu = NewCPU(mem)
