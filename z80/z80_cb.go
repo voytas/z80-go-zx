@@ -8,16 +8,19 @@ func (z80 *Z80) prefixCB() {
 
 	opcode := z80.readByte()
 	var offset byte
+	z80.t = 8
 	if z80.reg.prefix != noPrefix {
 		offset = opcode
 		opcode = z80.readByte() // for IX and IY the actual opcode comes after the offset
-		z80.t = 8               // extra 8 t-states for IX and IY
+		z80.t += 15             // 23 t-states for IX & IY (except bit -3)
 	}
 	reg := opcode & 0b00000111
 	if reg == HL {
 		hl = z80.getHLOffset(offset)
 		v = z80.mem.Read(hl)
-		z80.t += 15 // 15 t-states for HL with one exception for bit
+		if z80.reg.prefix == noPrefix {
+			z80.t += 7 // 15 t-states for HL (except bit -3)
+		}
 	} else {
 		if z80.reg.prefix == noPrefix {
 			v = *z80.reg.raw[reg]
@@ -25,7 +28,6 @@ func (z80 *Z80) prefixCB() {
 			hl = z80.getHLOffset(offset)
 			v = z80.mem.Read(hl)
 		}
-		z80.t += 8 // 8 t-states for registers
 	}
 
 	var cf byte

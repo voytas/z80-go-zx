@@ -66,6 +66,6 @@ func Run(program string) {
 			fmt.Print(ch)
 		}
 	}
-	z80.Run()
+	z80.Run(0)
 	fmt.Println("")
 }

@@ -7,7 +7,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 	if t != 0 {
 		z80.t = t
 	} else {
-		z80.t = 2 * tStates[nop]
+		z80.t = 2 * tStatesPrimary[nop]
 	}
 
 	switch opcode {

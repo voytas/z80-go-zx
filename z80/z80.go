@@ -12,7 +12,7 @@ type Z80 struct {
 	OUT              func(hi, lo, data byte) // callback function to execute on OUT instruction
 	mem              memory.Memory           // memory
 	reg              *registers              // registers
-	t                byte                    // t-states
+	t                int                     // t-states
 	halt, iff1, iff2 bool                    // states of halt, iff1 and iff2
 	im               byte                    // interrupt mode (im0, im1 or in2)
 }
@@ -38,7 +38,42 @@ func (z80 *Z80) readWord() uint16 {
 	return w
 }
 
+func (z80 *Z80) pushPC() {
+	z80.reg.SP -= 1
+	z80.mem.Write(z80.reg.SP, byte(z80.reg.SP>>8))
+	z80.reg.SP -= 1
+	z80.mem.Write(z80.reg.SP, byte(z80.reg.SP))
+}
+
 func (z80 *Z80) wait() {
+}
+
+// Emulates maskable interrupt (INT)
+func (z80 *Z80) INT(data byte) {
+	if !z80.iff1 {
+		return
+	}
+	z80.iff1, z80.iff2 = false, false
+	switch z80.im {
+	case im0: // In theory in mode 0 we should execute data as a next instruction
+	case im1:
+		z80.pushPC()
+		z80.reg.PC = 0x38 // RST 38h
+		z80.t += 13
+	case im2:
+		z80.pushPC()
+		addr := uint16(z80.reg.I)<<8 + uint16(data)
+		z80.reg.PC = uint16(z80.mem.Read(addr+1))<<8 | uint16(z80.mem.Read(addr))
+		z80.t += 19
+	}
+}
+
+// Emulates non-maskable interrupt (NMI)
+func (z80 *Z80) NMI() {
+	z80.iff2, z80.iff1 = z80.iff1, false
+	z80.pushPC()
+	z80.reg.PC = 0x66
+	z80.t += 11
 }
 
 func (z80 *Z80) Reset() {
@@ -49,21 +84,29 @@ func (z80 *Z80) Reset() {
 	z80.reg.A, z80.reg.F, z80.reg.I = 0xFF, 0xFF, 0x00
 }
 
-func (z80 *Z80) Run() {
+// Executes the instructions until maximum number of t-states is reached.
+// maxTStates equal to 0 specifies unlimited number of t-states to execute.
+func (z80 *Z80) Run(maxTStates int) {
+	remTStates := maxTStates
 	for {
+		if maxTStates != 0 {
+			remTStates -= z80.t
+			if remTStates <= 0 {
+				z80.t = remTStates
+				break
+			}
+		}
+
 		opcode := z80.readByte()
 
-		//z80.debug(opcode)
-
-		// Get the t-state for the current instruction
 		if z80.reg.prefix == noPrefix {
-			z80.t = tStates[opcode]
+			z80.t = tStatesPrimary[opcode]
 		} else {
 			t := tStatesIXY[opcode]
 			if t != 0 {
 				z80.t = t
 			} else {
-				z80.t = 4 + tStates[opcode]
+				z80.t = 4 + tStatesPrimary[opcode]
 			}
 		}
 
@@ -518,7 +561,14 @@ func (z80 *Z80) Run() {
 			}
 		case jp_hl:
 			z80.reg.PC = z80.reg.HL()
-		case call_nn, call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
+		case call_nn:
+			pc := z80.readWord()
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC>>8))
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
+			z80.reg.PC = pc
+		case call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
 			if z80.shouldJump(opcode) {
 				pc := z80.readWord()
 				z80.reg.SP -= 1
@@ -600,15 +650,10 @@ func (z80 *Z80) Run() {
 		}
 
 		z80.reg.prefix = noPrefix
-		z80.wait()
 	}
 }
 
 func (z80 *Z80) shouldJump(opcode byte) bool {
-	if opcode == call_nn {
-		return true
-	}
-
 	switch opcode & 0b00111000 {
 	case 0b00000000: // Non-Zero (NZ)
 		return z80.reg.F&fZ == 0
