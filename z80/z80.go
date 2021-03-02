@@ -45,7 +45,8 @@ func (z80 *Z80) pushPC() {
 	z80.mem.Write(z80.reg.SP, byte(z80.reg.SP))
 }
 
-func (z80 *Z80) wait() {
+func (z80 *Z80) incR() {
+	z80.reg.R = z80.reg.R&0x80 | (z80.reg.R+1)&0x7F
 }
 
 // Emulates maskable interrupt (INT)
@@ -66,6 +67,7 @@ func (z80 *Z80) INT(data byte) {
 		z80.reg.PC = uint16(z80.mem.Read(addr+1))<<8 | uint16(z80.mem.Read(addr))
 		z80.t += 19
 	}
+	z80.incR()
 }
 
 // Emulates non-maskable interrupt (NMI)
@@ -74,6 +76,7 @@ func (z80 *Z80) NMI() {
 	z80.pushPC()
 	z80.reg.PC = 0x66
 	z80.t += 11
+	z80.incR()
 }
 
 func (z80 *Z80) Reset() {
@@ -81,7 +84,8 @@ func (z80 *Z80) Reset() {
 	z80.reg.PC, z80.reg.SP = 0, 0xFFFF
 	z80.halt = false
 	z80.iff1, z80.iff2 = false, false
-	z80.reg.A, z80.reg.F, z80.reg.I = 0xFF, 0xFF, 0x00
+	z80.reg.A, z80.reg.F = 0xFF, 0xFF
+	z80.reg.I, z80.reg.R = 0x00, 0x00
 }
 
 // Executes the instructions until maximum number of t-states is reached.
@@ -110,11 +114,12 @@ func (z80 *Z80) Run(maxTStates int) {
 			}
 		}
 
+		z80.incR()
+
 		switch opcode {
 		case nop:
 		case halt:
 			z80.reg.prefix = noPrefix
-			z80.wait()
 			z80.halt = true
 			return
 		case di:
@@ -632,23 +637,26 @@ func (z80 *Z80) Run(maxTStates int) {
 		case out_n_a:
 			z80.OUT(z80.reg.A, z80.readByte(), z80.reg.A)
 		case prefix_cb:
+			z80.incR()
 			z80.prefixCB()
 		case prefix_ed:
+			z80.incR()
 			z80.prefixED(z80.readByte())
 		case useIX:
+			z80.incR()
 			if z80.reg.prefix != noPrefix {
-				z80.wait()
+				z80.t = tStatesPrimary[nop]
 			}
 			z80.reg.prefix = useIX
 			continue
 		case useIY:
+			z80.incR()
 			if z80.reg.prefix != noPrefix {
-				z80.wait()
+				z80.t = tStatesPrimary[nop]
 			}
 			z80.reg.prefix = useIY
 			continue
 		}
-
 		z80.reg.prefix = noPrefix
 	}
 }

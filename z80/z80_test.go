@@ -1128,33 +1128,37 @@ func Test_LD_A_DE(t *testing.T) {
 	assert.Equal(t, 0, z80.t)
 }
 
-func Test_LD_A_IR(t *testing.T) {
-	for _, ld := range []byte{ld_a_r, ld_a_i} {
-		mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x05, prefix_ed, ld}}
-		z80 := NewZ80(mem)
-		z80.reg.F = fH | fN | fC
-		z80.iff2 = true
-		z80.Run(7 + 9)
+func Test_LD_A_R(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{prefix_ed, ld_a_r}}
+	z80 := NewZ80(mem)
+	z80.reg.F = fH | fN | fC
+	z80.Run(9)
 
-		assert.Equal(t, byte(0), z80.reg.A)
-		assert.Equal(t, fZ|fP|fC, z80.reg.F)
-		assert.Equal(t, 0, z80.t)
+	assert.Equal(t, byte(0x02), z80.reg.A)
+	assert.Equal(t, fC, z80.reg.F)
+	assert.Equal(t, 0, z80.t)
 
-		mem = &memory.BasicMemory{Cells: []byte{prefix_ed, ld}}
-		z80 = NewZ80(mem)
-		if ld == ld_a_r {
-			z80.reg.R = 0xFF
-		} else {
-			z80.reg.I = 0xFF
-		}
-		z80.iff2 = false
-		z80.reg.F = fNONE
-		z80.Run(9)
+	mem = &memory.BasicMemory{Cells: []byte{ld_a_n, 0x7E, prefix_ed, ld_r_a, prefix_ed, ld_a_r}}
+	z80 = NewZ80(mem)
+	z80.reg.F = fNONE
+	z80.iff2 = true
+	z80.Run(7 + 9 + 9)
 
-		assert.Equal(t, byte(0xFF), z80.reg.A)
-		assert.Equal(t, fS, z80.reg.F)
-		assert.Equal(t, 0, z80.t)
-	}
+	assert.Equal(t, byte(0x00), z80.reg.A)
+	assert.Equal(t, fZ|fP, z80.reg.F)
+	assert.Equal(t, 0, z80.t)
+}
+
+func Test_LD_A_I(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x05, prefix_ed, ld_a_i}}
+	z80 := NewZ80(mem)
+	z80.reg.F = fH | fN | fC
+	z80.iff2 = true
+	z80.Run(7 + 9)
+
+	assert.Equal(t, byte(0), z80.reg.A)
+	assert.Equal(t, fZ|fP|fC, z80.reg.F)
+	assert.Equal(t, 0, z80.t)
 }
 
 func Test_LD_R_A(t *testing.T) {
@@ -2641,6 +2645,16 @@ func Test_OTDR(t *testing.T) {
 	assert.Equal(t, uint16(0x34), z80.reg.BC())
 	assert.Equal(t, uint16(0x08), z80.reg.HL())
 	assert.Equal(t, fZ|fN|fC, z80.reg.F)
+	assert.Equal(t, 0, z80.t)
+}
+
+func Test_invalidPrefix(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{useIX, useIX, useIX, ld_l_n, 0x01, useIY, useIY, ld_l_n, 0x02}}
+	z80 := NewZ80(mem)
+	z80.Run(4 + 4 + 11 + 4 + 11)
+
+	assert.Equal(t, byte(0x01), z80.reg.IXL)
+	assert.Equal(t, byte(0x02), z80.reg.IYL)
 	assert.Equal(t, 0, z80.t)
 }
 
