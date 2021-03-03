@@ -6,22 +6,24 @@ import (
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
+type IOBus interface {
+	Read(hi, lo byte) byte
+	Write(hi, lo, data byte)
+}
+
 // Represents emulated Z80 Z80
 type Z80 struct {
-	IN               func(hi, lo byte) byte  // callback function to execute on IN instruction
-	OUT              func(hi, lo, data byte) // callback function to execute on OUT instruction
-	mem              memory.Memory           // memory
-	reg              *registers              // registers
-	t                int                     // t-states
-	halt, iff1, iff2 bool                    // states of halt, iff1 and iff2
-	im               byte                    // interrupt mode (im0, im1 or in2)
+	IOBus            IOBus
+	mem              memory.Memory // memory
+	reg              *registers    // registers
+	t                int           // t-states
+	halt, iff1, iff2 bool          // states of halt, iff1 and iff2
+	im               byte          // interrupt mode (im0, im1 or in2)
 }
 
 func NewZ80(mem memory.Memory) *Z80 {
 	z80 := &Z80{}
 	z80.mem = mem
-	z80.IN = func(_, _ byte) byte { return 0xFF }
-	z80.OUT = func(hi, lo, data byte) {}
 	z80.Reset()
 	return z80
 }
@@ -633,9 +635,14 @@ func (z80 *Z80) Run(maxTStates int) {
 			*z80.reg.r(rH), *z80.reg.r(rL) = z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
 			z80.reg.SP += 2
 		case in_a_n:
-			z80.reg.A = z80.IN(z80.reg.A, z80.readByte())
+			n := z80.readByte()
+			if z80.IOBus != nil {
+				z80.reg.A = z80.IOBus.Read(z80.reg.A, n)
+			}
 		case out_n_a:
-			z80.OUT(z80.reg.A, z80.readByte(), z80.reg.A)
+			if z80.IOBus != nil {
+				z80.IOBus.Write(z80.reg.A, z80.readByte(), z80.reg.A)
+			}
 		case prefix_cb:
 			z80.incR()
 			z80.prefixCB()

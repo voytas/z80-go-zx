@@ -7,6 +7,14 @@ import (
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
+type TestIOBus struct {
+	read  func(hi, lo byte) byte
+	write func(hi, lo, data byte)
+}
+
+func (bus *TestIOBus) Read(hi, lo byte) byte   { return bus.read(hi, lo) }
+func (bus *TestIOBus) Write(hi, lo, data byte) { bus.write(hi, lo, data) }
+
 func Test_NOP(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{nop}}
 	z80 := NewZ80(mem)
@@ -1891,17 +1899,24 @@ func Test_POP_rr(t *testing.T) {
 func Test_IN_A_n(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x23, in_a_n, 0x01}}
 	z80 := NewZ80(mem)
+	z80.IOBus = &TestIOBus{
+		read: func(hi, lo byte) byte {
+			return 0xFF
+		},
+	}
 	z80.Run(7 + 11)
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
 	assert.Equal(t, 0, z80.t)
 
 	z80.Reset()
-	z80.IN = func(hi, lo byte) byte {
-		if hi == 0x23 && lo == 0x01 {
-			return 0xA5
-		}
-		return 0
+	z80.IOBus = &TestIOBus{
+		read: func(hi, lo byte) byte {
+			if hi == 0x23 && lo == 0x01 {
+				return 0xA5
+			}
+			return 0
+		},
 	}
 	z80.Run(7 + 11)
 
@@ -1913,6 +1928,11 @@ func Test_IN_R_C(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ld_bc_nn, 0x23, 0x01, ld_d_n, 0x01, prefix_ed, in_d_c}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fALL
+	z80.IOBus = &TestIOBus{
+		read: func(hi, lo byte) byte {
+			return 0xFF
+		},
+	}
 	z80.Run(10 + 7 + 12)
 
 	assert.Equal(t, byte(0xFF), z80.reg.D)
@@ -1921,12 +1941,15 @@ func Test_IN_R_C(t *testing.T) {
 
 	z80.Reset()
 	z80.reg.F = fNONE
-	z80.IN = func(hi, lo byte) byte {
-		if hi == 0x01 && lo == 0x23 {
-			return 0
-		}
-		return 0xA5
+	z80.IOBus = &TestIOBus{
+		read: func(hi, lo byte) byte {
+			if hi == 0x01 && lo == 0x23 {
+				return 0
+			}
+			return 0xA5
+		},
 	}
+
 	z80.Run(10 + 7 + 12)
 
 	assert.Equal(t, byte(0), z80.reg.D)
@@ -1937,10 +1960,12 @@ func Test_IN_R_C(t *testing.T) {
 func Test_OUT_n_A(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x23, out_n_a, 0x01}}
 	z80 := NewZ80(mem)
-	z80.OUT = func(hi, lo, data byte) {
-		assert.Equal(t, byte(0x23), hi)
-		assert.Equal(t, byte(0x01), lo)
-		assert.Equal(t, byte(0x23), data)
+	z80.IOBus = &TestIOBus{
+		write: func(hi, lo, data byte) {
+			assert.Equal(t, byte(0x23), hi)
+			assert.Equal(t, byte(0x01), lo)
+			assert.Equal(t, byte(0x23), data)
+		},
 	}
 	z80.Run(10 + 7 + 12)
 	assert.Equal(t, 0, z80.t)
@@ -1949,10 +1974,12 @@ func Test_OUT_n_A(t *testing.T) {
 func Test_OUT_C_R(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ld_bc_nn, 0x11, 0x22, ld_h_n, 0x33, prefix_ed, out_c_h}}
 	z80 := NewZ80(mem)
-	z80.OUT = func(hi, lo, data byte) {
-		assert.Equal(t, byte(0x22), hi)
-		assert.Equal(t, byte(0x11), lo)
-		assert.Equal(t, byte(0x33), data)
+	z80.IOBus = &TestIOBus{
+		write: func(hi, lo, data byte) {
+			assert.Equal(t, byte(0x22), hi)
+			assert.Equal(t, byte(0x11), lo)
+			assert.Equal(t, byte(0x33), data)
+		},
 	}
 	z80.Run(10 + 7 + 12)
 	assert.Equal(t, 0, z80.t)
@@ -2400,11 +2427,13 @@ func Test_INI(t *testing.T) {
 		prefix_ed, ini, nop, 0x00}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
-	z80.IN = func(hi, lo byte) byte {
-		if hi == 0x01 && lo == 0x34 {
-			return 0x5E
-		}
-		return 0
+	z80.IOBus = &TestIOBus{
+		read: func(hi, lo byte) byte {
+			if hi == 0x01 && lo == 0x34 {
+				return 0x5E
+			}
+			return 0
+		},
 	}
 	z80.Run(10 + 10 + 16)
 
@@ -2421,11 +2450,13 @@ func Test_INIR(t *testing.T) {
 		prefix_ed, inir, nop, 0x00, 0x00, 0x00, 0x00, 0x00}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
-	z80.IN = func(hi, lo byte) byte {
-		if lo == 0x34 {
-			return hi + 0x20
-		}
-		return 0
+	z80.IOBus = &TestIOBus{
+		read: func(hi, lo byte) byte {
+			if lo == 0x34 {
+				return hi + 0x20
+			}
+			return 0
+		},
 	}
 	z80.Run(10 + 10 + 21 + 21 + 21 + 21 + 16)
 
@@ -2446,10 +2477,12 @@ func Test_OUTI(t *testing.T) {
 		prefix_ed, outi, nop, 0x87}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
-	z80.OUT = func(hi, lo, data byte) {
-		assert.Equal(t, byte(0), hi)
-		assert.Equal(t, byte(0x34), lo)
-		assert.Equal(t, byte(0x87), data)
+	z80.IOBus = &TestIOBus{
+		write: func(hi, lo, data byte) {
+			assert.Equal(t, byte(0), hi)
+			assert.Equal(t, byte(0x34), lo)
+			assert.Equal(t, byte(0x87), data)
+		},
 	}
 	z80.Run(10 + 10 + 16)
 
@@ -2465,9 +2498,11 @@ func Test_OTIR(t *testing.T) {
 		prefix_ed, otir, nop, 0x87, 0x88, 0x89, 0x8A}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
-	z80.OUT = func(hi, lo, data byte) {
-		assert.Equal(t, byte(0x34), lo)
-		assert.Equal(t, byte(0x87+0x03-hi), data)
+	z80.IOBus = &TestIOBus{
+		write: func(hi, lo, data byte) {
+			assert.Equal(t, byte(0x34), lo)
+			assert.Equal(t, byte(0x87+0x03-hi), data)
+		},
 	}
 	z80.Run(10 + 10 + 21 + 21 + 21 + 16)
 
@@ -2571,11 +2606,13 @@ func Test_IND(t *testing.T) {
 		prefix_ed, ind, nop, 0x00}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
-	z80.IN = func(hi, lo byte) byte {
-		if hi == 0x01 && lo == 0x34 {
-			return 0x5E
-		}
-		return 0
+	z80.IOBus = &TestIOBus{
+		read: func(hi, lo byte) byte {
+			if hi == 0x01 && lo == 0x34 {
+				return 0x5E
+			}
+			return 0
+		},
 	}
 	z80.Run(10 + 10 + 16)
 
@@ -2592,11 +2629,13 @@ func Test_INDR(t *testing.T) {
 		prefix_ed, indr, nop, 0x00, 0x00, 0x00, 0x00, 0x00}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
-	z80.IN = func(hi, lo byte) byte {
-		if lo == 0x34 {
-			return hi + 0x20
-		}
-		return 0
+	z80.IOBus = &TestIOBus{
+		read: func(hi, lo byte) byte {
+			if lo == 0x34 {
+				return hi + 0x20
+			}
+			return 0
+		},
 	}
 	z80.Run(10 + 10 + 21 + 21 + 21 + 21 + 16)
 
@@ -2617,10 +2656,12 @@ func Test_OUTD(t *testing.T) {
 		prefix_ed, outd, nop, 0x87}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
-	z80.OUT = func(hi, lo, data byte) {
-		assert.Equal(t, byte(0), hi)
-		assert.Equal(t, byte(0x34), lo)
-		assert.Equal(t, byte(0x87), data)
+	z80.IOBus = &TestIOBus{
+		write: func(hi, lo, data byte) {
+			assert.Equal(t, byte(0), hi)
+			assert.Equal(t, byte(0x34), lo)
+			assert.Equal(t, byte(0x87), data)
+		},
 	}
 	z80.Run(10 + 10 + 16)
 
@@ -2636,9 +2677,11 @@ func Test_OTDR(t *testing.T) {
 		prefix_ed, otdr, nop, 0x87, 0x88, 0x89, 0x8A}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
-	z80.OUT = func(hi, lo, data byte) {
-		assert.Equal(t, byte(0x34), lo)
-		assert.Equal(t, byte(0x8A-(0x03-hi)), data)
+	z80.IOBus = &TestIOBus{
+		write: func(hi, lo, data byte) {
+			assert.Equal(t, byte(0x34), lo)
+			assert.Equal(t, byte(0x8A-(0x03-hi)), data)
+		},
 	}
 	z80.Run(10 + 10 + 21 + 21 + 21 + 16)
 

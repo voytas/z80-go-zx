@@ -81,13 +81,17 @@ func (z80 *Z80) prefixED(opcode byte) {
 		}
 	case in_a_c, in_b_c, in_c_c, in_d_c, in_e_c, in_f_c, in_h_c, in_l_c:
 		r := z80.reg.r(opcode & 0b00111000 >> 3)
-		*r = z80.IN(z80.reg.B, z80.reg.C)
+		if z80.IOBus != nil {
+			*r = z80.IOBus.Read(z80.reg.B, z80.reg.C)
+		}
 		z80.reg.F = z80.reg.F&fC | *r&fS | parity[*r]
 		if *r == 0 {
 			z80.reg.F |= fZ
 		}
 	case out_c_a, out_c_b, out_c_c, out_c_d, out_c_e, out_c_f, out_c_h, out_c_l:
-		z80.OUT(z80.reg.B, z80.reg.C, *z80.reg.r(opcode & 0b00111000 >> 3))
+		if z80.IOBus != nil {
+			z80.IOBus.Write(z80.reg.B, z80.reg.C, *z80.reg.r(opcode & 0b00111000 >> 3))
+		}
 	case im0, im1, im2:
 		z80.im = opcode
 	case retn, 0x55, 0x65, 0x75, 0x5D, 0x6D, reti, 0x7D:
@@ -175,7 +179,9 @@ func (z80 *Z80) prefixED(opcode byte) {
 		}
 	case ini, inir, ind, indr:
 		hl := z80.reg.HL()
-		z80.mem.Write(hl, z80.IN(z80.reg.B, z80.reg.C))
+		if z80.IOBus != nil {
+			z80.mem.Write(hl, z80.IOBus.Read(z80.reg.B, z80.reg.C))
+		}
 		z80.reg.B -= 1
 		if opcode == ini || opcode == inir {
 			z80.reg.setHL(hl + 1)
@@ -192,7 +198,9 @@ func (z80 *Z80) prefixED(opcode byte) {
 	case outi, otir, outd, otdr:
 		hl := z80.reg.HL()
 		z80.reg.B -= 1
-		z80.OUT(z80.reg.B, z80.reg.C, z80.mem.Read(hl))
+		if z80.IOBus != nil {
+			z80.IOBus.Write(z80.reg.B, z80.reg.C, z80.mem.Read(hl))
+		}
 		if opcode == outi || opcode == otir {
 			z80.reg.setHL(hl + 1)
 		} else {
