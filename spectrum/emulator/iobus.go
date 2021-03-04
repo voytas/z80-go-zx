@@ -6,7 +6,7 @@ type iobus struct{}
 
 func (bus *iobus) Read(hi, lo byte) byte {
 	if lo == 0xFE {
-		return keyboard.ReadKey(hi)
+		return keyboard.GetKeyPortValue(hi)
 	}
 	return 0xFF
 }

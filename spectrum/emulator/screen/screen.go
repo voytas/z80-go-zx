@@ -1,6 +1,8 @@
 package screen
 
-import "image"
+import (
+	"image"
+)
 
 // Address of each line on the screen (0-191), it is not linear
 var lines = []int{
@@ -77,18 +79,19 @@ var paperColours = [][]byte{
 }
 
 // Renders the screen as RGBA image
-func RGBA(mem []byte) *image.RGBA {
+func RGBA(mem []byte, frame int) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, 256, 192))
 	for line, addr := range lines {
 		pixel := (191 - line) * 256 * 4
 		for col := 0; col < 32; col++ {
-			attr := mem[0x5800+line/8+col]
+			attr := mem[0x5800+32*(line/8)+col]
 			cell := mem[addr+col]
 			for _, bit := range bits {
 				var colour []byte
-				if cell&bit != 0 {
+				flash := attr&0x80 != 0 && frame >= 32
+				on := cell&bit != 0
+				if on != flash {
 					colour = inkColours[attr&0b01000111]
-
 				} else {
 					colour = paperColours[attr&0b01111000]
 				}

@@ -63,7 +63,8 @@ var keyPorts = map[glfw.Key]struct {
 	glfw.KeyB:          {mask: 0b10000, port: 0x7F},
 }
 
-func ReadKey(port byte) byte {
+// Returns a status of the keys for the specific port
+func GetKeyPortValue(port byte) byte {
 	val, ok := ports[port]
 	if !ok {
 		return 0xFF
@@ -71,7 +72,7 @@ func ReadKey(port byte) byte {
 	return val
 }
 
-// GLFW callback for the window keyboard events
+// OpenGL keyboard callback
 func Callback(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	kp, ok := keyPorts[key]
 	if !ok {

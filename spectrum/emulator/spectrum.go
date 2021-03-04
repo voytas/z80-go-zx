@@ -43,22 +43,26 @@ func Run() {
 	gl.WindowPos2d(100, 100)
 
 	zx, mem := createSpectrum()
-	//zx.INT(0)
 
 	// Spectrum generates 50 interrupts per second and we draw our screen then
 	ticker := time.NewTicker(20 * time.Millisecond)
 
+	frame := 1
 	for !window.ShouldClose() {
 		zx.INT(0)
 		zx.Run(69888)
 		<-ticker.C
 
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		scr := screen.RGBA(mem)
+		scr := screen.RGBA(mem, frame)
 		gl.DrawPixels(256, 192, gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&scr.Pix[0]))
 
 		window.SwapBuffers()
 		glfw.PollEvents()
+		frame += 1
+		if frame > 50 {
+			frame = 1
+		}
 	}
 }
 
