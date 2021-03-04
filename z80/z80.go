@@ -42,9 +42,9 @@ func (z80 *Z80) readWord() uint16 {
 
 func (z80 *Z80) pushPC() {
 	z80.reg.SP -= 1
-	z80.mem.Write(z80.reg.SP, byte(z80.reg.SP>>8))
+	z80.mem.Write(z80.reg.SP, byte(z80.reg.PC>>8))
 	z80.reg.SP -= 1
-	z80.mem.Write(z80.reg.SP, byte(z80.reg.SP))
+	z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
 }
 
 func (z80 *Z80) incR() {
@@ -96,6 +96,7 @@ func (z80 *Z80) Run(maxTStates int) {
 	remTStates := maxTStates
 	for {
 		if maxTStates != 0 {
+			// Execute only specified number of t-states
 			remTStates -= z80.t
 			if remTStates <= 0 {
 				z80.t = remTStates
@@ -104,6 +105,8 @@ func (z80 *Z80) Run(maxTStates int) {
 		}
 
 		opcode := z80.readByte()
+
+		//z80.debug(opcode)
 
 		if z80.reg.prefix == noPrefix {
 			z80.t = tStatesPrimary[opcode]
