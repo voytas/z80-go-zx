@@ -1899,11 +1899,6 @@ func Test_POP_rr(t *testing.T) {
 func Test_IN_A_n(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x23, in_a_n, 0x01}}
 	z80 := NewZ80(mem)
-	z80.IOBus = &TestIOBus{
-		read: func(hi, lo byte) byte {
-			return 0xFF
-		},
-	}
 	z80.Run(7 + 11)
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
@@ -1928,11 +1923,6 @@ func Test_IN_R_C(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ld_bc_nn, 0x23, 0x01, ld_d_n, 0x01, prefix_ed, in_d_c}}
 	z80 := NewZ80(mem)
 	z80.reg.F = fALL
-	z80.IOBus = &TestIOBus{
-		read: func(hi, lo byte) byte {
-			return 0xFF
-		},
-	}
 	z80.Run(10 + 7 + 12)
 
 	assert.Equal(t, byte(0xFF), z80.reg.D)

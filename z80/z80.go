@@ -638,6 +638,8 @@ func (z80 *Z80) Run(maxTStates int) {
 			n := z80.readByte()
 			if z80.IOBus != nil {
 				z80.reg.A = z80.IOBus.Read(z80.reg.A, n)
+			} else {
+				z80.reg.A = 0xFF
 			}
 		case out_n_a:
 			if z80.IOBus != nil {

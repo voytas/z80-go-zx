@@ -83,6 +83,8 @@ func (z80 *Z80) prefixED(opcode byte) {
 		r := z80.reg.r(opcode & 0b00111000 >> 3)
 		if z80.IOBus != nil {
 			*r = z80.IOBus.Read(z80.reg.B, z80.reg.C)
+		} else {
+			*r = 0xFF
 		}
 		z80.reg.F = z80.reg.F&fC | *r&fS | parity[*r]
 		if *r == 0 {
@@ -181,6 +183,8 @@ func (z80 *Z80) prefixED(opcode byte) {
 		hl := z80.reg.HL()
 		if z80.IOBus != nil {
 			z80.mem.Write(hl, z80.IOBus.Read(z80.reg.B, z80.reg.C))
+		} else {
+			z80.mem.Write(hl, 0xFF)
 		}
 		z80.reg.B -= 1
 		if opcode == ini || opcode == inir {
