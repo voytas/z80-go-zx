@@ -15,17 +15,23 @@ import (
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
+type Emulator struct {
+	ioBus ioBus
+	z80   *z80.Z80
+	mem   []byte
+}
+
 func init() {
 	runtime.LockOSThread()
 }
 
-func Run() {
+func (emu *Emulator) Run() {
 	if err := glfw.Init(); err != nil {
 		log.Fatalln("failed to initialize glfw:", err)
 	}
 	defer glfw.Terminate()
 
-	window, err := glfw.CreateWindow(612, 494, "ZX Spectrum 48k", nil, nil)
+	window, err := glfw.CreateWindow(632, 504, "ZX Spectrum 48k", nil, nil)
 	if err != nil {
 		log.Fatalln("failed to create window:", err)
 	}
@@ -40,25 +46,30 @@ func Run() {
 
 	gl.ClearColor(1, 1, 1, 1)
 	gl.PixelZoom(4, 4)
-	gl.WindowPos2d(100, 100)
+	//gl.WindowPos2d(100, 100)
 
-	zx, mem := createSpectrum()
+	emu.createSpectrum()
 
-	// Spectrum generates 50 interrupts per second and we draw our screen then
+	// ZX Spectrum generates 50 interrupts per second
 	ticker := time.NewTicker(20 * time.Millisecond)
 
 	frame := 1
 	for !window.ShouldClose() {
-		zx.INT(0)
-		zx.Run(69888)
+		emu.z80.INT(0)
+		emu.z80.Run(69888)
 		<-ticker.C
 
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		scr := screen.RGBA(mem, frame)
-		gl.DrawPixels(256, 192, gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&scr.Pix[0]))
+		screen.LastBorderColour = emu.ioBus.PortFE
+		scr := screen.RGBA(emu.mem, frame)
+		gl.DrawPixels(
+			screen.BorderLeft+256+screen.BorderRight,
+			screen.BorderTop+192+screen.BorderBottom,
+			gl.RGBA, gl.UNSIGNED_BYTE, unsafe.Pointer(&scr.Pix[0]))
 
 		window.SwapBuffers()
 		glfw.PollEvents()
+
 		frame += 1
 		if frame > 50 {
 			frame = 1
@@ -66,19 +77,18 @@ func Run() {
 	}
 }
 
-func createSpectrum() (*z80.Z80, []byte) {
+func (emu *Emulator) createSpectrum() {
 	rom, err := ioutil.ReadFile("./rom/48k.rom")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	cells := make([]byte, 0xFFFF)
-	copy(cells, rom)
+	emu.mem = make([]byte, 0xFFFF)
+	copy(emu.mem, rom)
 	mem := &memory.BasicMemory{}
-	mem.Configure(cells, 0x4000)
+	mem.Configure(emu.mem, 0x4000)
 
-	zx := z80.NewZ80(mem)
-	zx.IOBus = &iobus{}
-
-	return zx, cells
+	emu.ioBus = ioBus{}
+	emu.z80 = z80.NewZ80(mem)
+	emu.z80.IOBus = &emu.ioBus
 }

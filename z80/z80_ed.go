@@ -92,7 +92,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 		}
 	case out_c_a, out_c_b, out_c_c, out_c_d, out_c_e, out_c_f, out_c_h, out_c_l:
 		if z80.IOBus != nil {
-			z80.IOBus.Write(z80.reg.B, z80.reg.C, *z80.reg.r(opcode & 0b00111000 >> 3))
+			z80.IOBus.Write(z80.reg.B, z80.reg.C, *z80.reg.r(opcode & 0b00111000 >> 3), z80.tCount)
 		}
 	case im0, im1, im2:
 		z80.im = opcode
@@ -203,7 +203,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 		hl := z80.reg.HL()
 		z80.reg.B -= 1
 		if z80.IOBus != nil {
-			z80.IOBus.Write(z80.reg.B, z80.reg.C, z80.mem.Read(hl))
+			z80.IOBus.Write(z80.reg.B, z80.reg.C, z80.mem.Read(hl), z80.tCount)
 		}
 		if opcode == outi || opcode == otir {
 			z80.reg.setHL(hl + 1)

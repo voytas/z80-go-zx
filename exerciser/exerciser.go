@@ -14,7 +14,7 @@ type ioBus struct{}
 func (bus *ioBus) Read(hi, lo byte) byte {
 	return 0xFF
 }
-func (bus *ioBus) Write(hi, lo, data byte) {
+func (bus *ioBus) Write(hi, lo, data byte, t int) {
 	if lo == 5 {
 		ch := string(data)
 		fmt.Print(ch)

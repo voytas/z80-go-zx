@@ -9,11 +9,11 @@ import (
 
 type TestIOBus struct {
 	read  func(hi, lo byte) byte
-	write func(hi, lo, data byte)
+	write func(hi, lo, data byte, t int)
 }
 
-func (bus *TestIOBus) Read(hi, lo byte) byte   { return bus.read(hi, lo) }
-func (bus *TestIOBus) Write(hi, lo, data byte) { bus.write(hi, lo, data) }
+func (bus *TestIOBus) Read(hi, lo byte) byte          { return bus.read(hi, lo) }
+func (bus *TestIOBus) Write(hi, lo, data byte, t int) { bus.write(hi, lo, data, t) }
 
 func Test_NOP(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{nop}}
@@ -1960,7 +1960,7 @@ func Test_OUT_n_A(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ld_a_n, 0x23, out_n_a, 0x01}}
 	z80 := NewZ80(mem)
 	z80.IOBus = &TestIOBus{
-		write: func(hi, lo, data byte) {
+		write: func(hi, lo, data byte, ts int) {
 			assert.Equal(t, byte(0x23), hi)
 			assert.Equal(t, byte(0x01), lo)
 			assert.Equal(t, byte(0x23), data)
@@ -1974,7 +1974,7 @@ func Test_OUT_C_R(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{ld_bc_nn, 0x11, 0x22, ld_h_n, 0x33, prefix_ed, out_c_h}}
 	z80 := NewZ80(mem)
 	z80.IOBus = &TestIOBus{
-		write: func(hi, lo, data byte) {
+		write: func(hi, lo, data byte, ts int) {
 			assert.Equal(t, byte(0x22), hi)
 			assert.Equal(t, byte(0x11), lo)
 			assert.Equal(t, byte(0x33), data)
@@ -2477,7 +2477,7 @@ func Test_OUTI(t *testing.T) {
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
 	z80.IOBus = &TestIOBus{
-		write: func(hi, lo, data byte) {
+		write: func(hi, lo, data byte, ts int) {
 			assert.Equal(t, byte(0), hi)
 			assert.Equal(t, byte(0x34), lo)
 			assert.Equal(t, byte(0x87), data)
@@ -2498,7 +2498,7 @@ func Test_OTIR(t *testing.T) {
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
 	z80.IOBus = &TestIOBus{
-		write: func(hi, lo, data byte) {
+		write: func(hi, lo, data byte, ts int) {
 			assert.Equal(t, byte(0x34), lo)
 			assert.Equal(t, byte(0x87+0x03-hi), data)
 		},
@@ -2656,7 +2656,7 @@ func Test_OUTD(t *testing.T) {
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
 	z80.IOBus = &TestIOBus{
-		write: func(hi, lo, data byte) {
+		write: func(hi, lo, data byte, ts int) {
 			assert.Equal(t, byte(0), hi)
 			assert.Equal(t, byte(0x34), lo)
 			assert.Equal(t, byte(0x87), data)
@@ -2677,7 +2677,7 @@ func Test_OTDR(t *testing.T) {
 	z80 := NewZ80(mem)
 	z80.reg.F = fC
 	z80.IOBus = &TestIOBus{
-		write: func(hi, lo, data byte) {
+		write: func(hi, lo, data byte, ts int) {
 			assert.Equal(t, byte(0x34), lo)
 			assert.Equal(t, byte(0x8A-(0x03-hi)), data)
 		},

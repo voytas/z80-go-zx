@@ -8,7 +8,7 @@ import (
 
 type IOBus interface {
 	Read(hi, lo byte) byte
-	Write(hi, lo, data byte)
+	Write(hi, lo, data byte, t int)
 }
 
 // Represents emulated Z80 Z80
@@ -19,6 +19,7 @@ type Z80 struct {
 	t                int           // t-states
 	halt, iff1, iff2 bool          // states of halt, iff1 and iff2
 	im               byte          // interrupt mode (im0, im1 or in2)
+	tCount           int
 }
 
 func NewZ80(mem memory.Memory) *Z80 {
@@ -91,18 +92,19 @@ func (z80 *Z80) Reset() {
 	z80.reg.A, z80.reg.F = 0xFF, 0xFF
 	z80.reg.I, z80.reg.R = 0x00, 0x00
 	z80.halt = false
+	z80.t = 0
+	z80.tCount = 0
 }
 
 // Executes the instructions until maximum number of t-states is reached.
 // maxTStates equal to 0 specifies unlimited number of t-states to execute.
-func (z80 *Z80) Run(maxTStates int) {
-	remTStates := maxTStates
+func (z80 *Z80) Run(tLimit int) {
+	z80.tCount = 0
 	for {
-		if maxTStates != 0 {
-			// Execute only specified number of t-states
-			remTStates -= z80.t
-			if remTStates <= 0 {
-				z80.t = remTStates
+		if tLimit != 0 {
+			z80.tCount += z80.t
+			if z80.tCount >= tLimit {
+				z80.t = tLimit - z80.tCount
 				break
 			}
 		}
@@ -651,7 +653,7 @@ func (z80 *Z80) Run(maxTStates int) {
 			}
 		case out_n_a:
 			if z80.IOBus != nil {
-				z80.IOBus.Write(z80.reg.A, z80.readByte(), z80.reg.A)
+				z80.IOBus.Write(z80.reg.A, z80.readByte(), z80.reg.A, z80.tCount)
 			}
 		case prefix_cb:
 			z80.incR()

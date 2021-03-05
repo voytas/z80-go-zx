@@ -1,9 +1,8 @@
 package main
 
-import (
-	"github.com/voytas/z80-go-zx/spectrum/emulator"
-)
+import "github.com/voytas/z80-go-zx/spectrum/emulator"
 
 func main() {
-	emulator.Run()
+	emu := &emulator.Emulator{}
+	emu.Run()
 }

@@ -4,6 +4,15 @@ import (
 	"image"
 )
 
+const (
+	BorderTop    = 30
+	BorderBottom = 30
+	BorderRight  = 30
+	BorderLeft   = 30
+)
+
+var LastBorderColour byte
+
 // Address of each line on the screen (0-191), it is not linear
 var lines = []int{
 	0x4000, 0x4100, 0x4200, 0x4300, 0x4400, 0x4500, 0x4600, 0x4700, // Lines 0-7
@@ -56,6 +65,8 @@ var inkColours = [][]byte{
 	0b1000111: {0xFF, 0xFF, 0xFF}, // white
 }
 
+var borderColours = inkColours
+
 // Indexed array of paper colours
 var paperColours = [][]byte{
 	// Normal
@@ -78,11 +89,33 @@ var paperColours = [][]byte{
 	0b1111000: {0xFF, 0xFF, 0xFF}, // white
 }
 
-// Renders the screen as RGBA image
+// Renders the screen as RGBA image (upside down e.g. bottom left to top right)
 func RGBA(mem []byte, frame int) *image.RGBA {
-	img := image.NewRGBA(image.Rect(0, 0, 256, 192))
+	width := BorderLeft + 256 + BorderRight
+	height := BorderTop + 192 + BorderBottom
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	border := borderColours[LastBorderColour&0x07]
+
+	// Main screen
 	for line, addr := range lines {
-		pixel := (191 - line) * 256 * 4
+		pixel := 4 * (width*(191-line+BorderBottom) + BorderLeft)
+
+		// Left border
+		for left := pixel - 4*BorderLeft; left < pixel; left += 4 {
+			img.Pix[left] = border[0]
+			img.Pix[left+1] = border[1]
+			img.Pix[left+2] = border[2]
+			img.Pix[left+3] = 0xFF
+		}
+		// Right border
+		for right := pixel + 4*256; right < pixel+4*256+4*BorderLeft; right += 4 {
+			img.Pix[right] = border[0]
+			img.Pix[right+1] = border[1]
+			img.Pix[right+2] = border[2]
+			img.Pix[right+3] = 0xFF
+		}
+
 		for col := 0; col < 32; col++ {
 			attr := mem[0x5800+32*(line/8)+col]
 			cell := mem[addr+col]
@@ -103,5 +136,22 @@ func RGBA(mem []byte, frame int) *image.RGBA {
 			}
 		}
 	}
+
+	// Top border
+	for pixel := 4 * width * (BorderBottom + 192); pixel < 4*width*(height); pixel += 4 {
+		img.Pix[pixel] = border[0]
+		img.Pix[pixel+1] = border[1]
+		img.Pix[pixel+2] = border[2]
+		img.Pix[pixel+3] = 0xFF
+	}
+
+	// Bottom border
+	for pixel := 0; pixel < 4*width*BorderBottom; pixel += 4 {
+		img.Pix[pixel] = border[0]
+		img.Pix[pixel+1] = border[1]
+		img.Pix[pixel+2] = border[2]
+		img.Pix[pixel+3] = 0xFF
+	}
+
 	return img
 }
