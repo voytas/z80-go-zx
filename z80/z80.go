@@ -56,6 +56,7 @@ func (z80 *Z80) INT(data byte) {
 	if !z80.iff1 {
 		return
 	}
+	z80.halt = false
 	z80.iff1, z80.iff2 = false, false
 	switch z80.im {
 	case im0: // In theory in mode 0 we should execute data as a next instruction
@@ -74,6 +75,7 @@ func (z80 *Z80) INT(data byte) {
 
 // Emulates non-maskable interrupt (NMI)
 func (z80 *Z80) NMI() {
+	z80.halt = false
 	z80.iff2, z80.iff1 = z80.iff1, false
 	z80.pushPC()
 	z80.reg.PC = 0x66
@@ -88,6 +90,7 @@ func (z80 *Z80) Reset() {
 	z80.iff1, z80.iff2 = false, false
 	z80.reg.A, z80.reg.F = 0xFF, 0xFF
 	z80.reg.I, z80.reg.R = 0x00, 0x00
+	z80.halt = false
 }
 
 // Executes the instructions until maximum number of t-states is reached.
@@ -104,9 +107,12 @@ func (z80 *Z80) Run(maxTStates int) {
 			}
 		}
 
-		opcode := z80.readByte()
-
-		//z80.debug(opcode)
+		var opcode byte
+		if z80.halt {
+			opcode = nop
+		} else {
+			opcode = z80.readByte()
+		}
 
 		if z80.reg.prefix == noPrefix {
 			z80.t = tStatesPrimary[opcode]
@@ -126,7 +132,6 @@ func (z80 *Z80) Run(maxTStates int) {
 		case halt:
 			z80.reg.prefix = noPrefix
 			z80.halt = true
-			return
 		case di:
 			z80.iff1, z80.iff2 = false, false
 		case ei:

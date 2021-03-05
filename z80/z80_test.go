@@ -25,6 +25,15 @@ func Test_NOP(t *testing.T) {
 	assert.Equal(t, 0, z80.t)
 }
 
+func Test_HALT(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{xor_a, halt, ld_a_n, 0x87}}
+	z80 := NewZ80(mem)
+	z80.Run(4 + 4 + 7)
+
+	assert.Equal(t, true, z80.halt)
+	assert.Equal(t, byte(0x00), z80.reg.A)
+}
+
 func Test_DI(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{di}}
 	z80 := NewZ80(mem)
@@ -1680,9 +1689,9 @@ func Test_JR_NC_o(t *testing.T) {
 	assert.Equal(t, byte(0xFF), z80.reg.B)
 	assert.Equal(t, 0, z80.t)
 
-	mem = &memory.BasicMemory{Cells: []byte{ld_a_n, 0xFF, add_a_n, 1, jr_nc_o, 0xFC}}
+	mem = &memory.BasicMemory{Cells: []byte{ld_a_n, 0xFE, add_a_n, 1, jr_nc_o, 0xFC}}
 	z80 = NewZ80(mem)
-	z80.Run(7 + 7 + 7)
+	z80.Run(7 + 7 + 12 + 7 + 7)
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, 0, z80.t)
@@ -2718,9 +2727,9 @@ func Test_shouldJump(t *testing.T) {
 
 func Test_getHL(t *testing.T) {
 	mem := &memory.BasicMemory{Cells: []byte{
-		ld_hl_nn, 0x34, 0x12, useIX, ld_hl_nn, 0x45, 0x23, halt, 0x00, 0x02, 0xFE}}
+		ld_hl_nn, 0x34, 0x12, useIX, ld_hl_nn, 0x45, 0x23, nop, 0x00, 0x02, 0xFE}}
 	z80 := NewZ80(mem)
-	z80.Run(0)
+	z80.Run(10 + 14 + 4)
 
 	hl := z80.getHL()
 	assert.Equal(t, uint16(0x1234), hl)
@@ -2737,4 +2746,56 @@ func Test_getHL(t *testing.T) {
 
 	hl = z80.getHL()
 	assert.Equal(t, uint16(0x2343), hl)
+}
+
+func Test_NMI(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{0x00, 0x00, 0x00, 0x00}}
+	z80 := NewZ80(mem)
+	z80.reg.PC = 0x1234
+	z80.reg.SP = 0x04
+	z80.halt, z80.iff1 = true, true
+
+	z80.NMI()
+	assert.Equal(t, uint16(0x02), z80.reg.SP)
+	assert.Equal(t, uint16(0x66), z80.reg.PC)
+	assert.Equal(t, byte(0x12), mem.Read(0x03))
+	assert.Equal(t, byte(0x34), mem.Read(0x02))
+	assert.Equal(t, false, z80.halt)
+	assert.Equal(t, false, z80.iff1)
+	assert.Equal(t, true, z80.iff2)
+}
+
+func Test_INT(t *testing.T) {
+	mem := &memory.BasicMemory{Cells: []byte{0x00, 0x00, 0x00, 0x00}}
+	z80 := NewZ80(mem)
+	z80.reg.PC = 0x1234
+	z80.reg.SP = 0x04
+	z80.iff1 = false
+
+	z80.INT(0)
+	assert.Equal(t, uint16(0x04), z80.reg.SP)
+	assert.Equal(t, uint16(0x1234), z80.reg.PC)
+
+	z80.halt, z80.iff1, z80.iff2 = true, true, true
+	z80.im = im1
+	z80.INT(0)
+	assert.Equal(t, uint16(0x02), z80.reg.SP)
+	assert.Equal(t, uint16(0x38), z80.reg.PC)
+	assert.Equal(t, byte(0x12), mem.Read(0x03))
+	assert.Equal(t, byte(0x34), mem.Read(0x02))
+	assert.Equal(t, false, z80.halt)
+	assert.Equal(t, false, z80.iff1)
+	assert.Equal(t, false, z80.iff2)
+
+	z80.halt, z80.iff1, z80.iff2 = true, true, true
+	z80.im = im2
+	z80.reg.I = 0x23
+	z80.INT(0x45)
+	assert.Equal(t, uint16(0x00), z80.reg.SP)
+	assert.Equal(t, uint16(0xFFFF), z80.reg.PC)
+	assert.Equal(t, byte(0x00), mem.Read(0x01))
+	assert.Equal(t, byte(0x38), mem.Read(0x00))
+	assert.Equal(t, false, z80.halt)
+	assert.Equal(t, false, z80.iff1)
+	assert.Equal(t, false, z80.iff2)
 }
