@@ -17,7 +17,7 @@ type Z80 struct {
 	t                int        // t-states
 	halt, iff1, iff2 bool       // states of halt, iff1 and iff2
 	im               byte       // interrupt mode (im0, im1 or in2)
-	State            *State
+	TCount           int        // Count of executed t-states
 }
 
 func NewZ80(mem Memory) *Z80 {
@@ -58,16 +58,16 @@ func (z80 *Z80) INT(data byte) {
 	z80.halt = false
 	z80.iff1, z80.iff2 = false, false
 	switch z80.im {
-	case im0: // In theory in mode 0 we should execute data as a next instruction
-	case im1:
+	case 0: // In theory in mode 0 we should execute data as a next instruction
+	case 1:
 		z80.pushPC()
 		z80.reg.PC = 0x38 // RST 38h
-		z80.State.TCount += 13
-	case im2:
+		z80.TCount += 13
+	case 2:
 		z80.pushPC()
 		addr := uint16(z80.reg.I)<<8 + uint16(data)
 		z80.reg.PC = uint16(z80.mem.Read(addr+1))<<8 | uint16(z80.mem.Read(addr))
-		z80.State.TCount += 19
+		z80.TCount += 19
 	}
 	z80.incR()
 }
@@ -78,7 +78,7 @@ func (z80 *Z80) NMI() {
 	z80.iff2, z80.iff1 = z80.iff1, false
 	z80.pushPC()
 	z80.reg.PC = 0x66
-	z80.State.TCount += 11
+	z80.TCount += 11
 	z80.incR()
 }
 
@@ -90,8 +90,8 @@ func (z80 *Z80) Reset() {
 	z80.reg.A, z80.reg.F = 0xFF, 0xFF
 	z80.reg.I, z80.reg.R = 0x00, 0x00
 	z80.halt = false
-	z80.t = 0
-	z80.State = &State{}
+	z80.t = 0 // TODO: Refactor - remove, use TCount
+	z80.TCount = 0
 }
 
 // Executes the instructions until maximum number of t-states is reached.
@@ -100,9 +100,9 @@ func (z80 *Z80) Run(tLimit int) {
 	z80.t = 0
 	for {
 		if tLimit != 0 {
-			z80.State.TCount += z80.t
-			if z80.State.TCount >= tLimit {
-				z80.State.TCount -= tLimit
+			z80.TCount += z80.t
+			if z80.TCount >= tLimit {
+				z80.TCount -= tLimit
 				break
 			}
 		}

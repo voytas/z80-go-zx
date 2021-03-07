@@ -21,7 +21,7 @@ func Test_NOP(t *testing.T) {
 	z80.Run(4)
 
 	assert.Equal(t, fALL, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_HALT(t *testing.T) {
@@ -40,7 +40,7 @@ func Test_DI(t *testing.T) {
 
 	assert.Equal(t, false, z80.iff1)
 	assert.Equal(t, false, z80.iff2)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_EI(t *testing.T) {
@@ -50,16 +50,31 @@ func Test_EI(t *testing.T) {
 
 	assert.Equal(t, true, z80.iff1)
 	assert.Equal(t, true, z80.iff2)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_IM_x(t *testing.T) {
-	mem := &BasicMemory{Cells: []byte{prefix_ed, im1}}
+	mem := &BasicMemory{Cells: []byte{prefix_ed, im0}}
 	z80 := NewZ80(mem)
+	z80.im = 2
 	z80.Run(8)
 
-	assert.Equal(t, im1, z80.im)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, byte(0), z80.im)
+	assert.Equal(t, 0, z80.TCount)
+
+	mem = &BasicMemory{Cells: []byte{prefix_ed, im1}}
+	z80 = NewZ80(mem)
+	z80.Run(8)
+
+	assert.Equal(t, byte(1), z80.im)
+	assert.Equal(t, 0, z80.TCount)
+
+	mem = &BasicMemory{Cells: []byte{prefix_ed, im2}}
+	z80 = NewZ80(mem)
+	z80.Run(8)
+
+	assert.Equal(t, byte(2), z80.im)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_EX_AF_AF(t *testing.T) {
@@ -75,7 +90,7 @@ func Test_EX_AF_AF(t *testing.T) {
 	assert.Equal(t, a, z80.reg.A_)
 	assert.Equal(t, f_, z80.reg.F)
 	assert.Equal(t, f, z80.reg.F_)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.reg.PC = 0
 	z80.Run(4)
@@ -83,7 +98,7 @@ func Test_EX_AF_AF(t *testing.T) {
 	assert.Equal(t, a_, z80.reg.A_)
 	assert.Equal(t, f, z80.reg.F)
 	assert.Equal(t, f_, z80.reg.F_)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_EXX(t *testing.T) {
@@ -93,7 +108,7 @@ func Test_EXX(t *testing.T) {
 	z80.reg.D, z80.reg.E, z80.reg.D_, z80.reg.E_ = 0x05, 0x06, 0x07, 0x08
 	z80.reg.H, z80.reg.L, z80.reg.H_, z80.reg.L_ = 0x09, 0x0A, 0x0B, 0x0C
 	z80.Run(4)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	assert.Equal(t, byte(0x01), z80.reg.B_)
 	assert.Equal(t, byte(0x02), z80.reg.C_)
@@ -119,7 +134,7 @@ func Test_EX_DE_HL(t *testing.T) {
 	assert.Equal(t, byte(0x02), z80.reg.L)
 	assert.Equal(t, byte(0x03), z80.reg.D)
 	assert.Equal(t, byte(0x04), z80.reg.E)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_EX_SP_HL(t *testing.T) {
@@ -131,7 +146,7 @@ func Test_EX_SP_HL(t *testing.T) {
 	assert.Equal(t, byte(0x11), z80.reg.L)
 	assert.Equal(t, byte(0x12), z80.mem.Read(8))
 	assert.Equal(t, byte(0x70), z80.mem.Read(9))
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem := &BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x12, 0x70, ld_sp_nn, 0x0A, 0x00, prefix, ex_sp_hl, nop, 0x11, 0x22}}
@@ -148,7 +163,7 @@ func Test_EX_SP_HL(t *testing.T) {
 		}
 		assert.Equal(t, byte(0x12), z80.mem.Read(10))
 		assert.Equal(t, byte(0x70), z80.mem.Read(11))
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -160,7 +175,7 @@ func Test_ADD_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, fZ, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0xFF, ld_h_n, 0x00, ld_l_n, 0x08, add_a_hl, nop, 0x01}}
 	z80 = NewZ80(mem)
@@ -169,7 +184,7 @@ func Test_ADD_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, fZ|fH|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x70, ld_l_n, 0x70, add_a_l}}
 	z80 = NewZ80(mem)
@@ -178,7 +193,7 @@ func Test_ADD_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0xE0), z80.reg.A)
 	assert.Equal(t, fS|fY|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0xF0, add_a_n, 0xB0}}
 	z80 = NewZ80(mem)
@@ -187,7 +202,7 @@ func Test_ADD_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0xA0), z80.reg.A)
 	assert.Equal(t, fS|fY|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x8f, add_a_n, 0x81}}
 	z80 = NewZ80(mem)
@@ -196,7 +211,7 @@ func Test_ADD_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x10), z80.reg.A)
 	assert.Equal(t, fH|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x22, prefix, ld_hl_nn, 0x13, 0x00, prefix, add_a_l}}
@@ -206,7 +221,7 @@ func Test_ADD_A_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x35), z80.reg.A)
 		assert.Equal(t, fY, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x22, prefix, ld_hl_nn, 0x09, 0x00, prefix, add_a_hl, 0x01, nop, 0x13}}
 		z80 = NewZ80(mem)
@@ -215,7 +230,7 @@ func Test_ADD_A_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x35), z80.reg.A)
 		assert.Equal(t, fY, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -227,7 +242,7 @@ func Test_ADC_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x41), z80.reg.A)
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0, ld_b_n, 0xFF, adc_a_b}}
 	z80 = NewZ80(mem)
@@ -236,7 +251,7 @@ func Test_ADC_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, fZ|fH|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x0F, ld_b_n, 0x00, adc_a_b}}
 	z80 = NewZ80(mem)
@@ -245,7 +260,7 @@ func Test_ADC_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x10), z80.reg.A)
 	assert.Equal(t, fH, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x0F, ld_l_n, 0x06, adc_a_hl, nop, 0x70}}
 	z80 = NewZ80(mem)
@@ -254,7 +269,7 @@ func Test_ADC_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x80), z80.reg.A)
 	assert.Equal(t, fS|fH|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x0F, ld_b_n, 0x69, adc_a_b}}
 	z80 = NewZ80(mem)
@@ -263,7 +278,7 @@ func Test_ADC_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x79), z80.reg.A)
 	assert.Equal(t, fY|fH|fX, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x0E, ld_b_n, 0x01, adc_a_b}}
 	z80 = NewZ80(mem)
@@ -272,7 +287,7 @@ func Test_ADC_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x10), z80.reg.A)
 	assert.Equal(t, fH, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x0E, ld_b_n, 0x01, adc_a_b}}
 	z80 = NewZ80(mem)
@@ -281,7 +296,7 @@ func Test_ADC_A_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x0F), z80.reg.A)
 	assert.Equal(t, fX, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x22, prefix, ld_hl_nn, 0x13, 0x00, prefix, adc_a_l}}
@@ -291,7 +306,7 @@ func Test_ADC_A_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x36), z80.reg.A)
 		assert.Equal(t, fY, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x22, prefix, ld_hl_nn, 0x09, 0x00, prefix, adc_a_hl, 0x01, nop, 0x13}}
 		z80 = NewZ80(mem)
@@ -300,7 +315,7 @@ func Test_ADC_A_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x36), z80.reg.A)
 		assert.Equal(t, fY, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -313,7 +328,7 @@ func Test_ADD_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0), z80.reg.H)
 	assert.Equal(t, byte(0), z80.reg.L)
 	assert.Equal(t, fH|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0x41, 0x42, ld_de_nn, 0x11, 0x11, add_hl_de}}
 	z80 = NewZ80(mem)
@@ -323,7 +338,7 @@ func Test_ADD_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0x53), z80.reg.H)
 	assert.Equal(t, byte(0x52), z80.reg.L)
 	assert.Equal(t, fS|fZ|fY|fX|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0x41, 0x42, add_hl_hl}}
 	z80 = NewZ80(mem)
@@ -333,7 +348,7 @@ func Test_ADD_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0x84), z80.reg.H)
 	assert.Equal(t, byte(0x82), z80.reg.L)
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0xFE, 0xFF, ld_sp_nn, 0x02, 0, add_hl_sp}}
 	z80 = NewZ80(mem)
@@ -343,7 +358,7 @@ func Test_ADD_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0), z80.reg.H)
 	assert.Equal(t, byte(0), z80.reg.L)
 	assert.Equal(t, fH|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0xFE, 0xFF, ld_sp_nn, 0x03, 0, prefix, add_hl_sp}}
@@ -354,7 +369,7 @@ func Test_ADD_HL_RR(t *testing.T) {
 		assert.Equal(t, byte(0x0), *z80.reg.prefixed[prefix][rH])
 		assert.Equal(t, byte(0x01), *z80.reg.prefixed[prefix][rL])
 		assert.Equal(t, fH|fC, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -366,7 +381,7 @@ func Test_ADC_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0), z80.reg.H)
 	assert.Equal(t, byte(0), z80.reg.L)
 	assert.Equal(t, fZ|fH|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{scf, ld_hl_nn, 0xC0, 0x63, ld_de_nn, 0xD0, 0x8A, prefix_ed, adc_hl_de}}
 	z80 = NewZ80(mem)
@@ -375,7 +390,7 @@ func Test_ADC_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0xEE), z80.reg.H)
 	assert.Equal(t, byte(0x91), z80.reg.L)
 	assert.Equal(t, fS|fY|fX, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{scf, ld_hl_nn, 0x18, 0x7F, ld_de_nn, 0x48, 0x77, prefix_ed, adc_hl_de}}
 	z80 = NewZ80(mem)
@@ -384,7 +399,7 @@ func Test_ADC_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0xF6), z80.reg.H)
 	assert.Equal(t, byte(0x61), z80.reg.L)
 	assert.Equal(t, fS|fY|fH|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_SUB_x(t *testing.T) {
@@ -395,7 +410,7 @@ func Test_SUB_x(t *testing.T) {
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
 	assert.Equal(t, fS|fY|fH|fX|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x20, sub_a}}
 	z80 = NewZ80(mem)
@@ -403,7 +418,7 @@ func Test_SUB_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fZ|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x90, ld_h_n, 0x20, sub_h}}
 	z80 = NewZ80(mem)
@@ -412,7 +427,7 @@ func Test_SUB_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x70), z80.reg.A)
 	assert.Equal(t, fY|fP|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x7F, ld_l_n, 0x06, sub_hl, nop, 0x80}}
 	z80 = NewZ80(mem)
@@ -420,7 +435,7 @@ func Test_SUB_x(t *testing.T) {
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
 	assert.Equal(t, fS|fY|fX|fP|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x12, prefix, ld_h_n, 0x02, prefix, sub_h}}
@@ -429,7 +444,7 @@ func Test_SUB_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x10), z80.reg.A)
 		assert.Equal(t, fN, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x12, prefix, sub_hl, 0x06, nop, 0x01}}
 		z80 = NewZ80(mem)
@@ -437,7 +452,7 @@ func Test_SUB_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x11), z80.reg.A)
 		assert.Equal(t, fN, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -449,7 +464,7 @@ func Test_CP_x(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, fS|fH|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x20, cp_a}}
 	z80 = NewZ80(mem)
@@ -457,7 +472,7 @@ func Test_CP_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x20), z80.reg.A)
 	assert.Equal(t, fZ|fY|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x90, cp_n, 0x20}}
 	z80 = NewZ80(mem)
@@ -466,7 +481,7 @@ func Test_CP_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x90), z80.reg.A)
 	assert.Equal(t, fY|fP|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x7F, ld_l_n, 0x06, cp_hl, nop, 0x80}}
 	z80 = NewZ80(mem)
@@ -474,7 +489,7 @@ func Test_CP_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x7F), z80.reg.A)
 	assert.Equal(t, fS|fP|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x7F, prefix, ld_h_n, 0x80, prefix, cp_h}}
@@ -483,7 +498,7 @@ func Test_CP_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x7F), z80.reg.A)
 		assert.Equal(t, fS|fP|fN|fC, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x7F, prefix, cp_hl, 0x06, nop, 0x80}}
 		z80 = NewZ80(mem)
@@ -491,7 +506,7 @@ func Test_CP_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x7F), z80.reg.A)
 		assert.Equal(t, fS|fP|fN|fC, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -503,7 +518,7 @@ func Test_SBC_x(t *testing.T) {
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
 	assert.Equal(t, fS|fY|fH|fX|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x7F, ld_l_n, 0x80, sbc_a_l}}
 	z80 = NewZ80(mem)
@@ -512,7 +527,7 @@ func Test_SBC_x(t *testing.T) {
 
 	assert.Equal(t, byte(0xFE), z80.reg.A)
 	assert.Equal(t, fS|fY|fX|fP|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x02, sbc_a_n, 0x01}}
 	z80 = NewZ80(mem)
@@ -521,7 +536,7 @@ func Test_SBC_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fZ|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x81, ld_l_n, 0x06, sbc_a_hl, nop, 0x01}}
 	z80 = NewZ80(mem)
@@ -530,7 +545,7 @@ func Test_SBC_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x7F), z80.reg.A)
 	assert.Equal(t, fY|fH|fX|fP|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x12, prefix, ld_h_n, 0x02, prefix, sbc_a_h}}
@@ -540,7 +555,7 @@ func Test_SBC_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x0F), z80.reg.A)
 		assert.Equal(t, fH|fX|fN, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x12, prefix, sbc_a_hl, 0x06, nop, 0x01}}
 		z80 = NewZ80(mem)
@@ -549,7 +564,7 @@ func Test_SBC_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x10), z80.reg.A)
 		assert.Equal(t, fN, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -561,7 +576,7 @@ func Test_SBC_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0), z80.reg.H)
 	assert.Equal(t, byte(0), z80.reg.L)
 	assert.Equal(t, fZ|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{scf, ld_hl_nn, 0x01, 0x00, ld_bc_nn, 0xFD, 0x7F, prefix_ed, sbc_hl_bc}}
 	z80 = NewZ80(mem)
@@ -570,7 +585,7 @@ func Test_SBC_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0x80), z80.reg.H)
 	assert.Equal(t, byte(0x03), z80.reg.L)
 	assert.Equal(t, fS|fH|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{scf, ld_hl_nn, 0x01, 0x70, ld_bc_nn, 0xFD, 0x8F, prefix_ed, sbc_hl_bc}}
 	z80 = NewZ80(mem)
@@ -579,7 +594,7 @@ func Test_SBC_HL_RR(t *testing.T) {
 	assert.Equal(t, byte(0xE0), z80.reg.H)
 	assert.Equal(t, byte(0x03), z80.reg.L)
 	assert.Equal(t, fS|fY|fH|fP|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_NEG(t *testing.T) {
@@ -589,7 +604,7 @@ func Test_NEG(t *testing.T) {
 
 	assert.Equal(t, byte(0xAB), z80.reg.A)
 	assert.Equal(t, fS|fY|fH|fX|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x00, prefix_ed, neg}}
 	z80 = NewZ80(mem)
@@ -597,7 +612,7 @@ func Test_NEG(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fZ|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x80, prefix_ed, neg}}
 	z80 = NewZ80(mem)
@@ -605,7 +620,7 @@ func Test_NEG(t *testing.T) {
 
 	assert.Equal(t, byte(0x80), z80.reg.A)
 	assert.Equal(t, fS|fP|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0xAA, prefix_ed, neg}}
 	z80 = NewZ80(mem)
@@ -613,7 +628,7 @@ func Test_NEG(t *testing.T) {
 
 	assert.Equal(t, byte(0x56), z80.reg.A)
 	assert.Equal(t, fH|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_AND_x(t *testing.T) {
@@ -624,7 +639,7 @@ func Test_AND_x(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, fZ|fH|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x8F, and_n, 0xF3}}
 	z80 = NewZ80(mem)
@@ -632,7 +647,7 @@ func Test_AND_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x83), z80.reg.A)
 	assert.Equal(t, fS|fH, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0xFF, ld_l_n, 0x06, and_hl, nop, 0x81}}
 	z80 = NewZ80(mem)
@@ -640,7 +655,7 @@ func Test_AND_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x81), z80.reg.A)
 	assert.Equal(t, fS|fH|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x01, prefix, ld_l_n, 0x03, prefix, and_l}}
@@ -649,7 +664,7 @@ func Test_AND_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x01), z80.reg.A)
 		assert.Equal(t, fH, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x88, prefix, and_hl, 0x06, nop, 0x08}}
 		z80 = NewZ80(mem)
@@ -657,7 +672,7 @@ func Test_AND_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x08), z80.reg.A)
 		assert.Equal(t, fH|fX, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -669,7 +684,7 @@ func Test_OR_x(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, fZ|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x8A, ld_l_n, 0x06, or_hl, nop, 0x85}}
 	z80 = NewZ80(mem)
@@ -678,7 +693,7 @@ func Test_OR_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x8F), z80.reg.A)
 	assert.Equal(t, fS|fX, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x11, or_n, 0x20}}
 	z80 = NewZ80(mem)
@@ -687,7 +702,7 @@ func Test_OR_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x31), z80.reg.A)
 	assert.Equal(t, fY, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x01, prefix, ld_l_n, 0x12, prefix, or_l}}
@@ -696,7 +711,7 @@ func Test_OR_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x13), z80.reg.A)
 		assert.Equal(t, fNONE, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x80, prefix, or_hl, 0x06, nop, 0x08}}
 		z80 = NewZ80(mem)
@@ -704,7 +719,7 @@ func Test_OR_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x88), z80.reg.A)
 		assert.Equal(t, fS|fX|fP, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -716,7 +731,7 @@ func Test_XOR_x(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, fZ|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x1F, ld_l_n, 0x06, xor_hl, nop, 0x8F}}
 	z80 = NewZ80(mem)
@@ -724,7 +739,7 @@ func Test_XOR_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x90), z80.reg.A)
 	assert.Equal(t, fS|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x1F, xor_n, 0x0F}}
 	z80 = NewZ80(mem)
@@ -732,7 +747,7 @@ func Test_XOR_x(t *testing.T) {
 
 	assert.Equal(t, byte(0x10), z80.reg.A)
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x01, prefix, ld_l_n, 0x03, prefix, xor_l}}
@@ -741,7 +756,7 @@ func Test_XOR_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x02), z80.reg.A)
 		assert.Equal(t, fNONE, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 
 		mem = &BasicMemory{Cells: []byte{ld_a_n, 0x88, prefix, xor_hl, 0x06, nop, 0x08}}
 		z80 = NewZ80(mem)
@@ -749,7 +764,7 @@ func Test_XOR_x(t *testing.T) {
 
 		assert.Equal(t, byte(0x80), z80.reg.A)
 		assert.Equal(t, fS, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -761,7 +776,7 @@ func Test_INC_R(t *testing.T) {
 
 	assert.Equal(t, fC, z80.reg.F)
 	assert.Equal(t, byte(0x01), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	z80.reg.F = fALL & ^fZ
@@ -770,7 +785,7 @@ func Test_INC_R(t *testing.T) {
 
 	assert.Equal(t, fZ|fH|fC, z80.reg.F)
 	assert.Equal(t, byte(0x00), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	z80.reg.F = fN
@@ -779,7 +794,7 @@ func Test_INC_R(t *testing.T) {
 
 	assert.Equal(t, fS|fH|fP, z80.reg.F)
 	assert.Equal(t, byte(0x80), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[1] = 0x92
@@ -788,7 +803,7 @@ func Test_INC_R(t *testing.T) {
 
 	assert.Equal(t, fS, z80.reg.F)
 	assert.Equal(t, byte(0x93), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[1] = 0x10
@@ -797,7 +812,7 @@ func Test_INC_R(t *testing.T) {
 
 	assert.Equal(t, fNONE, z80.reg.F)
 	assert.Equal(t, byte(0x11), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{
@@ -811,7 +826,7 @@ func Test_INC_R(t *testing.T) {
 		assert.Equal(t, fY, z80.reg.F)
 		assert.Equal(t, byte(0x11), *z80.reg.prefixed[prefix][rH])
 		assert.Equal(t, byte(0x21), *z80.reg.prefixed[prefix][rL])
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -831,7 +846,7 @@ func Test_INC_RR(t *testing.T) {
 	assert.Equal(t, uint16(0x1538), z80.reg.SP)
 	assert.Equal(t, uint16(0x1639), uint16(z80.reg.IXH)<<8|uint16(z80.reg.IXL))
 	assert.Equal(t, uint16(0x173A), uint16(z80.reg.IYH)<<8|uint16(z80.reg.IYL))
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_INC_mHL(t *testing.T) {
@@ -842,7 +857,7 @@ func Test_INC_mHL(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), mem.Cells[5])
 	assert.Equal(t, fZ|fH|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[5] = 0x7F
@@ -851,7 +866,7 @@ func Test_INC_mHL(t *testing.T) {
 
 	assert.Equal(t, byte(0x80), mem.Cells[5])
 	assert.Equal(t, fS|fH|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[5] = 0x20
@@ -860,7 +875,7 @@ func Test_INC_mHL(t *testing.T) {
 
 	assert.Equal(t, byte(0x21), mem.Cells[5])
 	assert.Equal(t, fY, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem := &BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x05, 0x00, prefix, inc_mhl, 0x03, nop, 0x3F}}
@@ -870,7 +885,7 @@ func Test_INC_mHL(t *testing.T) {
 
 		assert.Equal(t, byte(0x40), mem.Cells[8])
 		assert.Equal(t, fH, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -882,7 +897,7 @@ func Test_DEC_R(t *testing.T) {
 
 	assert.Equal(t, fZ|fN, z80.reg.F)
 	assert.Equal(t, byte(0x00), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	z80.reg.F = fALL & ^(fZ | fH | fN)
@@ -891,7 +906,7 @@ func Test_DEC_R(t *testing.T) {
 
 	assert.Equal(t, fS|fH|fY|fX|fN|fC, z80.reg.F)
 	assert.Equal(t, byte(0xFF), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	z80.reg.F = fZ | fS
@@ -900,7 +915,7 @@ func Test_DEC_R(t *testing.T) {
 
 	assert.Equal(t, fY|fH|fX|fP|fN, z80.reg.F)
 	assert.Equal(t, byte(0x7F), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	z80.reg.F = fALL
@@ -909,7 +924,7 @@ func Test_DEC_R(t *testing.T) {
 
 	assert.Equal(t, fS|fY|fX|fN|fC, z80.reg.F)
 	assert.Equal(t, byte(0xAA), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{
@@ -921,7 +936,7 @@ func Test_DEC_R(t *testing.T) {
 
 		assert.Equal(t, byte(0x0F), *z80.reg.prefixed[prefix][rH])
 		assert.Equal(t, byte(0x1F), *z80.reg.prefixed[prefix][rL])
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -941,7 +956,7 @@ func Test_DEC_RR(t *testing.T) {
 	assert.Equal(t, uint16(0x1536), z80.reg.SP)
 	assert.Equal(t, uint16(0x1637), uint16(z80.reg.IXH)<<8|uint16(z80.reg.IXL))
 	assert.Equal(t, uint16(0x1738), uint16(z80.reg.IYH)<<8|uint16(z80.reg.IYL))
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_DEC_mHL(t *testing.T) {
@@ -952,7 +967,7 @@ func Test_DEC_mHL(t *testing.T) {
 
 	assert.Equal(t, byte(0xFF), mem.Cells[5])
 	assert.Equal(t, fS|fY|fH|fX|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[5] = 0x01
@@ -961,7 +976,7 @@ func Test_DEC_mHL(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), mem.Cells[5])
 	assert.Equal(t, fZ|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[5] = 0x80
@@ -970,7 +985,7 @@ func Test_DEC_mHL(t *testing.T) {
 
 	assert.Equal(t, byte(0x7F), mem.Cells[5])
 	assert.Equal(t, fP|fY|fH|fX|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem := &BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x05, 0x00, prefix, dec_mhl, 0x03, nop, 0x3F}}
@@ -980,7 +995,7 @@ func Test_DEC_mHL(t *testing.T) {
 
 		assert.Equal(t, byte(0x3E), mem.Cells[8])
 		assert.Equal(t, fY|fX|fN, z80.reg.F)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -990,7 +1005,7 @@ func Test_LD_RR_nn(t *testing.T) {
 	z80.Run(10)
 
 	assert.Equal(t, uint16(0x1234), z80.reg.BC())
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
 		mem = &BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x34, 0x12}}
@@ -999,7 +1014,7 @@ func Test_LD_RR_nn(t *testing.T) {
 
 		assert.Equal(t, byte(0x12), *z80.reg.prefixed[prefix][rH])
 		assert.Equal(t, byte(0x34), *z80.reg.prefixed[prefix][rL])
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1011,7 +1026,7 @@ func Test_LD_mm_HL(t *testing.T) {
 
 		assert.Equal(t, *z80.reg.prefixed[prefix][rH], mem.Cells[10])
 		assert.Equal(t, *z80.reg.prefixed[prefix][rL], mem.Cells[9])
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1022,7 +1037,7 @@ func Test_LD_mm_RR(t *testing.T) {
 
 	assert.Equal(t, byte(0x3A), mem.Cells[8])
 	assert.Equal(t, byte(0x48), mem.Cells[9])
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_HL_mm(t *testing.T) {
@@ -1033,7 +1048,7 @@ func Test_LD_HL_mm(t *testing.T) {
 
 		assert.Equal(t, byte(0x12), *z80.reg.prefixed[prefix][rH])
 		assert.Equal(t, byte(0x34), *z80.reg.prefixed[prefix][rL])
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1044,7 +1059,7 @@ func Test_LD_RR_mm(t *testing.T) {
 
 	assert.Equal(t, byte(0x12), z80.reg.D)
 	assert.Equal(t, byte(0x34), z80.reg.E)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_mHL_n(t *testing.T) {
@@ -1053,7 +1068,7 @@ func Test_LD_mHL_n(t *testing.T) {
 	z80.Run(10 + 10)
 
 	assert.Equal(t, byte(0xAB), z80.mem.Read(6))
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem := &BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x06, 0x00, prefix, ld_mhl_n, 0x03, 0xAB, nop, 0x00}}
@@ -1061,7 +1076,7 @@ func Test_LD_mHL_n(t *testing.T) {
 		z80.Run(14 + 19)
 
 		assert.Equal(t, byte(0xAB), z80.mem.Read(9))
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1072,7 +1087,7 @@ func Test_LD_SP_HL(t *testing.T) {
 		z80.Run(14 + 10)
 
 		assert.Equal(t, uint16(0x3020), z80.reg.SP)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1083,7 +1098,7 @@ func Test_LD_mIXY_n(t *testing.T) {
 		z80.Run(14 + 19)
 
 		assert.Equal(t, byte(0xAB), z80.mem.Read(9))
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1093,7 +1108,7 @@ func Test_LD_mm_A(t *testing.T) {
 	z80.Run(7 + 13)
 
 	assert.Equal(t, z80.reg.A, mem.Cells[6])
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_A_mm(t *testing.T) {
@@ -1102,7 +1117,7 @@ func Test_LD_A_mm(t *testing.T) {
 	z80.Run(13)
 
 	assert.Equal(t, byte(0xDE), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_BC_A(t *testing.T) {
@@ -1112,7 +1127,7 @@ func Test_LD_BC_A(t *testing.T) {
 	z80.Run(7 + 10 + 7)
 
 	assert.Equal(t, n, z80.mem.Read(7))
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_DE_A(t *testing.T) {
@@ -1122,7 +1137,7 @@ func Test_LD_DE_A(t *testing.T) {
 	z80.Run(7 + 10 + 7)
 
 	assert.Equal(t, n, z80.mem.Read(7))
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_A_BC(t *testing.T) {
@@ -1132,7 +1147,7 @@ func Test_LD_A_BC(t *testing.T) {
 	z80.Run(10 + 7)
 
 	assert.Equal(t, n, z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_A_DE(t *testing.T) {
@@ -1141,7 +1156,7 @@ func Test_LD_A_DE(t *testing.T) {
 	z80.Run(10 + 7)
 
 	assert.Equal(t, byte(0x76), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_A_R(t *testing.T) {
@@ -1152,7 +1167,7 @@ func Test_LD_A_R(t *testing.T) {
 
 	assert.Equal(t, byte(0x02), z80.reg.A)
 	assert.Equal(t, fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x7E, prefix_ed, ld_r_a, prefix_ed, ld_a_r}}
 	z80 = NewZ80(mem)
@@ -1162,7 +1177,7 @@ func Test_LD_A_R(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fZ|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_A_I(t *testing.T) {
@@ -1174,7 +1189,7 @@ func Test_LD_A_I(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, fZ|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_R_A(t *testing.T) {
@@ -1183,7 +1198,7 @@ func Test_LD_R_A(t *testing.T) {
 	z80.Run(7 + 9)
 
 	assert.Equal(t, byte(0x85), z80.reg.R)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_I_A(t *testing.T) {
@@ -1192,7 +1207,7 @@ func Test_LD_I_A(t *testing.T) {
 	z80.Run(7 + 9)
 
 	assert.Equal(t, byte(0x85), z80.reg.I)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_R_n(t *testing.T) {
@@ -1215,7 +1230,7 @@ func Test_LD_R_n(t *testing.T) {
 	assert.Equal(t, ixl, z80.reg.IXL)
 	assert.Equal(t, iyh, z80.reg.IYH)
 	assert.Equal(t, iyl, z80.reg.IYL)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_R_R(t *testing.T) {
@@ -1234,7 +1249,7 @@ func Test_LD_R_R(t *testing.T) {
 	assert.Equal(t, byte(0x56), z80.reg.L)
 	assert.Equal(t, byte(0x56), z80.reg.IXH)
 	assert.Equal(t, byte(0x56), z80.reg.IXL)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_R_HL(t *testing.T) {
@@ -1244,7 +1259,7 @@ func Test_LD_R_HL(t *testing.T) {
 
 	assert.Equal(t, byte(0xA7), z80.reg.A)
 	assert.Equal(t, byte(0xA7), z80.reg.L)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem := &BasicMemory{Cells: []byte{prefix, ld_hl_nn, 0x01, 0x00, prefix, ld_l_hl, 0x07, nop, 0xA7}}
@@ -1252,7 +1267,7 @@ func Test_LD_R_HL(t *testing.T) {
 		z80.Run(14 + 19)
 
 		assert.Equal(t, byte(0xA7), z80.reg.L)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1262,7 +1277,7 @@ func Test_LD_HL_R(t *testing.T) {
 	z80.Run(7 + 10 + 7)
 
 	assert.Equal(t, byte(0x99), z80.mem.Read(7))
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	for _, prefix := range []byte{useIX, useIY} {
 		mem := &BasicMemory{Cells: []byte{ld_d_n, 0x99, prefix, ld_hl_nn, 0x07, 0x00, prefix, ld_hl_d, 0x03, nop, 0x00}}
@@ -1270,7 +1285,7 @@ func Test_LD_HL_R(t *testing.T) {
 		z80.Run(7 + 14 + 19)
 
 		assert.Equal(t, byte(0x99), z80.mem.Read(10))
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1282,7 +1297,7 @@ func Test_CPL(t *testing.T) {
 
 	assert.Equal(t, byte(0xA4), z80.reg.A)
 	assert.Equal(t, fH|fY|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_SCF(t *testing.T) {
@@ -1292,7 +1307,7 @@ func Test_SCF(t *testing.T) {
 	z80.Run(4)
 
 	assert.Equal(t, fS|fZ|fY|fX|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_CCF(t *testing.T) {
@@ -1302,21 +1317,21 @@ func Test_CCF(t *testing.T) {
 	z80.Run(4)
 
 	assert.Equal(t, fS|fZ|fY|fH|fX|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	z80.reg.F = fZ | fN
 	z80.Run(4)
 
 	assert.Equal(t, fZ|fY|fX|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	z80.reg.F = fZ | fN | fC
 	z80.Run(4)
 
 	assert.Equal(t, fZ|fY|fH|fX, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RLCA(t *testing.T) {
@@ -1327,7 +1342,7 @@ func Test_RLCA(t *testing.T) {
 
 	assert.Equal(t, byte(0xAA), z80.reg.A)
 	assert.Equal(t, fY|fX, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[1] = 0xAA
@@ -1336,7 +1351,7 @@ func Test_RLCA(t *testing.T) {
 
 	assert.Equal(t, byte(0x55), z80.reg.A)
 	assert.Equal(t, fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[1] = 0x00
@@ -1345,7 +1360,7 @@ func Test_RLCA(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[1] = 0xFF
@@ -1354,7 +1369,7 @@ func Test_RLCA(t *testing.T) {
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
 	assert.Equal(t, fY|fX|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RRCA(t *testing.T) {
@@ -1365,7 +1380,7 @@ func Test_RRCA(t *testing.T) {
 
 	assert.Equal(t, byte(0xAA), z80.reg.A)
 	assert.Equal(t, fY|fX|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[1] = 0xAA
@@ -1374,7 +1389,7 @@ func Test_RRCA(t *testing.T) {
 
 	assert.Equal(t, byte(0x55), z80.reg.A)
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[1] = 0x00
@@ -1383,7 +1398,7 @@ func Test_RRCA(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	mem.Cells[1] = 0xFF
@@ -1392,7 +1407,7 @@ func Test_RRCA(t *testing.T) {
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
 	assert.Equal(t, fY|fX|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RLA(t *testing.T) {
@@ -1403,7 +1418,7 @@ func Test_RLA(t *testing.T) {
 
 	assert.Equal(t, byte(0x01), z80.reg.A)
 	assert.Equal(t, fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x55, rla}}
 	z80 = NewZ80(mem)
@@ -1412,7 +1427,7 @@ func Test_RLA(t *testing.T) {
 
 	assert.Equal(t, byte(0xab), z80.reg.A)
 	assert.Equal(t, fS|fZ|fY|fX|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x88, rla, ld_b_a, rla}}
 	z80 = NewZ80(mem)
@@ -1422,7 +1437,7 @@ func Test_RLA(t *testing.T) {
 	assert.Equal(t, byte(0x10), z80.reg.B)
 	assert.Equal(t, byte(0x21), z80.reg.A)
 	assert.Equal(t, fY, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RRA(t *testing.T) {
@@ -1433,7 +1448,7 @@ func Test_RRA(t *testing.T) {
 
 	assert.Equal(t, byte(0xC0), z80.reg.A)
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x55, rra}}
 	z80 = NewZ80(mem)
@@ -1442,7 +1457,7 @@ func Test_RRA(t *testing.T) {
 
 	assert.Equal(t, byte(0xAA), z80.reg.A)
 	assert.Equal(t, fS|fZ|fY|fX|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x89, rra, ld_b_a, rra}}
 	z80 = NewZ80(mem)
@@ -1452,7 +1467,7 @@ func Test_RRA(t *testing.T) {
 	assert.Equal(t, byte(0x44), z80.reg.B)
 	assert.Equal(t, byte(0xA2), z80.reg.A)
 	assert.Equal(t, fY, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RLD(t *testing.T) {
@@ -1464,7 +1479,7 @@ func Test_RLD(t *testing.T) {
 	assert.Equal(t, byte(0x73), z80.reg.A)
 	assert.Equal(t, byte(0x1A), z80.mem.Read(8))
 	assert.Equal(t, fY|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x0F, ld_hl_nn, 0x08, 0x00, prefix_ed, rld, nop, 0x0A}}
 	z80 = NewZ80(mem)
@@ -1474,7 +1489,7 @@ func Test_RLD(t *testing.T) {
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, byte(0xAF), z80.mem.Read(8))
 	assert.Equal(t, fZ|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RRD(t *testing.T) {
@@ -1486,7 +1501,7 @@ func Test_RRD(t *testing.T) {
 	assert.Equal(t, byte(0x80), z80.reg.A)
 	assert.Equal(t, byte(0x42), z80.mem.Read(8))
 	assert.Equal(t, fS|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x03, ld_hl_nn, 0x08, 0x00, prefix_ed, rrd, nop, 0x60}}
 	z80 = NewZ80(mem)
@@ -1496,7 +1511,7 @@ func Test_RRD(t *testing.T) {
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, byte(0x36), z80.mem.Read(8))
 	assert.Equal(t, fZ|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_DAA(t *testing.T) {
@@ -1507,7 +1522,7 @@ func Test_DAA(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.A)
 	assert.Equal(t, fZ|fH|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x99, daa}}
 	z80 = NewZ80(mem)
@@ -1516,7 +1531,7 @@ func Test_DAA(t *testing.T) {
 
 	assert.Equal(t, byte(0x99), z80.reg.A)
 	assert.Equal(t, fS|fX|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x8F, daa}}
 	z80 = NewZ80(mem)
@@ -1525,7 +1540,7 @@ func Test_DAA(t *testing.T) {
 
 	assert.Equal(t, byte(0x95), z80.reg.A)
 	assert.Equal(t, fS|fH|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x8F, daa}}
 	z80 = NewZ80(mem)
@@ -1534,7 +1549,7 @@ func Test_DAA(t *testing.T) {
 
 	assert.Equal(t, byte(0x89), z80.reg.A)
 	assert.Equal(t, fS|fX|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0xCA, daa}}
 	z80 = NewZ80(mem)
@@ -1543,7 +1558,7 @@ func Test_DAA(t *testing.T) {
 
 	assert.Equal(t, byte(0x64), z80.reg.A)
 	assert.Equal(t, fY|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0xC5, daa}}
 	z80 = NewZ80(mem)
@@ -1552,7 +1567,7 @@ func Test_DAA(t *testing.T) {
 
 	assert.Equal(t, byte(0x5F), z80.reg.A)
 	assert.Equal(t, fH|fX|fP|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0xCA, daa}}
 	z80 = NewZ80(mem)
@@ -1561,7 +1576,7 @@ func Test_DAA(t *testing.T) {
 
 	assert.Equal(t, byte(0x64), z80.reg.A)
 	assert.Equal(t, fY|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_DJNZ(t *testing.T) {
@@ -1573,7 +1588,7 @@ func Test_DJNZ(t *testing.T) {
 
 	assert.Equal(t, b, z80.reg.A)
 	assert.Equal(t, byte(0), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	b = 0xFF
 	o = 1
@@ -1583,7 +1598,7 @@ func Test_DJNZ(t *testing.T) {
 
 	assert.Equal(t, b, z80.reg.A)
 	assert.Equal(t, byte(0), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_JR_o(t *testing.T) {
@@ -1593,7 +1608,7 @@ func Test_JR_o(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.C)
 	assert.Equal(t, byte(0x22), z80.reg.D)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{jr_o, 6, halt, ld_c_n, 0x11, ld_b_n, 0x33, nop, jr_o, 0xF9}}
 	z80 = NewZ80(mem)
@@ -1601,7 +1616,7 @@ func Test_JR_o(t *testing.T) {
 
 	assert.Equal(t, byte(0x33), z80.reg.B)
 	assert.Equal(t, byte(0x11), z80.reg.C)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_JR_Z_o(t *testing.T) {
@@ -1610,21 +1625,21 @@ func Test_JR_Z_o(t *testing.T) {
 	z80.Run(7 + 4 + 7 + 7)
 
 	assert.Equal(t, byte(0xab), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 1, dec_a, jr_z_o, 0x02, ld_b_n, 0xab}}
 	z80 = NewZ80(mem)
 	z80.Run(7 + 4 + 12)
 
 	assert.Equal(t, byte(0), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 1, dec_a, jr_z_o, 0xFD}}
 	z80 = NewZ80(mem)
 	z80.Run(7 + 4 + 12 + 4 + 7)
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_JR_NZ_o(t *testing.T) {
@@ -1633,21 +1648,21 @@ func Test_JR_NZ_o(t *testing.T) {
 	z80.Run(7 + 4 + 12)
 
 	assert.Equal(t, byte(0), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 1, dec_a, jr_nz_o, 0x02, ld_b_n, 0xab}}
 	z80 = NewZ80(mem)
 	z80.Run(7 + 4 + 7 + 7)
 
 	assert.Equal(t, byte(0xab), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 2, dec_a, jr_nz_o, 0xFD}}
 	z80 = NewZ80(mem)
 	z80.Run(7 + 4 + 12 + 4 + 7)
 
 	assert.Equal(t, byte(0), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_JR_C(t *testing.T) {
@@ -1656,21 +1671,21 @@ func Test_JR_C(t *testing.T) {
 	z80.Run(7 + 7 + 4 + 7 + 7 + 4)
 
 	assert.Equal(t, byte(0xFF), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_b_n, 0xAB, scf, jr_c, 1, halt, ld_b_a}}
 	z80 = NewZ80(mem)
 	z80.Run(7 + 4 + 12 + 4)
 
 	assert.Equal(t, byte(0xFF), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{xor_a, dec_a, add_a_n, 1, jr_c, 0xFC}}
 	z80 = NewZ80(mem)
 	z80.Run(4 + 4 + 7 + 12 + 7 + 7)
 
 	assert.Equal(t, byte(1), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_JR_NC_o(t *testing.T) {
@@ -1679,21 +1694,21 @@ func Test_JR_NC_o(t *testing.T) {
 	z80.Run(7 + 7 + 4 + 7 + 12)
 
 	assert.Equal(t, byte(0xAB), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_b_n, 0xAB, scf, ccf, jr_nc_o, 1, halt, ld_b_a}}
 	z80 = NewZ80(mem)
 	z80.Run(7 + 4 + 4 + 12 + 4)
 
 	assert.Equal(t, byte(0xFF), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0xFE, add_a_n, 1, jr_nc_o, 0xFC}}
 	z80 = NewZ80(mem)
 	z80.Run(7 + 7 + 12 + 7 + 7)
 
 	assert.Equal(t, byte(0), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_JP_nn(t *testing.T) {
@@ -1702,7 +1717,7 @@ func Test_JP_nn(t *testing.T) {
 	z80.Run(10 + 7)
 
 	assert.Equal(t, byte(0x55), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_JP_HL(t *testing.T) {
@@ -1712,7 +1727,7 @@ func Test_JP_HL(t *testing.T) {
 		z80.Run(14 + 8 + 7)
 
 		assert.Equal(t, byte(0x55), z80.reg.A)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1738,7 +1753,7 @@ func Test_JP_cc_nn(t *testing.T) {
 		z80.Run(10 + 7)
 
 		assert.Equal(t, byte(test.expected), z80.reg.A)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1776,7 +1791,7 @@ func Test_CALL_cc_nn(t *testing.T) {
 		} else {
 			assert.Equal(t, uint16(0x10), z80.reg.SP)
 		}
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1786,7 +1801,7 @@ func Test_RET(t *testing.T) {
 	z80.Run(10 + 10 + 7)
 
 	assert.Equal(t, byte(0x55), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RET_cc(t *testing.T) {
@@ -1814,7 +1829,7 @@ func Test_RET_cc(t *testing.T) {
 		}
 
 		assert.Equal(t, byte(test.expected), z80.reg.A)
-		assert.Equal(t, 0, z80.State.TCount)
+		assert.Equal(t, 0, z80.TCount)
 	}
 }
 
@@ -1827,7 +1842,7 @@ func Test_RETN_RETI(t *testing.T) {
 	assert.Equal(t, byte(0x55), z80.reg.A)
 	assert.Equal(t, true, z80.iff1)
 	assert.Equal(t, true, z80.iff2)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RST_xx(t *testing.T) {
@@ -1851,7 +1866,7 @@ func Test_RST_xx(t *testing.T) {
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
 	assert.Equal(t, byte(0x55), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_PUSH_rr(t *testing.T) {
@@ -1877,7 +1892,7 @@ func Test_PUSH_rr(t *testing.T) {
 	assert.Equal(t, z80.mem.Read(25), z80.reg.IXL)
 	assert.Equal(t, z80.mem.Read(24), z80.reg.IYH)
 	assert.Equal(t, z80.mem.Read(23), z80.reg.IYL)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_POP_rr(t *testing.T) {
@@ -1901,7 +1916,7 @@ func Test_POP_rr(t *testing.T) {
 	assert.Equal(t, byte(0x26), z80.reg.IYH)
 	assert.Equal(t, byte(0x48), z80.reg.IYL)
 	assert.Equal(t, uint16(0x18), z80.reg.SP)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_IN_A_n(t *testing.T) {
@@ -1910,7 +1925,7 @@ func Test_IN_A_n(t *testing.T) {
 	z80.Run(7 + 11)
 
 	assert.Equal(t, byte(0xFF), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	z80.IOBus = &TestIOBus{
@@ -1924,7 +1939,7 @@ func Test_IN_A_n(t *testing.T) {
 	z80.Run(7 + 11)
 
 	assert.Equal(t, byte(0xA5), z80.reg.A)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_IN_R_C(t *testing.T) {
@@ -1935,7 +1950,7 @@ func Test_IN_R_C(t *testing.T) {
 
 	assert.Equal(t, byte(0xFF), z80.reg.D)
 	assert.Equal(t, fS|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	z80.Reset()
 	z80.reg.F = fNONE
@@ -1952,7 +1967,7 @@ func Test_IN_R_C(t *testing.T) {
 
 	assert.Equal(t, byte(0), z80.reg.D)
 	assert.Equal(t, fZ|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_OUT_n_A(t *testing.T) {
@@ -1966,7 +1981,7 @@ func Test_OUT_n_A(t *testing.T) {
 		},
 	}
 	z80.Run(7 + 11)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_OUT_C_R(t *testing.T) {
@@ -1980,7 +1995,7 @@ func Test_OUT_C_R(t *testing.T) {
 		},
 	}
 	z80.Run(10 + 7 + 12)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RLC_r(t *testing.T) {
@@ -1991,7 +2006,7 @@ func Test_RLC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0xAA), z80.reg.E)
 	assert.Equal(t, fS|fY|fX|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_d_n, 0xAA, prefix_cb, rlc_r | rD}}
 	z80 = NewZ80(mem)
@@ -2000,7 +2015,7 @@ func Test_RLC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x55), z80.reg.D)
 	assert.Equal(t, fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x00, prefix_cb, rlc_r | rA}}
 	z80 = NewZ80(mem)
@@ -2008,7 +2023,7 @@ func Test_RLC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fZ|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_b_n, 0x80, prefix_cb, rlc_r | rB}}
 	z80 = NewZ80(mem)
@@ -2017,7 +2032,7 @@ func Test_RLC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x01), z80.reg.B)
 	assert.Equal(t, fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0x06, 0x00, prefix_cb, rlc_r | 0b110, nop, 0x01}}
 	z80 = NewZ80(mem)
@@ -2025,7 +2040,7 @@ func Test_RLC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x02), z80.mem.Read(0x06))
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{useIX, ld_hl_nn, 0x04, 0x00, useIX, prefix_cb, 0x05, rlc_r | 0b110, nop, 0x01}}
 	z80 = NewZ80(mem)
@@ -2033,7 +2048,7 @@ func Test_RLC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x02), z80.mem.Read(0x09))
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RRC_r(t *testing.T) {
@@ -2044,7 +2059,7 @@ func Test_RRC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0xAA), z80.reg.E)
 	assert.Equal(t, fS|fY|fX|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_d_n, 0xAA, prefix_cb, rrc_r | rD}}
 	z80 = NewZ80(mem)
@@ -2053,7 +2068,7 @@ func Test_RRC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x55), z80.reg.D)
 	assert.Equal(t, fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x00, prefix_cb, rrc_r | rA}}
 	z80 = NewZ80(mem)
@@ -2061,7 +2076,7 @@ func Test_RRC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fZ|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_b_n, 0x80, prefix_cb, rrc_r | rB}}
 	z80 = NewZ80(mem)
@@ -2070,7 +2085,7 @@ func Test_RRC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x40), z80.reg.B)
 	assert.Equal(t, fNONE, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0x06, 0x00, prefix_cb, rrc_r | 0b110, nop, 0x01}}
 	z80 = NewZ80(mem)
@@ -2078,7 +2093,7 @@ func Test_RRC_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x80), z80.mem.Read(0x06))
 	assert.Equal(t, fS|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RL_r(t *testing.T) {
@@ -2089,7 +2104,7 @@ func Test_RL_r(t *testing.T) {
 
 	assert.Equal(t, byte(0xAB), z80.reg.E)
 	assert.Equal(t, fS|fY|fX, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_d_n, 0xAA, prefix_cb, rl_r | rD}}
 	z80 = NewZ80(mem)
@@ -2098,7 +2113,7 @@ func Test_RL_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x55), z80.reg.D)
 	assert.Equal(t, fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x80, prefix_cb, rl_r | rA}}
 	z80 = NewZ80(mem)
@@ -2107,7 +2122,7 @@ func Test_RL_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fZ|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_b_n, 0x80, prefix_cb, rl_r | rB}}
 	z80 = NewZ80(mem)
@@ -2116,7 +2131,7 @@ func Test_RL_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x01), z80.reg.B)
 	assert.Equal(t, fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0x06, 0x00, prefix_cb, rl_r | 0b110, halt, 0x81}}
 	z80 = NewZ80(mem)
@@ -2125,7 +2140,7 @@ func Test_RL_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x02), z80.mem.Read(0x06))
 	assert.Equal(t, fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RR_r(t *testing.T) {
@@ -2136,7 +2151,7 @@ func Test_RR_r(t *testing.T) {
 
 	assert.Equal(t, byte(0xAA), z80.reg.E)
 	assert.Equal(t, fS|fY|fX|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_d_n, 0xAA, prefix_cb, rr_r | rD}}
 	z80 = NewZ80(mem)
@@ -2145,7 +2160,7 @@ func Test_RR_r(t *testing.T) {
 
 	assert.Equal(t, byte(0xD5), z80.reg.D)
 	assert.Equal(t, fS, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_a_n, 0x01, prefix_cb, rr_r | rA}}
 	z80 = NewZ80(mem)
@@ -2154,7 +2169,7 @@ func Test_RR_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x00), z80.reg.A)
 	assert.Equal(t, fZ|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_b_n, 0x80, prefix_cb, rr_r | rB}}
 	z80 = NewZ80(mem)
@@ -2163,7 +2178,7 @@ func Test_RR_r(t *testing.T) {
 
 	assert.Equal(t, byte(0xC0), z80.reg.B)
 	assert.Equal(t, fS|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0x06, 0x00, prefix_cb, rr_r | 0b110, halt, 0x81}}
 	z80 = NewZ80(mem)
@@ -2172,7 +2187,7 @@ func Test_RR_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x40), z80.mem.Read(0x06))
 	assert.Equal(t, fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_SLA_r(t *testing.T) {
@@ -2183,7 +2198,7 @@ func Test_SLA_r(t *testing.T) {
 
 	assert.Equal(t, byte(0xAA), z80.reg.E)
 	assert.Equal(t, fS|fY|fX|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_d_n, 0xAA, prefix_cb, sla_r | rD}}
 	z80 = NewZ80(mem)
@@ -2192,7 +2207,7 @@ func Test_SLA_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x54), z80.reg.D)
 	assert.Equal(t, fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_SRA_r(t *testing.T) {
@@ -2203,7 +2218,7 @@ func Test_SRA_r(t *testing.T) {
 
 	assert.Equal(t, byte(0xC2), z80.reg.E)
 	assert.Equal(t, fS|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_SLL_r(t *testing.T) {
@@ -2214,7 +2229,7 @@ func Test_SLL_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x2B), z80.reg.E)
 	assert.Equal(t, fY|fX|fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_SRL_r(t *testing.T) {
@@ -2225,7 +2240,7 @@ func Test_SRL_r(t *testing.T) {
 
 	assert.Equal(t, byte(0x42), z80.reg.H)
 	assert.Equal(t, fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{useIX, ld_hl_nn, 0x00, 0x00, useIX, prefix_cb, 0x08, srl_r | rB, 0x85}}
 	z80 = NewZ80(mem)
@@ -2235,7 +2250,7 @@ func Test_SRL_r(t *testing.T) {
 	assert.Equal(t, byte(0x42), z80.reg.B)
 	assert.Equal(t, byte(0x42), z80.mem.Read(8))
 	assert.Equal(t, fP|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_BIT_b(t *testing.T) {
@@ -2245,7 +2260,7 @@ func Test_BIT_b(t *testing.T) {
 	z80.Run(7 + 8)
 
 	assert.Equal(t, fH|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_l_n, 0xFE, prefix_cb, bit_b | rL | bit_0}}
 	z80 = NewZ80(mem)
@@ -2253,7 +2268,7 @@ func Test_BIT_b(t *testing.T) {
 	z80.Run(7 + 8)
 
 	assert.Equal(t, fZ|fY|fH|fX|fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0x06, 0x00, prefix_cb, bit_b | 0b110 | bit_2, nop, 0xFD}}
 	z80 = NewZ80(mem)
@@ -2261,7 +2276,7 @@ func Test_BIT_b(t *testing.T) {
 	z80.Run(10 + 12)
 
 	assert.Equal(t, fH, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{useIY, ld_hl_nn, 0x07, 0x00, useIY, prefix_cb, 0x02, bit_b | 0b110 | bit_2, nop, 0xFD}}
 	z80 = NewZ80(mem)
@@ -2269,7 +2284,7 @@ func Test_BIT_b(t *testing.T) {
 	z80.Run(14 + 20)
 
 	assert.Equal(t, fH, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_RES_b(t *testing.T) {
@@ -2278,7 +2293,7 @@ func Test_RES_b(t *testing.T) {
 	z80.Run(7 + 8)
 
 	assert.Equal(t, byte(0x7F), z80.reg.D)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0x06, 0x00, prefix_cb, res_b | 0b110 | bit_2, nop, 0xFF}}
 	z80 = NewZ80(mem)
@@ -2286,7 +2301,7 @@ func Test_RES_b(t *testing.T) {
 	z80.Run(10 + 15)
 
 	assert.Equal(t, byte(0xFB), z80.mem.Read(0x06))
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_SET_b(t *testing.T) {
@@ -2295,7 +2310,7 @@ func Test_SET_b(t *testing.T) {
 	z80.Run(7 + 8)
 
 	assert.Equal(t, byte(0x80), z80.reg.D)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{ld_hl_nn, 0x06, 0x00, prefix_cb, set_b | 0b110 | bit_2, nop, 0x00}}
 	z80 = NewZ80(mem)
@@ -2303,7 +2318,7 @@ func Test_SET_b(t *testing.T) {
 	z80.Run(10 + 15)
 
 	assert.Equal(t, byte(0x04), z80.mem.Read(0x06))
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{useIY, ld_hl_nn, 0x06, 0x00, useIY, prefix_cb, 0x03, set_b | bit_2, nop, 0x00}}
 	z80 = NewZ80(mem)
@@ -2312,7 +2327,7 @@ func Test_SET_b(t *testing.T) {
 
 	assert.Equal(t, byte(0x04), z80.mem.Read(0x09))
 	assert.Equal(t, byte(0x04), z80.reg.B)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LD_IXY_nn(t *testing.T) {
@@ -2328,7 +2343,7 @@ func Test_LD_IXY_nn(t *testing.T) {
 	assert.Equal(t, byte(0x07), z80.reg.IYL)
 	assert.Equal(t, byte(0x03), z80.reg.H)
 	assert.Equal(t, byte(0x08), z80.reg.L)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LDI(t *testing.T) {
@@ -2344,7 +2359,7 @@ func Test_LDI(t *testing.T) {
 	assert.Equal(t, uint16(0x0E), z80.reg.DE())
 	assert.Equal(t, uint16(0x0D), z80.reg.HL())
 	assert.Equal(t, fS|fZ|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{
 		ld_hl_nn, 0x0C, 0x00, ld_de_nn, 0x0D, 0x00, ld_bc_nn, 0x02, 0x00,
@@ -2358,7 +2373,7 @@ func Test_LDI(t *testing.T) {
 	assert.Equal(t, uint16(0x0E), z80.reg.DE())
 	assert.Equal(t, uint16(0x0D), z80.reg.HL())
 	assert.Equal(t, fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LDIR(t *testing.T) {
@@ -2376,7 +2391,7 @@ func Test_LDIR(t *testing.T) {
 	assert.Equal(t, uint16(0x12), z80.reg.DE())
 	assert.Equal(t, uint16(0x0F), z80.reg.HL())
 	assert.Equal(t, fS|fZ|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_CPI(t *testing.T) {
@@ -2390,7 +2405,7 @@ func Test_CPI(t *testing.T) {
 	assert.Equal(t, uint16(0x02), z80.reg.BC())
 	assert.Equal(t, uint16(0x0C), z80.reg.HL())
 	assert.Equal(t, fZ|fP|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{
 		ld_hl_nn, 0x0B, 0x00, ld_bc_nn, 0x01, 0x00, ld_a_n, 0x88,
@@ -2402,7 +2417,7 @@ func Test_CPI(t *testing.T) {
 	assert.Equal(t, uint16(0x00), z80.reg.BC())
 	assert.Equal(t, uint16(0x0C), z80.reg.HL())
 	assert.Equal(t, fS|fY|fH|fX|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_CPIR(t *testing.T) {
@@ -2416,7 +2431,7 @@ func Test_CPIR(t *testing.T) {
 	assert.Equal(t, uint16(0xFB), z80.reg.BC())
 	assert.Equal(t, uint16(0x0F), z80.reg.HL())
 	assert.Equal(t, fZ|fP|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_INI(t *testing.T) {
@@ -2439,7 +2454,7 @@ func Test_INI(t *testing.T) {
 	assert.Equal(t, byte(0x5E), z80.mem.Read((9)))
 	assert.Equal(t, uint16(0x0A), z80.reg.HL())
 	assert.Equal(t, fZ|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_INIR(t *testing.T) {
@@ -2466,7 +2481,7 @@ func Test_INIR(t *testing.T) {
 	assert.Equal(t, byte(0x21), z80.mem.Read((13)))
 	assert.Equal(t, uint16(0x0E), z80.reg.HL())
 	assert.Equal(t, fZ|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_OUTI(t *testing.T) {
@@ -2487,7 +2502,7 @@ func Test_OUTI(t *testing.T) {
 	assert.Equal(t, uint16(0x34), z80.reg.BC())
 	assert.Equal(t, uint16(0x0A), z80.reg.HL())
 	assert.Equal(t, fZ|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_OTIR(t *testing.T) {
@@ -2507,7 +2522,7 @@ func Test_OTIR(t *testing.T) {
 	assert.Equal(t, uint16(0x34), z80.reg.BC())
 	assert.Equal(t, uint16(0x0D), z80.reg.HL())
 	assert.Equal(t, fZ|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LDD(t *testing.T) {
@@ -2523,7 +2538,7 @@ func Test_LDD(t *testing.T) {
 	assert.Equal(t, uint16(0x0C), z80.reg.DE())
 	assert.Equal(t, uint16(0x0B), z80.reg.HL())
 	assert.Equal(t, fS|fZ|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{
 		ld_hl_nn, 0x0C, 0x00, ld_de_nn, 0x0D, 0x00, ld_bc_nn, 0x02, 0x00,
@@ -2537,7 +2552,7 @@ func Test_LDD(t *testing.T) {
 	assert.Equal(t, uint16(0x0C), z80.reg.DE())
 	assert.Equal(t, uint16(0x0B), z80.reg.HL())
 	assert.Equal(t, fP, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_LDDR(t *testing.T) {
@@ -2555,7 +2570,7 @@ func Test_LDDR(t *testing.T) {
 	assert.Equal(t, uint16(0x0E), z80.reg.DE())
 	assert.Equal(t, uint16(0x0B), z80.reg.HL())
 	assert.Equal(t, fS|fZ|fY|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_CPD(t *testing.T) {
@@ -2569,7 +2584,7 @@ func Test_CPD(t *testing.T) {
 	assert.Equal(t, uint16(0x02), z80.reg.BC())
 	assert.Equal(t, uint16(0x0A), z80.reg.HL())
 	assert.Equal(t, fZ|fP|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 
 	mem = &BasicMemory{Cells: []byte{
 		ld_hl_nn, 0x0B, 0x00, ld_bc_nn, 0x01, 0x00, ld_a_n, 0x88,
@@ -2581,7 +2596,7 @@ func Test_CPD(t *testing.T) {
 	assert.Equal(t, uint16(0x00), z80.reg.BC())
 	assert.Equal(t, uint16(0x0A), z80.reg.HL())
 	assert.Equal(t, fS|fY|fH|fX|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_CPDR(t *testing.T) {
@@ -2595,7 +2610,7 @@ func Test_CPDR(t *testing.T) {
 	assert.Equal(t, uint16(0xFD), z80.reg.BC())
 	assert.Equal(t, uint16(0x0D), z80.reg.HL())
 	assert.Equal(t, fZ|fP|fN, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_IND(t *testing.T) {
@@ -2618,7 +2633,7 @@ func Test_IND(t *testing.T) {
 	assert.Equal(t, byte(0x5E), z80.mem.Read((9)))
 	assert.Equal(t, uint16(0x08), z80.reg.HL())
 	assert.Equal(t, fZ|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_INDR(t *testing.T) {
@@ -2645,7 +2660,7 @@ func Test_INDR(t *testing.T) {
 	assert.Equal(t, byte(0x25), z80.mem.Read((13)))
 	assert.Equal(t, uint16(0x08), z80.reg.HL())
 	assert.Equal(t, fZ|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_OUTD(t *testing.T) {
@@ -2666,7 +2681,7 @@ func Test_OUTD(t *testing.T) {
 	assert.Equal(t, uint16(0x34), z80.reg.BC())
 	assert.Equal(t, uint16(0x08), z80.reg.HL())
 	assert.Equal(t, fZ|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_OTDR(t *testing.T) {
@@ -2686,7 +2701,7 @@ func Test_OTDR(t *testing.T) {
 	assert.Equal(t, uint16(0x34), z80.reg.BC())
 	assert.Equal(t, uint16(0x08), z80.reg.HL())
 	assert.Equal(t, fZ|fN|fC, z80.reg.F)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_invalidPrefix(t *testing.T) {
@@ -2696,7 +2711,7 @@ func Test_invalidPrefix(t *testing.T) {
 
 	assert.Equal(t, byte(0x01), z80.reg.IXL)
 	assert.Equal(t, byte(0x02), z80.reg.IYL)
-	assert.Equal(t, 0, z80.State.TCount)
+	assert.Equal(t, 0, z80.TCount)
 }
 
 func Test_shouldJump(t *testing.T) {
@@ -2776,7 +2791,7 @@ func Test_INT(t *testing.T) {
 	assert.Equal(t, uint16(0x1234), z80.reg.PC)
 
 	z80.halt, z80.iff1, z80.iff2 = true, true, true
-	z80.im = im1
+	z80.im = 1
 	z80.INT(0)
 	assert.Equal(t, uint16(0x02), z80.reg.SP)
 	assert.Equal(t, uint16(0x38), z80.reg.PC)
@@ -2787,7 +2802,7 @@ func Test_INT(t *testing.T) {
 	assert.Equal(t, false, z80.iff2)
 
 	z80.halt, z80.iff1, z80.iff2 = true, true, true
-	z80.im = im2
+	z80.im = 2
 	z80.reg.I = 0x23
 	z80.INT(0x45)
 	assert.Equal(t, uint16(0x00), z80.reg.SP)

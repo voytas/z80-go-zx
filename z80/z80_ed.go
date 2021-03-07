@@ -94,8 +94,12 @@ func (z80 *Z80) prefixED(opcode byte) {
 		if z80.IOBus != nil {
 			z80.IOBus.Write(z80.reg.B, z80.reg.C, *z80.reg.r(opcode & 0b00111000 >> 3))
 		}
-	case im0, im1, im2:
-		z80.im = opcode
+	case im0:
+		z80.im = 0
+	case im1:
+		z80.im = 1
+	case im2:
+		z80.im = 2
 	case retn, 0x55, 0x65, 0x75, 0x5D, 0x6D, reti, 0x7D:
 		z80.iff1 = z80.iff2
 		z80.reg.PC = uint16(z80.mem.Read(z80.reg.SP+1))<<8 | uint16(z80.mem.Read(z80.reg.SP))

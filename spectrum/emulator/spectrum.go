@@ -1,7 +1,6 @@
 package emulator
 
 import (
-	"io/ioutil"
 	"log"
 	"runtime"
 	"time"
@@ -10,22 +9,26 @@ import (
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/voytas/z80-go-zx/spectrum/emulator/keyboard"
+	"github.com/voytas/z80-go-zx/spectrum/emulator/memory"
 	"github.com/voytas/z80-go-zx/spectrum/emulator/screen"
+	"github.com/voytas/z80-go-zx/spectrum/emulator/settings"
+	"github.com/voytas/z80-go-zx/spectrum/emulator/snapshot"
+	"github.com/voytas/z80-go-zx/spectrum/emulator/state"
 	"github.com/voytas/z80-go-zx/z80"
-	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
 type Emulator struct {
-	ioBus ioBus
-	z80   *z80.Z80
-	mem   []byte
+	ioBus  ioBus
+	z80    *z80.Z80
+	mem    *memory.ContendedMemory
+	tCount *int
 }
 
 func init() {
 	runtime.LockOSThread()
 }
 
-func (emu *Emulator) Run() {
+func Run(settings settings.Settings) {
 	if err := glfw.Init(); err != nil {
 		log.Fatalln("failed to initialize glfw:", err)
 	}
@@ -48,7 +51,10 @@ func (emu *Emulator) Run() {
 	gl.PixelZoom(4, 4)
 	//gl.WindowPos2d(100, 100)
 
-	emu.createSpectrum()
+	emu, err := createEmulator(settings)
+	if err != nil {
+		log.Fatalln("failed to create emulator:", err)
+	}
 
 	// ZX Spectrum generates 50 interrupts per second
 	ticker := time.NewTicker(20 * time.Millisecond)
@@ -56,12 +62,12 @@ func (emu *Emulator) Run() {
 	frame := 1
 	for !window.ShouldClose() {
 		emu.z80.INT(0)
-		emu.z80.Run(69888)
+		emu.z80.Run(settings.FrameStates)
 		<-ticker.C
 
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		screen.LastBorderColour = emu.ioBus.PortFE
-		scr := screen.RGBA(emu.mem, frame)
+		scr := screen.RGBA(emu.mem.Cells, frame)
 		gl.DrawPixels(
 			screen.BorderLeft+256+screen.BorderRight,
 			screen.BorderTop+192+screen.BorderBottom,
@@ -77,18 +83,25 @@ func (emu *Emulator) Run() {
 	}
 }
 
-func (emu *Emulator) createSpectrum() {
-	rom, err := ioutil.ReadFile("./rom/48k.rom")
+func createEmulator(settings settings.Settings) (*Emulator, error) {
+	mem, err := memory.NewMemory(settings.ROMPath, settings.Memory)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	emu.mem = make([]byte, 0xFFFF)
-	copy(emu.mem, rom)
-	mem := &memory.BasicMemory{}
-	mem.Configure(emu.mem, 0x4000)
-
-	emu.ioBus = ioBus{}
-	emu.z80 = z80.NewZ80(mem)
+	emu := &Emulator{
+		mem:   mem,
+		ioBus: ioBus{},
+		z80:   z80.NewZ80(mem),
+	}
 	emu.z80.IOBus = &emu.ioBus
+	emu.tCount = &emu.z80.TCount
+	state.Current = emu.tCount
+
+	err = snapshot.LoadSNA("./games/Manic Miner.sna", emu.z80, mem.Cells)
+	if err != nil {
+		return nil, err
+	}
+
+	return emu, nil
 }
