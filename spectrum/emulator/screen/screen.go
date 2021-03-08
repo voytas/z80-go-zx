@@ -65,6 +65,7 @@ var inkColours = [][]byte{
 	0b1000111: {0xFF, 0xFF, 0xFF}, // white
 }
 
+// Border colours, same as ink
 var borderColours = inkColours
 
 // Indexed array of paper colours
