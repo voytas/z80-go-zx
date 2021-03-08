@@ -4,15 +4,6 @@ import (
 	"image"
 )
 
-const (
-	BorderTop    = 30
-	BorderBottom = 30
-	BorderRight  = 30
-	BorderLeft   = 30
-)
-
-var LastBorderColour byte
-
 // Address of each line on the screen (0-191), it is not linear
 var lines = []int{
 	0x4000, 0x4100, 0x4200, 0x4300, 0x4400, 0x4500, 0x4600, 0x4700, // Lines 0-7
@@ -42,61 +33,15 @@ var lines = []int{
 }
 
 var bits = []byte{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01}
+var frame = 1
 
-// Indexed array of ink colours
-var inkColours = [][]byte{
-	// Normal
-	0b0000000: {0x00, 0x00, 0x00}, // Black
-	0b0000001: {0x00, 0x00, 0xD7}, // Blue
-	0b0000010: {0xD7, 0x00, 0x00}, // Red
-	0b0000011: {0xD7, 0x00, 0xD7}, // Magenta
-	0b0000100: {0x00, 0xD7, 0x00}, // Green
-	0b0000101: {0x00, 0xD7, 0xD7}, // Cyan
-	0b0000110: {0xD7, 0xD7, 0x00}, // Yellow
-	0b0000111: {0xD7, 0xD7, 0xD7}, // White
-	// Bright
-	0b1000000: {0x00, 0x00, 0x00}, // Black
-	0b1000001: {0x00, 0x00, 0xFF}, // Blue
-	0b1000010: {0xFF, 0x00, 0x00}, // Red
-	0b1000011: {0xFF, 0x00, 0xFF}, // Magenta
-	0b1000100: {0x00, 0xFF, 0x00}, // green
-	0b1000101: {0x00, 0xFF, 0xFF}, // cyan
-	0b1000110: {0xFF, 0xFF, 0x00}, // yellow
-	0b1000111: {0xFF, 0xFF, 0xFF}, // white
-}
-
-// Border colours, same as ink
-var borderColours = inkColours
-
-// Indexed array of paper colours
-var paperColours = [][]byte{
-	// Normal
-	0b0000000: {0x00, 0x00, 0x00}, // Black
-	0b0001000: {0x00, 0x00, 0xD7}, // Blue
-	0b0010000: {0xD7, 0x00, 0x00}, // Red
-	0b0011000: {0xD7, 0x00, 0xD7}, // Magenta
-	0b0100000: {0x00, 0xD7, 0x00}, // Green
-	0b0101000: {0x00, 0xD7, 0xD7}, // Cyan
-	0b0110000: {0xD7, 0xD7, 0x00}, // Yellow
-	0b0111000: {0xD7, 0xD7, 0xD7}, // White
-	// Bright
-	0b1000000: {0x00, 0x00, 0x00}, // Black
-	0b1001000: {0x00, 0x00, 0xFF}, // Blue
-	0b1010000: {0xFF, 0x00, 0x00}, // Red
-	0b1011000: {0xFF, 0x00, 0xFF}, // Magenta
-	0b1100000: {0x00, 0xFF, 0x00}, // green
-	0b1101000: {0x00, 0xFF, 0xFF}, // cyan
-	0b1110000: {0xFF, 0xFF, 0x00}, // yellow
-	0b1111000: {0xFF, 0xFF, 0xFF}, // white
-}
-
-// Renders the screen as RGBA image (upside down e.g. bottom left to top right)
-func RGBA(mem []byte, frame int) *image.RGBA {
+// Renders the screen as Render image (upside down e.g. bottom left to top right)
+func Render(mem []byte) *image.RGBA {
 	width := BorderLeft + 256 + BorderRight
 	height := BorderTop + 192 + BorderBottom
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	border := borderColours[LastBorderColour&0x07]
+	border := borderPalette[lastBorderColour&0x07]
 
 	// Main screen
 	for line, addr := range lines {
@@ -125,9 +70,9 @@ func RGBA(mem []byte, frame int) *image.RGBA {
 				flash := attr&0x80 != 0 && frame >= 32
 				on := cell&bit != 0
 				if on != flash {
-					colour = inkColours[attr&0b01000111]
+					colour = inkPalette[attr&0b01000111]
 				} else {
-					colour = paperColours[attr&0b01111000]
+					colour = paperPalette[attr&0b01111000]
 				}
 				img.Pix[pixel] = colour[0]
 				img.Pix[pixel+1] = colour[1]
@@ -152,6 +97,14 @@ func RGBA(mem []byte, frame int) *image.RGBA {
 		img.Pix[pixel+1] = border[1]
 		img.Pix[pixel+2] = border[2]
 		img.Pix[pixel+3] = 0xFF
+	}
+
+	// We do not need border states anymore
+	borderStates = nil
+
+	frame += 1
+	if frame > 50 {
+		frame = 1
 	}
 
 	return img

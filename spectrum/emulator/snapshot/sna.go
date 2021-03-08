@@ -6,6 +6,7 @@ import (
 	"github.com/voytas/z80-go-zx/z80"
 )
 
+// Loads SNA file to memory and updates the CPU state so it is ready to run
 func LoadSNA(filePath string, cpu *z80.Z80, mem []byte) error {
 	sna, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -34,9 +35,6 @@ func LoadSNA(filePath string, cpu *z80.Z80, mem []byte) error {
 	for i := 16384; i < len(mem); i++ {
 		mem[i] = sna[i-16384+27]
 	}
-	// for i := 27; i < len(sna)-27; i++ {
-	// 	mem[16384+i-27] = sna[i]
-	// }
 
 	// TODO: Set border colour
 

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/voytas/z80-go-zx/z80"
+	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
 type ioBus struct{}
@@ -68,7 +69,7 @@ func Run(program string) {
 		cells[0xF000+i] = b
 	}
 
-	mem := z80.BasicMemory{
+	mem := memory.BasicMemory{
 		Cells: cells,
 	}
 	z80 := z80.NewZ80(&mem)

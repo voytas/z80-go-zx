@@ -1,9 +1,12 @@
 package emulator
 
-import "github.com/voytas/z80-go-zx/spectrum/emulator/keyboard"
+import (
+	"github.com/voytas/z80-go-zx/spectrum/emulator/keyboard"
+	"github.com/voytas/z80-go-zx/spectrum/emulator/screen"
+)
 
 type ioBus struct {
-	PortFE byte
+	tCount *int
 }
 
 func (bus *ioBus) Read(hi, lo byte) byte {
@@ -15,6 +18,6 @@ func (bus *ioBus) Read(hi, lo byte) byte {
 
 func (bus *ioBus) Write(hi, lo, data byte) {
 	if lo == 0xFE {
-		bus.PortFE = data
+		screen.AddBorderState(data, *bus.tCount)
 	}
 }

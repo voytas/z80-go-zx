@@ -3,19 +3,19 @@ This is just my fun project to see how to write CPU emulator in go. There is no 
 from having fun and learn go language a bit.
 
 My first computer I had was Sinclair ZX Spectrum 48k and hence my first assembler programs were
-written for Z80 CPU. I am fan of retro computing as well and wanted to see how easy or hard it is
-to write some kind of emulator. Obvious choice was Z80 CPU which features are well documented, including
-many "undocumented" features.
+written for Z80 CPU.
 
 The implementation passes both zexdoc and zexall tests, however this does not mean that there are no bugs
-or issues. I tried to implement most of the undocumented features.
+or issues. I tried to implement most of the undocumented features as possible.
+
+Now, once I had working Z80 emulator, I decided to go a bit further and see how can I emulate
+my favourite ZX Spectrum computer.
 
 ## ZX Spectrum 48k emulator
-Having working Z80 CPU emulator, I decided to go a bit further and try to implement simple ZX Spectrum
-emulator. This is not to create another emulator, there are many excellent emulators out there already.
+Again this is just to have some fun, there are many excellent emulators out there already.
 This is just a playground for me to learn how my favourite computer can be emulated.
 
-The biggest challenge I had was to find a way of displaying the actual emulated screen. There is no native
+The initial challenge I had was to find a way of displaying the actual emulated screen. There is no native
 support for that in go. There are some gaming frameworks you can find, but I needed something very basic,
 just to be able to draw pixels. I ended up with using OpenGL for now, although I would prefer something
 more basic. And OpenGL technology is obsolete on Mac, some old 2.1 version only available, but it works,

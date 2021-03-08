@@ -2,6 +2,8 @@ package z80
 
 import (
 	"fmt"
+
+	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
 type IOBus interface {
@@ -12,15 +14,15 @@ type IOBus interface {
 // Represents emulated Z80 Z80
 type Z80 struct {
 	IOBus            IOBus
-	mem              Memory     // memory
-	reg              *registers // registers
-	t                int        // t-states
-	halt, iff1, iff2 bool       // states of halt, iff1 and iff2
-	im               byte       // interrupt mode (im0, im1 or in2)
-	TCount           int        // Count of executed t-states
+	mem              memory.Memory // memory
+	reg              *registers    // registers
+	t                int           // t-states
+	halt, iff1, iff2 bool          // states of halt, iff1 and iff2
+	im               byte          // interrupt mode (im0, im1 or in2)
+	TCount           int           // Count of executed t-states
 }
 
-func NewZ80(mem Memory) *Z80 {
+func NewZ80(mem memory.Memory) *Z80 {
 	z80 := &Z80{}
 	z80.mem = mem
 	z80.Reset()
@@ -113,6 +115,8 @@ func (z80 *Z80) Run(tLimit int) {
 		} else {
 			opcode = z80.readByte()
 		}
+
+		//debugger.Debug(opcode, z80.reg.prefix, z80.reg.PC, z80.mem)
 
 		if z80.reg.prefix == noPrefix {
 			z80.t = tStatesPrimary[opcode]

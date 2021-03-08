@@ -18,7 +18,7 @@ import (
 )
 
 type Emulator struct {
-	ioBus  ioBus
+	bus    ioBus
 	z80    *z80.Z80
 	mem    *memory.ContendedMemory
 	tCount *int
@@ -59,15 +59,13 @@ func Run(settings settings.Settings) {
 	// ZX Spectrum generates 50 interrupts per second
 	ticker := time.NewTicker(20 * time.Millisecond)
 
-	frame := 1
 	for !window.ShouldClose() {
 		emu.z80.INT(0)
 		emu.z80.Run(settings.FrameStates)
 		<-ticker.C
 
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		screen.LastBorderColour = emu.ioBus.PortFE
-		scr := screen.RGBA(emu.mem.Cells, frame)
+		scr := screen.Render(emu.mem.Cells)
 		gl.DrawPixels(
 			screen.BorderLeft+256+screen.BorderRight,
 			screen.BorderTop+192+screen.BorderBottom,
@@ -75,11 +73,6 @@ func Run(settings settings.Settings) {
 
 		window.SwapBuffers()
 		glfw.PollEvents()
-
-		frame += 1
-		if frame > 50 {
-			frame = 1
-		}
 	}
 }
 
@@ -89,12 +82,17 @@ func createEmulator(settings settings.Settings) (*Emulator, error) {
 		return nil, err
 	}
 
-	emu := &Emulator{
-		mem:   mem,
-		ioBus: ioBus{},
-		z80:   z80.NewZ80(mem),
+	cpu := z80.NewZ80(mem)
+	bus := ioBus{
+		tCount: &cpu.TCount,
 	}
-	emu.z80.IOBus = &emu.ioBus
+	cpu.IOBus = &bus
+	emu := &Emulator{
+		mem: mem,
+		bus: bus,
+		z80: cpu,
+	}
+	emu.z80.IOBus = &emu.bus
 	emu.tCount = &emu.z80.TCount
 	state.Current = emu.tCount
 

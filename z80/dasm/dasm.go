@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/voytas/z80-go-zx/z80"
+	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
 type instruction struct {
@@ -15,7 +15,7 @@ type instruction struct {
 
 // Decode current opcode into mnemonic. This is very basic and simple
 // implementation, just a helper for debugging any issues.
-func Decode(addr uint16, mem z80.Memory) string {
+func Decode(addr uint16, mem memory.Memory) string {
 	opcode := mem.Read(addr)
 	var inst *instruction
 	switch opcode {

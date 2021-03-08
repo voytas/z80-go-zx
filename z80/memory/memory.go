@@ -1,4 +1,4 @@
-package z80
+package memory
 
 // Memory provides required methods for the emulated memory implementation
 type Memory interface {
