@@ -54,10 +54,10 @@ func (z80 *Z80) incR() {
 
 // Emulates maskable interrupt (INT)
 func (z80 *Z80) INT(data byte) {
+	z80.halt = false
 	if !z80.iff1 {
 		return
 	}
-	z80.halt = false
 	z80.iff1, z80.iff2 = false, false
 	switch z80.im {
 	case 0: // In theory in mode 0 we should execute data as a next instruction
@@ -100,7 +100,6 @@ func (z80 *Z80) Reset() {
 // maxTStates equal to 0 specifies unlimited number of t-states to execute.
 func (z80 *Z80) Run(tLimit int) {
 	z80.t = 0
-	z80.halt = false
 	for {
 		if tLimit != 0 {
 			z80.TCount += z80.t
@@ -117,7 +116,7 @@ func (z80 *Z80) Run(tLimit int) {
 			opcode = z80.readByte()
 		}
 
-		//debugger.Debug(opcode, z80.reg.prefix, z80.reg.PC, z80.mem)
+		// debugger.Debug(opcode, z80.reg.prefix, z80.reg.PC, z80.mem)
 
 		if z80.reg.prefix == noPrefix {
 			z80.t = tStatesPrimary[opcode]

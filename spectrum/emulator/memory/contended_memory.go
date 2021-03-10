@@ -2,8 +2,6 @@ package memory
 
 import (
 	"io/ioutil"
-
-	"github.com/voytas/z80-go-zx/spectrum/emulator/state"
 )
 
 const ramStart = 0x4000
@@ -16,7 +14,8 @@ var contendedStates []byte // index of extra states per each
 // we need to add extra states when specific memory addresses are accessed.
 // https://sinclair.wiki.zxnet.co.uk/wiki/Contended_memory
 type ContendedMemory struct {
-	Cells []byte
+	Cells  []byte
+	TCount *int
 }
 
 func init() {
@@ -49,9 +48,9 @@ func createContendedIndex() {
 }
 
 // Add extra states if memory address is contended
-func addContendedState(addr uint16) {
-	if addr >= 0x4000 && addr <= 0x7fff && *state.Current < len(contendedStates) {
-		*state.Current += int(contendedStates[*state.Current])
+func (m *ContendedMemory) addContendedState(addr uint16) {
+	if addr >= 0x4000 && addr <= 0x7fff && *m.TCount < len(contendedStates) {
+		*m.TCount += int(contendedStates[*m.TCount])
 	}
 }
 
@@ -60,7 +59,7 @@ func (m *ContendedMemory) Read(addr uint16) byte {
 	if addr >= uint16(len(m.Cells)) {
 		return 0xFF
 	}
-	addContendedState(addr)
+	m.addContendedState(addr)
 
 	return m.Cells[addr]
 }
@@ -70,7 +69,7 @@ func (m *ContendedMemory) Write(addr uint16, value byte) {
 	if addr >= ramStart && addr < ramEnd {
 		m.Cells[addr] = value
 	}
-	addContendedState(addr)
+	m.addContendedState(addr)
 }
 
 // Creates a memory using specified rom file and memory size.
