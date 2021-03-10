@@ -100,6 +100,7 @@ func (z80 *Z80) Reset() {
 // maxTStates equal to 0 specifies unlimited number of t-states to execute.
 func (z80 *Z80) Run(tLimit int) {
 	z80.t = 0
+	z80.halt = false
 	for {
 		if tLimit != 0 {
 			z80.TCount += z80.t
