@@ -13,7 +13,6 @@ import (
 	"github.com/voytas/z80-go-zx/spectrum/emulator/screen"
 	"github.com/voytas/z80-go-zx/spectrum/emulator/settings"
 	"github.com/voytas/z80-go-zx/spectrum/emulator/snapshot"
-	"github.com/voytas/z80-go-zx/spectrum/emulator/state"
 	"github.com/voytas/z80-go-zx/z80"
 )
 
@@ -47,9 +46,9 @@ func Run(settings settings.Settings) {
 
 	window.SetKeyCallback(keyboard.Callback)
 
-	gl.ClearColor(1, 1, 1, 1)
-	gl.PixelZoom(4, 4)
-	//gl.WindowPos2d(100, 100)
+	gl.ClearColor(0, 0, 0, 1)
+	gl.PixelZoom(4, -4)
+	gl.RasterPos2d(-1, 1)
 
 	emu, err := createEmulator(settings)
 	if err != nil {
@@ -60,7 +59,7 @@ func Run(settings settings.Settings) {
 	ticker := time.NewTicker(20 * time.Millisecond)
 
 	for !window.ShouldClose() {
-		emu.z80.INT(0)
+		emu.z80.INT(0xFF)
 		emu.z80.Run(settings.FrameStates)
 		<-ticker.C
 
@@ -83,6 +82,7 @@ func createEmulator(settings settings.Settings) (*Emulator, error) {
 	}
 
 	cpu := z80.NewZ80(mem)
+	mem.TCount = &cpu.TCount
 	bus := ioBus{
 		tCount: &cpu.TCount,
 	}
@@ -94,9 +94,9 @@ func createEmulator(settings settings.Settings) (*Emulator, error) {
 	}
 	emu.z80.IOBus = &emu.bus
 	emu.tCount = &emu.z80.TCount
-	state.Current = emu.tCount
 
-	err = snapshot.LoadSNA("./games/Manic Miner.sna", emu.z80, mem.Cells)
+	//err = snapshot.LoadSNA("./games/Manic Miner.sna", emu.z80, mem.Cells)
+	err = snapshot.LoadSNA("./games/for_peace.sna", emu.z80, mem.Cells)
 	if err != nil {
 		return nil, err
 	}

@@ -34,28 +34,36 @@ var lines = []int{
 
 var bits = []byte{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01}
 var frame = 1
+var img = image.NewRGBA(image.Rect(0, 0, width, height))
 
-// Renders the screen as Render image (upside down e.g. bottom left to top right)
+// 198 linia to jest 198 + 30 + 30
+
+// Renders the screen as RGBA image
 func Render(mem []byte) *image.RGBA {
-	width := BorderLeft + 256 + BorderRight
-	height := BorderTop + 192 + BorderBottom
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
-
-	border := borderPalette[lastBorderColour&0x07]
+	// Top border
+	for pixel := 0; pixel < 4*width*BorderTop; pixel += 4 {
+		border := findBorderColour(pixelT[pixel/4])
+		img.Pix[pixel] = border[0]
+		img.Pix[pixel+1] = border[1]
+		img.Pix[pixel+2] = border[2]
+		img.Pix[pixel+3] = 0xFF
+	}
 
 	// Main screen
 	for line, addr := range lines {
-		pixel := 4 * (width*(191-line+BorderBottom) + BorderLeft)
+		pixel := 4 * (width*(line+BorderTop) + BorderLeft)
 
 		// Left border
 		for left := pixel - 4*BorderLeft; left < pixel; left += 4 {
+			border := findBorderColour(pixelT[left/4])
 			img.Pix[left] = border[0]
 			img.Pix[left+1] = border[1]
 			img.Pix[left+2] = border[2]
 			img.Pix[left+3] = 0xFF
 		}
 		// Right border
-		for right := pixel + 4*256; right < pixel+4*256+4*BorderLeft; right += 4 {
+		for right := pixel + 4*256; right < pixel+4*256+4*BorderRight; right += 4 {
+			border := findBorderColour(pixelT[right/4])
 			img.Pix[right] = border[0]
 			img.Pix[right+1] = border[1]
 			img.Pix[right+2] = border[2]
@@ -83,24 +91,16 @@ func Render(mem []byte) *image.RGBA {
 		}
 	}
 
-	// Top border
-	for pixel := 4 * width * (BorderBottom + 192); pixel < 4*width*(height); pixel += 4 {
-		img.Pix[pixel] = border[0]
-		img.Pix[pixel+1] = border[1]
-		img.Pix[pixel+2] = border[2]
-		img.Pix[pixel+3] = 0xFF
-	}
-
 	// Bottom border
-	for pixel := 0; pixel < 4*width*BorderBottom; pixel += 4 {
+	for pixel := 4 * width * (BorderTop + 192); pixel < 4*width*(height); pixel += 4 {
+		border := findBorderColour(pixelT[pixel/4])
 		img.Pix[pixel] = border[0]
 		img.Pix[pixel+1] = border[1]
 		img.Pix[pixel+2] = border[2]
 		img.Pix[pixel+3] = 0xFF
 	}
 
-	// We do not need border states anymore
-	borderStates = nil
+	resetBorderStates()
 
 	frame += 1
 	if frame > 50 {

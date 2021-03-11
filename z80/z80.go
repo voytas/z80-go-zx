@@ -20,6 +20,7 @@ type Z80 struct {
 	halt, iff1, iff2 bool          // states of halt, iff1 and iff2
 	im               byte          // interrupt mode (im0, im1 or in2)
 	TCount           int           // Count of executed t-states
+	ExitOnHalt       bool          // Helper flag to tell emulator to finish when HALT is executed
 }
 
 func NewZ80(mem memory.Memory) *Z80 {
@@ -111,6 +112,9 @@ func (z80 *Z80) Run(tLimit int) {
 
 		var opcode byte
 		if z80.halt {
+			if z80.ExitOnHalt {
+				return
+			}
 			opcode = nop
 		} else {
 			opcode = z80.readByte()
