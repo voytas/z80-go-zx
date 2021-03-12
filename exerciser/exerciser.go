@@ -73,7 +73,6 @@ func Run(program string) {
 		Cells: cells,
 	}
 	z80 := z80.NewZ80(&mem)
-	z80.ExitOnHalt = true
 	z80.IOBus = &ioBus{}
 	z80.Run(0)
 	fmt.Println("")

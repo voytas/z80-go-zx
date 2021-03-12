@@ -26,10 +26,9 @@ type borderState struct {
 func init() {
 	// Initialise array containing each pixel t-state value for quick access
 	pixelT = make([]int, width*height)
-	start := (64 - BorderTop) * tPerLine
 	for line := 0; line < height; line++ {
 		for px := 0; px < width; px++ {
-			pixelT[line*width+px] = start + line*tPerLine + (48-BorderLeft+px)/2
+			pixelT[line*width+px] = (64-BorderTop+line)*tPerLine + (48-BorderLeft+px)/2
 		}
 	}
 }
@@ -80,7 +79,6 @@ func resetBorderStates() {
 	if len(borderStates) > 0 {
 		lastBorderState = *borderStates[len(borderStates)-1]
 	}
-	//log.Printf("Last state: %v %v", len(borderStates), borderStates[len(borderStates)-1].tCount)
 	borderStates = nil
 	nextBorderState = nil
 }

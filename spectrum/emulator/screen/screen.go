@@ -36,8 +36,6 @@ var bits = []byte{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01}
 var frame = 1
 var img = image.NewRGBA(image.Rect(0, 0, width, height))
 
-// 198 linia to jest 198 + 30 + 30
-
 // Renders the screen as RGBA image
 func Render(mem []byte) *image.RGBA {
 	// Top border

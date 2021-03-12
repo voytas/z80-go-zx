@@ -19,7 +19,7 @@ import (
 type Emulator struct {
 	bus    ioBus
 	z80    *z80.Z80
-	mem    *memory.ContendedMemory
+	mem    *memory.Mem48k
 	tCount *int
 }
 
@@ -57,7 +57,6 @@ func Run(settings settings.Settings) {
 
 	// ZX Spectrum generates 50 interrupts per second
 	ticker := time.NewTicker(20 * time.Millisecond)
-
 	for !window.ShouldClose() {
 		emu.z80.INT(0xFF)
 		emu.z80.Run(settings.FrameStates)
@@ -76,7 +75,7 @@ func Run(settings settings.Settings) {
 }
 
 func createEmulator(settings settings.Settings) (*Emulator, error) {
-	mem, err := memory.NewMemory(settings.ROMPath, settings.Memory)
+	mem, err := memory.NewMem48k(settings.ROMPath, settings.Memory)
 	if err != nil {
 		return nil, err
 	}

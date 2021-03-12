@@ -15,7 +15,7 @@ func Test_ReadWrite(t *testing.T) {
 	}
 
 	ramEnd = 0x8000
-	mem := ContendedMemory{
+	mem := Mem48k{
 		Cells: make([]byte, ramEnd),
 	}
 

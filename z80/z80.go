@@ -2,6 +2,7 @@ package z80
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
@@ -20,7 +21,6 @@ type Z80 struct {
 	halt, iff1, iff2 bool          // states of halt, iff1 and iff2
 	im               byte          // interrupt mode (im0, im1 or in2)
 	TCount           int           // Count of executed t-states
-	ExitOnHalt       bool          // Helper flag to tell emulator to finish when HALT is executed
 }
 
 func NewZ80(mem memory.Memory) *Z80 {
@@ -61,8 +61,7 @@ func (z80 *Z80) INT(data byte) {
 	}
 	z80.iff1, z80.iff2 = false, false
 	switch z80.im {
-	case 0: // In theory in mode 0 we should execute data as a next instruction
-	case 1:
+	case 0, 1:
 		z80.pushPC()
 		z80.reg.PC = 0x38 // RST 38h
 		z80.TCount += 13
@@ -110,12 +109,14 @@ func (z80 *Z80) Run(tLimit int) {
 			}
 		}
 
+		if z80.reg.PC == 0x1303 {
+			log.Println("0x1303")
+		}
+
 		var opcode byte
 		if z80.halt {
-			if z80.ExitOnHalt {
-				return
-			}
-			opcode = nop
+			z80.TCount = (tLimit - z80.TCount) % 4
+			break
 		} else {
 			opcode = z80.readByte()
 		}

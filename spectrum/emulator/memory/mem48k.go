@@ -13,7 +13,7 @@ var contendedStates []byte // index of extra states per each
 // memory access during the screen draw. So in order to accurately calculate t-states
 // we need to add extra states when specific memory addresses are accessed.
 // https://sinclair.wiki.zxnet.co.uk/wiki/Contended_memory
-type ContendedMemory struct {
+type Mem48k struct {
 	Cells  []byte
 	TCount *int
 }
@@ -48,14 +48,14 @@ func createContendedIndex() {
 }
 
 // Add extra states if memory address is contended
-func (m *ContendedMemory) addContendedState(addr uint16) {
+func (m *Mem48k) addContendedState(addr uint16) {
 	if addr >= 0x4000 && addr <= 0x7fff && *m.TCount < len(contendedStates) {
 		*m.TCount += int(contendedStates[*m.TCount])
 	}
 }
 
 // Read a value from the memory address.
-func (m *ContendedMemory) Read(addr uint16) byte {
+func (m *Mem48k) Read(addr uint16) byte {
 	if addr >= uint16(len(m.Cells)) {
 		return 0xFF
 	}
@@ -65,7 +65,7 @@ func (m *ContendedMemory) Read(addr uint16) byte {
 }
 
 // Write a value to the memory address.
-func (m *ContendedMemory) Write(addr uint16, value byte) {
+func (m *Mem48k) Write(addr uint16, value byte) {
 	if addr >= ramStart && addr < ramEnd {
 		m.Cells[addr] = value
 	}
@@ -73,8 +73,8 @@ func (m *ContendedMemory) Write(addr uint16, value byte) {
 }
 
 // Creates a memory using specified rom file and memory size.
-func NewMemory(romPath string, size uint16) (*ContendedMemory, error) {
-	mem := &ContendedMemory{}
+func NewMem48k(romPath string, size uint16) (*Mem48k, error) {
+	mem := &Mem48k{}
 	mem.Cells = make([]byte, size)
 
 	rom, err := ioutil.ReadFile(romPath)
