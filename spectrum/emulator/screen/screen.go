@@ -36,6 +36,13 @@ var bits = []byte{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01}
 var frame = 1
 var img = image.NewRGBA(image.Rect(0, 0, width, height))
 
+func init() {
+	// Set alpha to FF, it is constant
+	for px := 3; px < len(img.Pix); px += 4 {
+		img.Pix[px] = 0xFF
+	}
+}
+
 // Renders the screen as RGBA image
 func Render(mem []byte) *image.RGBA {
 	// Top border
@@ -44,28 +51,25 @@ func Render(mem []byte) *image.RGBA {
 		img.Pix[pixel] = border[0]
 		img.Pix[pixel+1] = border[1]
 		img.Pix[pixel+2] = border[2]
-		img.Pix[pixel+3] = 0xFF
 	}
 
 	// Main screen
 	for line, addr := range lines {
-		pixel := 4 * (width*(line+BorderTop) + BorderLeft)
+		px := 4 * (width*(line+BorderTop) + BorderLeft)
 
 		// Left border
-		for left := pixel - 4*BorderLeft; left < pixel; left += 4 {
+		for left := px - 4*BorderLeft; left < px; left += 4 {
 			border := findBorderColour(pixelT[left/4])
 			img.Pix[left] = border[0]
 			img.Pix[left+1] = border[1]
 			img.Pix[left+2] = border[2]
-			img.Pix[left+3] = 0xFF
 		}
 		// Right border
-		for right := pixel + 4*256; right < pixel+4*256+4*BorderRight; right += 4 {
+		for right := px + 4*256; right < px+4*256+4*BorderRight; right += 4 {
 			border := findBorderColour(pixelT[right/4])
 			img.Pix[right] = border[0]
 			img.Pix[right+1] = border[1]
 			img.Pix[right+2] = border[2]
-			img.Pix[right+3] = 0xFF
 		}
 
 		for col := 0; col < 32; col++ {
@@ -80,22 +84,20 @@ func Render(mem []byte) *image.RGBA {
 				} else {
 					colour = paperPalette[attr&0b01111000]
 				}
-				img.Pix[pixel] = colour[0]
-				img.Pix[pixel+1] = colour[1]
-				img.Pix[pixel+2] = colour[2]
-				img.Pix[pixel+3] = 0xFF
-				pixel += 4
+				img.Pix[px] = colour[0]
+				img.Pix[px+1] = colour[1]
+				img.Pix[px+2] = colour[2]
+				px += 4
 			}
 		}
 	}
 
 	// Bottom border
-	for pixel := 4 * width * (BorderTop + 192); pixel < 4*width*(height); pixel += 4 {
-		border := findBorderColour(pixelT[pixel/4])
-		img.Pix[pixel] = border[0]
-		img.Pix[pixel+1] = border[1]
-		img.Pix[pixel+2] = border[2]
-		img.Pix[pixel+3] = 0xFF
+	for px := 4 * width * (BorderTop + 192); px < 4*width*(height); px += 4 {
+		border := findBorderColour(pixelT[px/4])
+		img.Pix[px] = border[0]
+		img.Pix[px+1] = border[1]
+		img.Pix[px+2] = border[2]
 	}
 
 	resetBorderStates()
