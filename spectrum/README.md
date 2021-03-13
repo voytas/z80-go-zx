@@ -7,7 +7,7 @@ I couldn't find any simple graphics library for go that will allow rendering jus
 All that information you can find [here](https://worldofspectrum.org/faq/reference/48kreference.htm)
 
 ## Screen
-In terms of ZX Spectrum 48kB, screen is refreshed 50 times per second. So, you just need a timer that will run every 20ms (50 * 20ms = 1s). However if you want to also emulate border effects, some more work is needed. Because emulation runs much faster than the real machine, we need to keep track of border colour changes in relation to t-state and use that information when screen is rendered.
+In terms of ZX Spectrum 48kB, screen is refreshed 50 times per second. So, you just need a timer that will run every 20ms (50 * 20ms = 1s). However if you want to also emulate border effects, some more work is needed. Because emulation runs much faster than the real machine, we need to keep track of border colour changes in relation to T state and use that information when screen is rendered.
 
 ## Memory
 

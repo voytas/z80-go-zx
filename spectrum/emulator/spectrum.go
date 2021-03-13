@@ -81,9 +81,9 @@ func createEmulator(settings settings.Settings) (*Emulator, error) {
 	}
 
 	cpu := z80.NewZ80(mem)
-	mem.TCount = &cpu.TCount
+	mem.TCount = &cpu.TC
 	bus := ioBus{
-		tCount: &cpu.TCount,
+		tCount: &cpu.TC,
 	}
 	cpu.IOBus = &bus
 	emu := &Emulator{
@@ -92,7 +92,7 @@ func createEmulator(settings settings.Settings) (*Emulator, error) {
 		z80: cpu,
 	}
 	emu.z80.IOBus = &emu.bus
-	emu.tCount = &emu.z80.TCount
+	emu.tCount = &emu.z80.TC
 
 	//err = snapshot.LoadSNA("./games/Manic Miner.sna", emu.z80, mem.Cells)
 	err = snapshot.LoadSNA("./games/for_peace.sna", emu.z80, mem.Cells)

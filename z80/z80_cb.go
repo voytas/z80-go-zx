@@ -8,18 +8,18 @@ func (z80 *Z80) prefixCB() {
 
 	opcode := z80.readByte()
 	var offset byte
-	z80.TCount += 8
+	z80.TC += 8
 	if z80.reg.prefix != noPrefix {
 		offset = opcode
 		opcode = z80.readByte() // for IX and IY the actual opcode comes after the offset
-		z80.TCount += 11        // 23 t-states for IX & IY (except bit -3)
+		z80.TC += 11            // 23 T states for IX & IY (except bit -3)
 	}
 	reg := opcode & 0b00000111
 	if reg == HL {
 		hl = z80.getHLOffset(offset)
 		v = z80.mem.Read(hl)
 		if z80.reg.prefix == noPrefix {
-			z80.TCount += 7 // 15 t-states for HL (except bit -3)
+			z80.TC += 7 // 15 T states for HL (except bit -3)
 		}
 	} else {
 		if z80.reg.prefix == noPrefix {
@@ -92,7 +92,7 @@ func (z80 *Z80) prefixCB() {
 			if reg == HL {
 				// Might not be 100%, this undocumented behaviour is not clear, but it passses test
 				z80.reg.F |= fS&test | (fY|fX)&byte(hl>>8)
-				z80.TCount -= 3 // bit and HL is 12 t-states
+				z80.TC -= 3 // bit and HL is 12 T states
 			} else {
 				z80.reg.F |= fS&test | (fY|fX)&v
 			}

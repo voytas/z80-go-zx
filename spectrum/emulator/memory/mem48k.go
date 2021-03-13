@@ -9,8 +9,8 @@ const ramStart = 0x4000
 var ramEnd uint16          // specifies last available RAM address
 var contendedStates []byte // index of extra states per each
 
-// Some memory addresses have slower access (extra t-states), because of ULA priority
-// memory access during the screen draw. So in order to accurately calculate t-states
+// Some memory addresses have slower access (extra T states), because of ULA priority
+// memory access during the screen draw. So in order to accurately calculate T states
 // we need to add extra states when specific memory addresses are accessed.
 // https://sinclair.wiki.zxnet.co.uk/wiki/Contended_memory
 type Mem48k struct {

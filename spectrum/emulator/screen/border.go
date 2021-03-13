@@ -14,7 +14,7 @@ var (
 	lastBorderState borderState
 	width           = BorderLeft + 256 + BorderRight
 	height          = BorderTop + 192 + BorderBottom
-	pixelT          []int // t-state for each screen pixel
+	pixelT          []int // T state for each screen pixel
 )
 
 type borderState struct {
@@ -24,7 +24,7 @@ type borderState struct {
 }
 
 func init() {
-	// Initialise array containing each pixel t-state value for quick access
+	// Initialise array containing each pixel T state value for quick access
 	pixelT = make([]int, width*height)
 	for line := 0; line < height; line++ {
 		for px := 0; px < width; px++ {

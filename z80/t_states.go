@@ -1,6 +1,6 @@
 package z80
 
-// t-states for primary opcodes
+// T states for primary opcodes
 var tStatesPrimary = []int{
 	nop:        4,
 	ld_bc_nn:   10,
@@ -260,7 +260,7 @@ var tStatesPrimary = []int{
 	rst_38h:    11,
 }
 
-// t-states for IX/IY prefixed opcodes, only values that are not just +4 t-state
+// T states for IX/IY prefixed opcodes, only values that are not just +4 T state
 var tStatesIXY = []int{
 	inc_mhl:  23,
 	dec_mhl:  23,
@@ -292,7 +292,7 @@ var tStatesIXY = []int{
 	0xFF:     0,
 }
 
-// t-states for ED prefixed opcodes
+// T states for ED prefixed opcodes
 var tStatesED = []int{
 	in_b_c:      12,
 	out_c_b:     12,

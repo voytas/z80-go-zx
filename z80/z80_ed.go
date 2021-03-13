@@ -4,9 +4,9 @@ package z80
 func (z80 *Z80) prefixED(opcode byte) {
 	t := tStatesED[opcode]
 	if t != 0 {
-		z80.TCount += t - 4
+		z80.TC += t - 4
 	} else {
-		z80.TCount += tStatesPrimary[nop]
+		z80.TC += tStatesPrimary[nop]
 	}
 
 	switch opcode {
@@ -154,7 +154,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.reg.F |= fP
 			if opcode == ldir || opcode == lddr {
 				z80.reg.PC -= 2
-				z80.TCount += 5
+				z80.TC += 5
 			}
 		}
 	case cpi, cpir, cpd, cpdr:
@@ -180,7 +180,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 		z80.reg.F |= fY&(n<<4) | fX&n
 		if (opcode == cpir || opcode == cpdr) && bc != 0 && test != 0 {
 			z80.reg.PC -= 2
-			z80.TCount += 5
+			z80.TC += 5
 		}
 	case ini, inir, ind, indr:
 		hl := z80.reg.HL()
@@ -200,7 +200,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.reg.F |= fZ
 		} else if opcode == inir || opcode == indr {
 			z80.reg.PC -= 2
-			z80.TCount += 5
+			z80.TC += 5
 		}
 	case outi, otir, outd, otdr:
 		hl := z80.reg.HL()
@@ -218,7 +218,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.reg.F |= fZ
 		} else if opcode == otir || opcode == otdr {
 			z80.reg.PC -= 2
-			z80.TCount += 5
+			z80.TC += 5
 		}
 	}
 }
