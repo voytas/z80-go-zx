@@ -1,4 +1,4 @@
-package emulator
+package spectrum
 
 import (
 	"log"
@@ -8,11 +8,11 @@ import (
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/voytas/z80-go-zx/spectrum/emulator/keyboard"
-	"github.com/voytas/z80-go-zx/spectrum/emulator/memory"
-	"github.com/voytas/z80-go-zx/spectrum/emulator/screen"
-	"github.com/voytas/z80-go-zx/spectrum/emulator/settings"
-	"github.com/voytas/z80-go-zx/spectrum/emulator/snapshot"
+	"github.com/voytas/z80-go-zx/spectrum/keyboard"
+	"github.com/voytas/z80-go-zx/spectrum/memory"
+	"github.com/voytas/z80-go-zx/spectrum/screen"
+	"github.com/voytas/z80-go-zx/spectrum/settings"
+	"github.com/voytas/z80-go-zx/spectrum/snapshot"
 	"github.com/voytas/z80-go-zx/z80"
 )
 
@@ -27,7 +27,7 @@ func init() {
 	runtime.LockOSThread()
 }
 
-func Run(settings settings.Settings) {
+func Run(settings settings.Settings, fileToLoad string) {
 	if err := glfw.Init(); err != nil {
 		log.Fatalln("failed to initialize glfw:", err)
 	}
@@ -50,7 +50,7 @@ func Run(settings settings.Settings) {
 	gl.PixelZoom(4, -4)
 	gl.RasterPos2d(-1, 1)
 
-	emu, err := createEmulator(settings)
+	emu, err := createEmulator(settings, fileToLoad)
 	if err != nil {
 		log.Fatalln("failed to create emulator:", err)
 	}
@@ -74,7 +74,7 @@ func Run(settings settings.Settings) {
 	}
 }
 
-func createEmulator(settings settings.Settings) (*Emulator, error) {
+func createEmulator(settings settings.Settings, fileToLoad string) (*Emulator, error) {
 	mem, err := memory.NewMem48k(settings.ROMPath, settings.Memory)
 	if err != nil {
 		return nil, err
@@ -94,10 +94,11 @@ func createEmulator(settings settings.Settings) (*Emulator, error) {
 	emu.z80.IOBus = &emu.bus
 	emu.tCount = &emu.z80.TC
 
-	//err = snapshot.LoadSNA("./games/Manic Miner.sna", emu.z80, mem.Cells)
-	err = snapshot.LoadSNA("./games/for_peace.sna", emu.z80, mem.Cells)
-	if err != nil {
-		return nil, err
+	if fileToLoad != "" {
+		err = snapshot.LoadSNA(fileToLoad, emu.z80, mem.Cells)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return emu, nil

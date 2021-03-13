@@ -9,5 +9,5 @@ type Settings struct {
 var ZX48k = Settings{
 	Memory:      0xFFFF,
 	FrameStates: 69888,
-	ROMPath:     "./rom/48k.rom",
+	ROMPath:     "./spectrum/rom/48k.rom",
 }

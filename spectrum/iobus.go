@@ -1,8 +1,8 @@
-package emulator
+package spectrum
 
 import (
-	"github.com/voytas/z80-go-zx/spectrum/emulator/keyboard"
-	"github.com/voytas/z80-go-zx/spectrum/emulator/screen"
+	"github.com/voytas/z80-go-zx/spectrum/keyboard"
+	"github.com/voytas/z80-go-zx/spectrum/screen"
 )
 
 type ioBus struct {
