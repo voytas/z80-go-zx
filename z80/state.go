@@ -10,7 +10,7 @@ type CPUState struct {
 	IFF1, IFF2         bool
 }
 
-func (z80 *Z80) State(state CPUState) {
+func (z80 *Z80) State(state *CPUState) {
 	z80.reg.A = byte(state.AF >> 8)
 	z80.reg.F = byte(state.AF)
 	z80.reg.B = byte(state.BC >> 8)
@@ -35,6 +35,9 @@ func (z80 *Z80) State(state CPUState) {
 	z80.reg.SP = state.SP
 	z80.reg.I = state.I
 	z80.reg.R = state.R
+	z80.im = state.IM
+	z80.iff1 = state.IFF1
+	z80.iff2 = state.IFF2
 }
 
 func (z80 *Z80) GetState() CPUState {

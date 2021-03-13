@@ -3,6 +3,7 @@ package snapshot
 import (
 	"io/ioutil"
 
+	"github.com/voytas/z80-go-zx/spectrum/emulator/screen"
 	"github.com/voytas/z80-go-zx/z80"
 )
 
@@ -36,14 +37,14 @@ func LoadSNA(filePath string, cpu *z80.Z80, mem []byte) error {
 		mem[i] = sna[i-16384+27]
 	}
 
-	// TODO: Set border colour
+	screen.AddBorderState(sna[26], 0)
 
 	// Simulate RETN
 	state.PC = uint16(mem[state.SP+1])<<8 | uint16(mem[state.SP])
 	state.SP += 2
 
 	// Set CPU state
-	cpu.State(state)
+	cpu.State(&state)
 
 	return nil
 }
