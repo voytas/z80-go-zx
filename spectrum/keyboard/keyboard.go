@@ -4,9 +4,9 @@ import (
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
-// Key rows and key statuses
+// Key half-rows and key statuses
 var ports = []byte{
-	0x01: 0xFF, // Shift, Z X C V
+	0x01: 0xFF, // Shift Z X C V
 	0x02: 0xFF, // A S D F G
 	0x04: 0xFF, // Q W E R T
 	0x08: 0xFF, // 1 2 3 4 5

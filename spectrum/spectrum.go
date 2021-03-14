@@ -55,8 +55,8 @@ func Run(settings settings.Settings, fileToLoad string) {
 		log.Fatalln("failed to create emulator:", err)
 	}
 
-	// ZX Spectrum generates 50 interrupts per second
-	ticker := time.NewTicker(20 * time.Millisecond)
+	// 50.08 Hz
+	ticker := time.NewTicker(19968 * time.Microsecond)
 	for !window.ShouldClose() {
 		emu.z80.INT(0xFF)
 		emu.z80.Run(settings.FrameStates)
