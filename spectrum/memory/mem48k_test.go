@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_BasicMemory(t *testing.T) {
+func Test_ReadWrite(t *testing.T) {
 	var tests = []struct {
 		addr     uint16
 		expected byte
@@ -14,9 +14,9 @@ func Test_BasicMemory(t *testing.T) {
 		{0x0000, 0x55}, {0x3FFF, 0x55}, {0x4000, 0xAA}, {0x7FFF, 0xAA}, {0x8000, 0xFF}, {0xFFFF, 0xFF},
 	}
 
-	mem := BasicMemory{
-		ramStart: 0x4000,
-		Cells:    make([]byte, 0x8000),
+	ramEnd = 0x8000
+	mem := Mem48k{
+		Cells: make([]byte, ramEnd),
 	}
 
 	for i := 0; i < len(mem.Cells); i++ {
@@ -28,4 +28,14 @@ func Test_BasicMemory(t *testing.T) {
 
 		assert.Equal(t, byte(test.expected), result)
 	}
+}
+
+func Test_Contended(t *testing.T) {
+	// state.Current = &z80.State{}
+	// ramEnd = 0xFFFF
+	// mem := ContendedMemory{
+	// 	Cells: make([]byte, ramEnd),
+	// }
+
+	//	x := mem.Read(0x4000)
 }

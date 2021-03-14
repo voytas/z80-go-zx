@@ -1,47 +1,49 @@
 package z80
 
 // Handles opcodes with CB prefix
-func (cpu *CPU) prefixCB() {
+func (z80 *Z80) prefixCB() {
 	const HL = 0b110
 	var v byte
 	var hl uint16
 
-	opcode := cpu.readByte()
+	opcode := z80.readByte()
 	var offset byte
-	if cpu.reg.prefix != noPrefix {
+	z80.TC += 8
+	if z80.reg.prefix != noPrefix {
 		offset = opcode
-		opcode = cpu.readByte() // for IX and IY the actual opcode comes after the offset
-		cpu.t = 8               // extra 8 t-states for IX and IY
+		opcode = z80.readByte() // for IX and IY the actual opcode comes after the offset
+		z80.TC += 11            // 23 T states for IX & IY (except bit -3)
 	}
 	reg := opcode & 0b00000111
 	if reg == HL {
-		hl = cpu.getHLOffset(offset)
-		v = cpu.mem.Read(hl)
-		cpu.t += 15 // 15 t-states for HL with one exception for bit
-	} else {
-		if cpu.reg.prefix == noPrefix {
-			v = *cpu.reg.raw[reg]
-		} else {
-			hl = cpu.getHLOffset(offset)
-			v = cpu.mem.Read(hl)
+		hl = z80.getHLOffset(offset)
+		v = z80.mem.Read(hl)
+		if z80.reg.prefix == noPrefix {
+			z80.TC += 7 // 15 T states for HL (except bit -3)
 		}
-		cpu.t += 8 // 8 t-states for registers
+	} else {
+		if z80.reg.prefix == noPrefix {
+			v = *z80.reg.raw[reg]
+		} else {
+			hl = z80.getHLOffset(offset)
+			v = z80.mem.Read(hl)
+		}
 	}
 
 	var cf byte
 	write := func(flags bool) {
 		if reg != HL {
-			*cpu.reg.raw[reg] = v
+			*z80.reg.raw[reg] = v
 		}
-		if reg == HL || cpu.reg.prefix != noPrefix {
-			cpu.mem.Write(hl, v)
+		if reg == HL || z80.reg.prefix != noPrefix {
+			z80.mem.Write(hl, v)
 		}
 		if flags {
-			cpu.reg.F = (f_S | f_Y | f_X) & v
+			z80.reg.F = (fS | fY | fX) & v
 			if v == 0 {
-				cpu.reg.F |= f_Z
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= parity[v] | cf
+			z80.reg.F |= parity[v] | cf
 		}
 	}
 
@@ -51,23 +53,23 @@ func (cpu *CPU) prefixCB() {
 		v = v<<1 | cf
 		write(true)
 	case rrc_r:
-		cf = v & f_C
+		cf = v & fC
 		v = v>>1 | cf<<7
 		write(true)
 	case rl_r:
 		cf = v >> 7
-		v = v<<1 | f_C&cpu.reg.F
+		v = v<<1 | fC&z80.reg.F
 		write(true)
 	case rr_r:
-		cf = v & f_C
-		v = v>>1 | f_C&cpu.reg.F<<7
+		cf = v & fC
+		v = v>>1 | fC&z80.reg.F<<7
 		write(true)
 	case sla_r:
 		cf = v >> 7
 		v = v << 1
 		write(true)
 	case sra_r:
-		cf = v & f_C
+		cf = v & fC
 		v = v&0x80 | v>>1
 		write(true)
 	case sll_r:
@@ -75,30 +77,30 @@ func (cpu *CPU) prefixCB() {
 		v = v<<1 | 0x01
 		write(true)
 	case srl_r:
-		cf = v & f_C
+		cf = v & fC
 		v = v >> 1
 		write(true)
 	default:
 		bit := (opcode & 0b00111000) >> 3
 		switch opcode & 0b11000000 {
 		case bit_b:
-			cpu.reg.F = cpu.reg.F&f_C | f_H
-			test := v & bit_mask[bit]
+			z80.reg.F = z80.reg.F&fC | fH
+			test := v & bitMask[bit]
 			if test == 0 {
-				cpu.reg.F |= f_Z | f_P
+				z80.reg.F |= fZ | fP
 			}
 			if reg == HL {
 				// Might not be 100%, this undocumented behaviour is not clear, but it passses test
-				cpu.reg.F |= f_S&test | (f_Y|f_X)&byte(hl>>8)
-				cpu.t -= 3 // bit and HL is 12 t-states
+				z80.reg.F |= fS&test | (fY|fX)&byte(hl>>8)
+				z80.TC -= 3 // bit and HL is 12 T states
 			} else {
-				cpu.reg.F |= f_S&test | (f_Y|f_X)&v
+				z80.reg.F |= fS&test | (fY|fX)&v
 			}
 		case res_b:
-			v &= ^bit_mask[bit]
+			v &= ^bitMask[bit]
 			write(false)
 		case set_b:
-			v |= bit_mask[bit]
+			v |= bitMask[bit]
 			write(false)
 		}
 	}

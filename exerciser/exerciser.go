@@ -9,6 +9,18 @@ import (
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
+type ioBus struct{}
+
+func (bus *ioBus) Read(hi, lo byte) byte {
+	return 0xFF
+}
+func (bus *ioBus) Write(hi, lo, data byte) {
+	if lo == 5 {
+		ch := string(data)
+		fmt.Print(ch)
+	}
+}
+
 func Run(program string) {
 	fmt.Printf("Running %s\n", program)
 	content, err := ioutil.ReadFile(program)
@@ -57,15 +69,11 @@ func Run(program string) {
 		cells[0xF000+i] = b
 	}
 
-	mem := memory.BasicMemory{}
-	mem.Configure(cells, 0)
-	cpu := z80.NewCPU(&mem)
-	cpu.OUT = func(hi, lo, data byte) {
-		if lo == 5 {
-			ch := string(data)
-			fmt.Print(ch)
-		}
+	mem := memory.BasicMemory{
+		Cells: cells,
 	}
-	cpu.Run()
+	z80 := z80.NewZ80(&mem)
+	z80.IOBus = &ioBus{}
+	z80.Run(0)
 	fmt.Println("")
 }

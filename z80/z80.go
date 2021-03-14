@@ -6,331 +6,382 @@ import (
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
-// Represents emulated Z80 CPU
-type CPU struct {
-	IN               func(hi, lo byte) byte  // callback function to execute on IN instruction
-	OUT              func(hi, lo, data byte) // callback function to execute on OUT instruction
-	mem              memory.Memory           // memory
-	reg              *registers              // registers
-	t                byte                    // t-states
-	halt, iff1, iff2 bool                    // states of halt, iff1 and iff2
-	im               byte                    // interrupt mode (im0, im1 or in2)
+type IOBus interface {
+	Read(hi, lo byte) byte
+	Write(hi, lo, data byte)
 }
 
-func NewCPU(mem memory.Memory) *CPU {
-	cpu := &CPU{}
-	cpu.mem = mem
-	cpu.IN = func(_, _ byte) byte { return 0xFF }
-	cpu.OUT = func(hi, lo, data byte) {}
-	cpu.Reset()
-	return cpu
+// Represents emulated Z80 Z80
+type Z80 struct {
+	IOBus            IOBus
+	mem              memory.Memory // memory
+	reg              *registers    // registers
+	halt, iff1, iff2 bool          // states of halt, iff1 and iff2
+	im               byte          // interrupt mode (im0, im1 or in2)
+	TC               int           // running T states counter
 }
 
-func (cpu *CPU) readByte() byte {
-	b := cpu.mem.Read(cpu.reg.PC)
-	cpu.reg.PC += 1
+func NewZ80(mem memory.Memory) *Z80 {
+	z80 := &Z80{}
+	z80.mem = mem
+	z80.Reset()
+	return z80
+}
+
+func (z80 *Z80) readByte() byte {
+	b := z80.mem.Read(z80.reg.PC)
+	z80.reg.PC += 1
 	return b
 }
 
-func (cpu *CPU) readWord() uint16 {
-	w := uint16(cpu.mem.Read(cpu.reg.PC)) | uint16(cpu.mem.Read(cpu.reg.PC+1))<<8
-	cpu.reg.PC += 2
+func (z80 *Z80) readWord() uint16 {
+	w := uint16(z80.mem.Read(z80.reg.PC)) | uint16(z80.mem.Read(z80.reg.PC+1))<<8
+	z80.reg.PC += 2
 	return w
 }
 
-func (cpu *CPU) wait() {
+func (z80 *Z80) pushPC() {
+	z80.reg.SP -= 1
+	z80.mem.Write(z80.reg.SP, byte(z80.reg.PC>>8))
+	z80.reg.SP -= 1
+	z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
 }
 
-func (cpu *CPU) Reset() {
-	cpu.reg = newRegisters()
-	cpu.reg.PC, cpu.reg.SP = 0, 0xFFFF
-	cpu.halt = false
-	cpu.iff1, cpu.iff2 = false, false
-	cpu.reg.A, cpu.reg.F, cpu.reg.I = 0xFF, 0xFF, 0x00
+func (z80 *Z80) incR() {
+	z80.reg.R = z80.reg.R&0x80 | (z80.reg.R+1)&0x7F
 }
 
-func (cpu *CPU) Run() {
+// Emulates maskable interrupt (INT)
+func (z80 *Z80) INT(data byte) {
+	z80.halt = false
+	if !z80.iff1 {
+		return
+	}
+	z80.iff1, z80.iff2 = false, false
+	switch z80.im {
+	case 0, 1:
+		z80.pushPC()
+		z80.reg.PC = 0x38 // RST 38h
+		z80.TC += 13
+	case 2:
+		z80.pushPC()
+		addr := uint16(z80.reg.I)<<8 + uint16(data)
+		z80.reg.PC = uint16(z80.mem.Read(addr+1))<<8 | uint16(z80.mem.Read(addr))
+		z80.TC += 19
+	}
+	z80.incR()
+}
+
+// Emulates non-maskable interrupt (NMI)
+func (z80 *Z80) NMI() {
+	z80.halt = false
+	z80.iff2, z80.iff1 = z80.iff1, false
+	z80.pushPC()
+	z80.reg.PC = 0x66
+	z80.TC += 11
+	z80.incR()
+}
+
+func (z80 *Z80) Reset() {
+	z80.reg = newRegisters()
+	z80.reg.PC, z80.reg.SP = 0, 0xFFFF
+	z80.halt = false
+	z80.iff1, z80.iff2 = false, false
+	z80.reg.A, z80.reg.F = 0xFF, 0xFF
+	z80.reg.I, z80.reg.R = 0x00, 0x00
+	z80.halt = false
+	z80.TC = 0
+}
+
+// Executes the instructions until maximum number of T states is reached.
+// (tLimit equal to 0 specifies unlimited number of T states to execute)
+func (z80 *Z80) Run(tLimit int) {
 	for {
-		opcode := cpu.readByte()
+		if tLimit != 0 {
+			if z80.TC >= tLimit {
+				z80.TC -= tLimit
+				break
+			}
+		}
 
-		//cpu.debug(opcode)
+		var opcode byte
+		if z80.halt {
+			z80.TC = (tLimit - z80.TC) % 4
+			break
+		} else {
+			opcode = z80.readByte()
+		}
 
-		// Get the t-state for the current instruction
-		if cpu.reg.prefix == noPrefix {
-			cpu.t = tStates[opcode]
+		// debugger.Debug(opcode, z80.reg.prefix, z80.reg.PC, z80.mem)
+
+		if z80.reg.prefix == noPrefix {
+			z80.TC += tStatesPrimary[opcode]
 		} else {
 			t := tStatesIXY[opcode]
 			if t != 0 {
-				cpu.t = t
+				z80.TC += t - 4
 			} else {
-				cpu.t = 4 + tStates[opcode]
+				z80.TC += 4 + tStatesPrimary[opcode]
 			}
 		}
+
+		z80.incR()
 
 		switch opcode {
 		case nop:
 		case halt:
-			cpu.reg.prefix = noPrefix
-			cpu.wait()
-			cpu.halt = true
-			return
+			z80.reg.prefix = noPrefix
+			z80.halt = true
 		case di:
-			cpu.iff1, cpu.iff2 = false, false
+			z80.iff1, z80.iff2 = false, false
 		case ei:
-			cpu.iff1, cpu.iff2 = true, true
+			z80.iff1, z80.iff2 = true, true
 		case rlca:
-			a7 := cpu.reg.A >> 7
-			cpu.reg.A = cpu.reg.A<<1 | a7
-			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | cpu.reg.A&(f_Y|f_X) | a7
+			a7 := z80.reg.A >> 7
+			z80.reg.A = z80.reg.A<<1 | a7
+			z80.reg.F = z80.reg.F&(fS|fZ|fP) | z80.reg.A&(fY|fX) | a7
 		case rrca:
-			a0 := cpu.reg.A & 0x01
-			cpu.reg.A = cpu.reg.A>>1 | a0<<7
-			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | cpu.reg.A&(f_Y|f_X) | a0
+			a0 := z80.reg.A & 0x01
+			z80.reg.A = z80.reg.A>>1 | a0<<7
+			z80.reg.F = z80.reg.F&(fS|fZ|fP) | z80.reg.A&(fY|fX) | a0
 		case rla:
-			a7 := cpu.reg.A >> 7
-			cpu.reg.A = cpu.reg.A<<1 | cpu.reg.F&f_C
-			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | cpu.reg.A&(f_Y|f_X) | a7
+			a7 := z80.reg.A >> 7
+			z80.reg.A = z80.reg.A<<1 | z80.reg.F&fC
+			z80.reg.F = z80.reg.F&(fS|fZ|fP) | z80.reg.A&(fY|fX) | a7
 		case rra:
-			a0 := cpu.reg.A & 0x01
-			cpu.reg.A = cpu.reg.A>>1 | cpu.reg.F&f_C<<7
-			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | cpu.reg.A&(f_Y|f_X) | a0
+			a0 := z80.reg.A & 0x01
+			z80.reg.A = z80.reg.A>>1 | z80.reg.F&fC<<7
+			z80.reg.F = z80.reg.F&(fS|fZ|fP) | z80.reg.A&(fY|fX) | a0
 		case cpl:
-			cpu.reg.A = ^cpu.reg.A
-			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P|f_C) | f_H | f_N | cpu.reg.A&(f_Y|f_X)
+			z80.reg.A = ^z80.reg.A
+			z80.reg.F = z80.reg.F&(fS|fZ|fP|fC) | fH | fN | z80.reg.A&(fY|fX)
 		case scf:
-			cpu.reg.F = cpu.reg.F&(f_S|f_Z|f_P) | f_C | cpu.reg.A&(f_Y|f_X)
+			z80.reg.F = z80.reg.F&(fS|fZ|fP) | fC | z80.reg.A&(fY|fX)
 		case ccf:
-			cpu.reg.F = (cpu.reg.F&(f_S|f_Z|f_P|f_C) | cpu.reg.F&f_C<<4 | cpu.reg.A&(f_Y|f_X)) ^ f_C
+			z80.reg.F = (z80.reg.F&(fS|fZ|fP|fC) | z80.reg.F&fC<<4 | z80.reg.A&(fY|fX)) ^ fC
 		case daa:
-			cf := cpu.reg.F & f_C
-			hf := cpu.reg.F & f_H
-			nf := cpu.reg.F & f_N
-			lb := cpu.reg.A & 0x0F
+			cf := z80.reg.F & fC
+			hf := z80.reg.F & fH
+			nf := z80.reg.F & fN
+			lb := z80.reg.A & 0x0F
 			diff := byte(0)
-			cpu.reg.F &= f_N
-			if cf != 0 || cpu.reg.A > 0x99 {
+			z80.reg.F &= fN
+			if cf != 0 || z80.reg.A > 0x99 {
 				diff = 0x60
-				cpu.reg.F |= f_C
+				z80.reg.F |= fC
 			}
 			if hf != 0 || lb > 0x09 {
 				diff += 0x06
 			}
 			if nf == 0 {
-				cpu.reg.A += diff
+				z80.reg.A += diff
 			} else {
-				cpu.reg.A -= diff
+				z80.reg.A -= diff
 			}
-			cpu.reg.F |= parity[cpu.reg.A] | cpu.reg.A&(f_S|f_Y|f_X)
-			if cpu.reg.A == 0 {
-				cpu.reg.F |= f_Z
+			z80.reg.F |= parity[z80.reg.A] | z80.reg.A&(fS|fY|fX)
+			if z80.reg.A == 0 {
+				z80.reg.F |= fZ
 			}
 			if nf == 0 && lb > 0x09 || nf != 0 && hf != 0 && lb < 0x06 {
-				cpu.reg.F |= f_H
+				z80.reg.F |= fH
 			}
 		case ex_af_af:
-			cpu.reg.A, cpu.reg.A_ = cpu.reg.A_, cpu.reg.A
-			cpu.reg.F, cpu.reg.F_ = cpu.reg.F_, cpu.reg.F
+			z80.reg.A, z80.reg.A_ = z80.reg.A_, z80.reg.A
+			z80.reg.F, z80.reg.F_ = z80.reg.F_, z80.reg.F
 		case exx:
-			cpu.reg.B, cpu.reg.B_, cpu.reg.C, cpu.reg.C_ = cpu.reg.B_, cpu.reg.B, cpu.reg.C_, cpu.reg.C
-			cpu.reg.D, cpu.reg.D_, cpu.reg.E, cpu.reg.E_ = cpu.reg.D_, cpu.reg.D, cpu.reg.E_, cpu.reg.E
-			cpu.reg.H, cpu.reg.H_, cpu.reg.L, cpu.reg.L_ = cpu.reg.H_, cpu.reg.H, cpu.reg.L_, cpu.reg.L
+			z80.reg.B, z80.reg.B_, z80.reg.C, z80.reg.C_ = z80.reg.B_, z80.reg.B, z80.reg.C_, z80.reg.C
+			z80.reg.D, z80.reg.D_, z80.reg.E, z80.reg.E_ = z80.reg.D_, z80.reg.D, z80.reg.E_, z80.reg.E
+			z80.reg.H, z80.reg.H_, z80.reg.L, z80.reg.L_ = z80.reg.H_, z80.reg.H, z80.reg.L_, z80.reg.L
 		case ex_de_hl:
-			cpu.reg.D, cpu.reg.E, cpu.reg.H, cpu.reg.L = cpu.reg.H, cpu.reg.L, cpu.reg.D, cpu.reg.E
+			z80.reg.D, z80.reg.E, z80.reg.H, z80.reg.L = z80.reg.H, z80.reg.L, z80.reg.D, z80.reg.E
 		case ex_sp_hl:
-			h, l := cpu.reg.r(r_H), cpu.reg.r(r_L)
-			x, y := cpu.mem.Read(cpu.reg.SP+1), cpu.mem.Read(cpu.reg.SP)
-			cpu.mem.Write(cpu.reg.SP, *l)
-			cpu.mem.Write(cpu.reg.SP+1, *h)
+			h, l := z80.reg.r(rH), z80.reg.r(rL)
+			x, y := z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
+			z80.mem.Write(z80.reg.SP, *l)
+			z80.mem.Write(z80.reg.SP+1, *h)
 			*h, *l = x, y
 		case add_a_n, add_a_a, add_a_b, add_a_c, add_a_d, add_a_e, add_a_h, add_a_l, add_a_hl:
-			a := cpu.reg.A
+			a := z80.reg.A
 			var n byte
 			switch opcode {
 			case add_a_n:
-				n = cpu.readByte()
+				n = z80.readByte()
 			case add_a_hl:
-				n = cpu.mem.Read(cpu.getHL())
+				n = z80.mem.Read(z80.getHL())
 			default:
-				n = *cpu.reg.r(opcode & 0b00000111)
+				n = *z80.reg.r(opcode & 0b00000111)
 			}
-			cpu.reg.A += n
-			cpu.reg.F = (f_S | f_Y | f_X) & cpu.reg.A
-			if cpu.reg.A == 0 {
-				cpu.reg.F |= f_Z
+			z80.reg.A += n
+			z80.reg.F = (fS | fY | fX) & z80.reg.A
+			if z80.reg.A == 0 {
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= (a ^ n ^ cpu.reg.A) & f_H
-			if (a^n)&0x80 == 0 && (a^cpu.reg.A)&0x80 != 0 {
-				cpu.reg.F |= f_P
+			z80.reg.F |= (a ^ n ^ z80.reg.A) & fH
+			if (a^n)&0x80 == 0 && (a^z80.reg.A)&0x80 != 0 {
+				z80.reg.F |= fP
 			}
-			if cpu.reg.A < a {
-				cpu.reg.F |= f_C
+			if z80.reg.A < a {
+				z80.reg.F |= fC
 			}
 		case adc_a_n, adc_a_a, adc_a_b, adc_a_c, adc_a_d, adc_a_e, adc_a_h, adc_a_l, adc_a_hl:
 			var n byte
 			switch opcode {
 			case adc_a_n:
-				n = cpu.readByte()
+				n = z80.readByte()
 			case adc_a_hl:
-				n = cpu.mem.Read(cpu.getHL())
+				n = z80.mem.Read(z80.getHL())
 			default:
-				n = *cpu.reg.r(opcode & 0b00000111)
+				n = *z80.reg.r(opcode & 0b00000111)
 			}
-			cf := cpu.reg.F & f_C
-			sum_w := uint16(cpu.reg.A) + uint16(n) + uint16(cf)
+			cf := z80.reg.F & fC
+			sum_w := uint16(z80.reg.A) + uint16(n) + uint16(cf)
 			sum_b := byte(sum_w)
-			cpu.reg.F = (f_S | f_Y | f_X) & sum_b
+			z80.reg.F = (fS | fY | fX) & sum_b
 			if sum_b == 0 {
-				cpu.reg.F |= f_Z
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= (cpu.reg.A ^ n ^ sum_b) & f_H
-			if (cpu.reg.A^n)&0x80 == 0 && (cpu.reg.A^sum_b)&0x80 != 0 {
-				cpu.reg.F |= f_P
+			z80.reg.F |= (z80.reg.A ^ n ^ sum_b) & fH
+			if (z80.reg.A^n)&0x80 == 0 && (z80.reg.A^sum_b)&0x80 != 0 {
+				z80.reg.F |= fP
 			}
 			if sum_w > 0xff {
-				cpu.reg.F |= f_C
+				z80.reg.F |= fC
 			}
-			cpu.reg.A = sum_b
+			z80.reg.A = sum_b
 		case add_hl_bc, add_hl_de, add_hl_hl, add_hl_sp:
-			hl := cpu.reg.HL()
+			hl := z80.reg.HL()
 			var nn uint16
 			switch opcode {
 			case add_hl_bc:
-				nn = cpu.reg.BC()
+				nn = z80.reg.BC()
 			case add_hl_de:
-				nn = cpu.reg.DE()
+				nn = z80.reg.DE()
 			case add_hl_hl:
 				nn = hl
 			case add_hl_sp:
-				nn = cpu.reg.SP
+				nn = z80.reg.SP
 			}
 			sum := hl + nn
-			cpu.reg.setHL(sum)
-			cpu.reg.F &= ^(f_H | f_N | f_C)
+			z80.reg.setHL(sum)
+			z80.reg.F = z80.reg.F & ^(fH|fN|fC) | byte((hl^nn^sum)>>8)&fH | byte(sum>>8)&(fY|fX)
 			if sum < hl {
-				cpu.reg.F |= f_C
+				z80.reg.F |= fC
 			}
-			cpu.reg.F |= byte((hl^nn^sum)>>8)&f_H | byte(sum>>8)&(f_Y|f_X)
 		case sub_a, sub_b, sub_c, sub_d, sub_e, sub_h, sub_l, sub_hl, sub_n:
-			a := cpu.reg.A
+			a := z80.reg.A
 			var n byte
 			switch opcode {
 			case sub_n:
-				n = cpu.readByte()
+				n = z80.readByte()
 			case sub_hl:
-				n = cpu.mem.Read(cpu.getHL())
+				n = z80.mem.Read(z80.getHL())
 			default:
-				n = *cpu.reg.r(opcode & 0b00000111)
+				n = *z80.reg.r(opcode & 0b00000111)
 			}
-			cpu.reg.A -= n
-			cpu.reg.F = (f_S|f_Y|f_X)&cpu.reg.A | f_N
-			if cpu.reg.A == 0 {
-				cpu.reg.F |= f_Z
+			z80.reg.A -= n
+			z80.reg.F = (fS|fY|fX)&z80.reg.A | fN | (a^n^z80.reg.A)&fH
+			if z80.reg.A == 0 {
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= (a ^ n ^ cpu.reg.A) & f_H
-			if (a^n)&0x80 != 0 && (a^cpu.reg.A)&0x80 != 0 {
-				cpu.reg.F |= f_P
+			if (a^n)&0x80 != 0 && (a^z80.reg.A)&0x80 != 0 {
+				z80.reg.F |= fP
 			}
-			if cpu.reg.A > a {
-				cpu.reg.F |= f_C
+			if z80.reg.A > a {
+				z80.reg.F |= fC
 			}
 		case cp_a, cp_b, cp_c, cp_d, cp_e, cp_h, cp_l, cp_hl, cp_n:
 			var n byte
 			switch opcode {
 			case cp_n:
-				n = cpu.readByte()
+				n = z80.readByte()
 			case cp_hl:
-				n = cpu.mem.Read(cpu.getHL())
+				n = z80.mem.Read(z80.getHL())
 			default:
-				n = *cpu.reg.r(opcode & 0b00000111)
+				n = *z80.reg.r(opcode & 0b00000111)
 			}
-			test := cpu.reg.A - n
-			cpu.reg.F = f_N | f_S&test | n&(f_Y|f_X)
+			test := z80.reg.A - n
+			z80.reg.F = fN | fS&test | n&(fY|fX) | byte(z80.reg.A^n^test)&fH
 			if test == 0 {
-				cpu.reg.F |= f_Z
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= byte(cpu.reg.A^n^test) & f_H
-			if (cpu.reg.A^n)&0x80 != 0 && (cpu.reg.A^test)&0x80 != 0 {
-				cpu.reg.F |= f_P
+			if (z80.reg.A^n)&0x80 != 0 && (z80.reg.A^test)&0x80 != 0 {
+				z80.reg.F |= fP
 			}
-			if test > cpu.reg.A {
-				cpu.reg.F |= f_C
+			if test > z80.reg.A {
+				z80.reg.F |= fC
 			}
 		case sbc_a_a, sbc_a_b, sbc_a_c, sbc_a_d, sbc_a_e, sbc_a_h, sbc_a_l, sbc_a_hl, sbc_a_n:
 			var n byte
 			switch opcode {
 			case sbc_a_n:
-				n = cpu.readByte()
+				n = z80.readByte()
 			case sbc_a_hl:
-				n = cpu.mem.Read(cpu.getHL())
+				n = z80.mem.Read(z80.getHL())
 			default:
-				n = *cpu.reg.r(opcode & 0b00000111)
+				n = *z80.reg.r(opcode & 0b00000111)
 			}
-			cf := cpu.reg.F & f_C
-			sub_w := uint16(cpu.reg.A) - uint16(n) - uint16(cf)
+			cf := z80.reg.F & fC
+			sub_w := uint16(z80.reg.A) - uint16(n) - uint16(cf)
 			sub_b := byte(sub_w)
-			cpu.reg.F = (f_S|f_Y|f_X)&sub_b | f_N
+			z80.reg.F = (fS|fY|fX)&sub_b | fN | byte(z80.reg.A^n^sub_b)&fH
 			if sub_b == 0 {
-				cpu.reg.F |= f_Z
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= byte(cpu.reg.A^n^sub_b) & f_H
-			if (cpu.reg.A^n)&0x80 != 0 && (sub_b^cpu.reg.A)&0x80 != 0 {
-				cpu.reg.F |= f_P
+			if (z80.reg.A^n)&0x80 != 0 && (sub_b^z80.reg.A)&0x80 != 0 {
+				z80.reg.F |= fP
 			}
 			if sub_w > 0xff {
-				cpu.reg.F |= f_C
+				z80.reg.F |= fC
 			}
-			cpu.reg.A = sub_b
+			z80.reg.A = sub_b
 		case and_a, and_b, and_c, and_d, and_e, and_h, and_l, and_hl, and_n:
 			var n byte
 			switch opcode {
 			case and_n:
-				n = cpu.readByte()
+				n = z80.readByte()
 			case and_hl:
-				n = cpu.mem.Read(cpu.getHL())
+				n = z80.mem.Read(z80.getHL())
 			default:
-				n = *cpu.reg.r(opcode & 0b00000111)
+				n = *z80.reg.r(opcode & 0b00000111)
 			}
-			cpu.reg.A &= n
-			cpu.reg.F = (f_S|f_Y|f_X)&cpu.reg.A | f_H
-			if cpu.reg.A == 0 {
-				cpu.reg.F |= f_Z
+			z80.reg.A &= n
+			z80.reg.F = (fS|fY|fX)&z80.reg.A | fH | parity[z80.reg.A]
+			if z80.reg.A == 0 {
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= parity[cpu.reg.A]
 		case or_a, or_b, or_c, or_d, or_e, or_h, or_l, or_hl, or_n:
 			var n byte
 			switch opcode {
 			case or_n:
-				n = cpu.readByte()
+				n = z80.readByte()
 			case or_hl:
-				n = cpu.mem.Read(cpu.getHL())
+				n = z80.mem.Read(z80.getHL())
 			default:
-				n = *cpu.reg.r(opcode & 0b00000111)
+				n = *z80.reg.r(opcode & 0b00000111)
 			}
-			cpu.reg.A |= n
-			cpu.reg.F = (f_S | f_Y | f_X) & cpu.reg.A
-			if cpu.reg.A == 0 {
-				cpu.reg.F |= f_Z
+			z80.reg.A |= n
+			z80.reg.F = (fS|fY|fX)&z80.reg.A | parity[z80.reg.A]
+			if z80.reg.A == 0 {
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= parity[cpu.reg.A]
 		case xor_a, xor_b, xor_c, xor_d, xor_e, xor_h, xor_l, xor_hl, xor_n:
 			var n byte
 			switch opcode {
 			case xor_n:
-				n = cpu.readByte()
+				n = z80.readByte()
 			case xor_hl:
-				n = cpu.mem.Read(cpu.getHL())
+				n = z80.mem.Read(z80.getHL())
 			default:
-				n = *cpu.reg.r(opcode & 0b00000111)
+				n = *z80.reg.r(opcode & 0b00000111)
 			}
-			cpu.reg.A ^= n
-			cpu.reg.F = (f_S | f_Y | f_X) & cpu.reg.A
-			if cpu.reg.A == 0 {
-				cpu.reg.F |= f_Z
+			z80.reg.A ^= n
+			z80.reg.F = (fS|fY|fX)&z80.reg.A | parity[z80.reg.A]
+			if z80.reg.A == 0 {
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= parity[cpu.reg.A]
 		case ld_a_n, ld_b_n, ld_c_n, ld_d_n, ld_e_n, ld_h_n, ld_l_n:
-			r := cpu.reg.r(opcode & 0b00111000 >> 3)
-			*r = cpu.readByte()
+			r := z80.reg.r(opcode & 0b00111000 >> 3)
+			*r = z80.readByte()
 		case
 			ld_a_a, ld_a_b, ld_a_c, ld_a_d, ld_a_e, ld_a_h, ld_a_l,
 			ld_b_a, ld_b_b, ld_b_c, ld_b_d, ld_b_e, ld_b_h, ld_b_l,
@@ -339,300 +390,312 @@ func (cpu *CPU) Run() {
 			ld_e_a, ld_e_b, ld_e_c, ld_e_d, ld_e_e, ld_e_h, ld_e_l,
 			ld_h_a, ld_h_b, ld_h_c, ld_h_d, ld_h_e, ld_h_h, ld_h_l,
 			ld_l_a, ld_l_b, ld_l_c, ld_l_d, ld_l_e, ld_l_h, ld_l_l:
-			rs := cpu.reg.r(opcode & 0b00000111)
-			rd := cpu.reg.r(opcode & 0b00111000 >> 3)
+			rs := z80.reg.r(opcode & 0b00000111)
+			rd := z80.reg.r(opcode & 0b00111000 >> 3)
 			*rd = *rs
 		case ld_bc_nn:
-			cpu.reg.C, cpu.reg.B = cpu.readByte(), cpu.readByte()
+			z80.reg.C, z80.reg.B = z80.readByte(), z80.readByte()
 		case ld_de_nn:
-			cpu.reg.E, cpu.reg.D = cpu.readByte(), cpu.readByte()
+			z80.reg.E, z80.reg.D = z80.readByte(), z80.readByte()
 		case ld_hl_nn:
-			h, l := cpu.reg.r(r_H), cpu.reg.r(r_L)
-			*l, *h = cpu.readByte(), cpu.readByte()
+			h, l := z80.reg.r(rH), z80.reg.r(rL)
+			*l, *h = z80.readByte(), z80.readByte()
 		case ld_sp_nn:
-			cpu.reg.SP = cpu.readWord()
+			z80.reg.SP = z80.readWord()
 		case ld_sp_hl:
-			cpu.reg.SP = cpu.reg.HL()
+			z80.reg.SP = z80.reg.HL()
 		case ld_hl_mm:
-			addr := cpu.readWord()
-			h, l := cpu.reg.r(r_H), cpu.reg.r(r_L)
-			*l = cpu.mem.Read(addr)
-			*h = cpu.mem.Read(addr + 1)
+			addr := z80.readWord()
+			h, l := z80.reg.r(rH), z80.reg.r(rL)
+			*l = z80.mem.Read(addr)
+			*h = z80.mem.Read(addr + 1)
 		case ld_mm_hl:
-			addr := cpu.readWord()
-			h, l := cpu.reg.r(r_H), cpu.reg.r(r_L)
-			cpu.mem.Write(addr, *l)
-			cpu.mem.Write(addr+1, *h)
+			addr := z80.readWord()
+			h, l := z80.reg.r(rH), z80.reg.r(rL)
+			z80.mem.Write(addr, *l)
+			z80.mem.Write(addr+1, *h)
 		case ld_mhl_n:
-			cpu.mem.Write(cpu.getHL(), cpu.readByte())
+			z80.mem.Write(z80.getHL(), z80.readByte())
 		case ld_mm_a:
-			cpu.mem.Write(cpu.readWord(), cpu.reg.A)
+			z80.mem.Write(z80.readWord(), z80.reg.A)
 		case ld_a_mm:
-			cpu.reg.A = cpu.mem.Read(cpu.readWord())
+			z80.reg.A = z80.mem.Read(z80.readWord())
 		case ld_bc_a:
-			cpu.mem.Write(cpu.reg.BC(), cpu.reg.A)
+			z80.mem.Write(z80.reg.BC(), z80.reg.A)
 		case ld_de_a:
-			cpu.mem.Write(cpu.reg.DE(), cpu.reg.A)
+			z80.mem.Write(z80.reg.DE(), z80.reg.A)
 		case ld_a_bc:
-			cpu.reg.A = cpu.mem.Read(cpu.reg.BC())
+			z80.reg.A = z80.mem.Read(z80.reg.BC())
 		case ld_a_de:
-			cpu.reg.A = cpu.mem.Read(cpu.reg.DE())
+			z80.reg.A = z80.mem.Read(z80.reg.DE())
 		case ld_a_hl, ld_b_hl, ld_c_hl, ld_d_hl, ld_e_hl, ld_h_hl, ld_l_hl:
-			*cpu.reg.raw[opcode&0b00111000>>3] = cpu.mem.Read(cpu.getHL())
+			*z80.reg.raw[opcode&0b00111000>>3] = z80.mem.Read(z80.getHL())
 		case ld_hl_a, ld_hl_b, ld_hl_c, ld_hl_d, ld_hl_e, ld_hl_h, ld_hl_l:
-			cpu.mem.Write(cpu.getHL(), *cpu.reg.raw[opcode&0b00000111])
+			z80.mem.Write(z80.getHL(), *z80.reg.raw[opcode&0b00000111])
 		case inc_a, inc_b, inc_c, inc_d, inc_e, inc_h, inc_l:
-			r := cpu.reg.r(opcode & 0b00111000 >> 3)
-			cpu.reg.F &= f_C
+			r := z80.reg.r(opcode & 0b00111000 >> 3)
+			z80.reg.F &= fC
 			if *r == 0x7F {
-				cpu.reg.F |= f_P
+				z80.reg.F |= fP
 			}
 			if *r&0x0F == 0x0F {
-				cpu.reg.F |= f_H
+				z80.reg.F |= fH
 			}
 			*r += 1
-			cpu.reg.F |= *r & (f_S | f_Y | f_X)
+			z80.reg.F |= *r & (fS | fY | fX)
 			if *r == 0 {
-				cpu.reg.F |= f_Z
+				z80.reg.F |= fZ
 			}
 		case inc_bc:
-			cpu.reg.setBC(cpu.reg.BC() + 1)
+			z80.reg.setBC(z80.reg.BC() + 1)
 		case inc_de:
-			cpu.reg.setDE(cpu.reg.DE() + 1)
+			z80.reg.setDE(z80.reg.DE() + 1)
 		case inc_hl:
-			cpu.reg.setHL(cpu.reg.HL() + 1)
+			z80.reg.setHL(z80.reg.HL() + 1)
 		case inc_sp:
-			cpu.reg.SP += 1
+			z80.reg.SP += 1
 		case inc_mhl:
-			addr := cpu.getHL()
-			b := cpu.mem.Read(addr)
-			cpu.reg.F &= f_C
+			addr := z80.getHL()
+			b := z80.mem.Read(addr)
+			z80.reg.F &= fC
 			if b == 0x7F {
-				cpu.reg.F |= f_P
+				z80.reg.F |= fP
 			}
 			if b&0x0F == 0x0F {
-				cpu.reg.F |= f_H
+				z80.reg.F |= fH
 			}
 			b += 1
 			if b == 0x00 {
-				cpu.reg.F |= f_Z
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= b & (f_S | f_Y | f_X)
-			cpu.mem.Write(addr, b)
+			z80.reg.F |= b & (fS | fY | fX)
+			z80.mem.Write(addr, b)
 		case dec_a, dec_b, dec_c, dec_d, dec_e, dec_h, dec_l:
-			r := cpu.reg.r(opcode & 0b00111000 >> 3)
-			cpu.reg.F = cpu.reg.F&f_C | f_N
+			r := z80.reg.r(opcode & 0b00111000 >> 3)
+			z80.reg.F = z80.reg.F&fC | fN
 			if *r == 0x80 {
-				cpu.reg.F |= f_P
+				z80.reg.F |= fP
 			}
 			if *r&0x0F == 0 {
-				cpu.reg.F |= f_H
+				z80.reg.F |= fH
 			}
 			*r -= 1
-			cpu.reg.F |= *r & (f_S | f_Y | f_X)
+			z80.reg.F |= *r & (fS | fY | fX)
 			if *r == 0 {
-				cpu.reg.F |= f_Z
+				z80.reg.F |= fZ
 			}
 		case dec_bc:
-			cpu.reg.setBC(cpu.reg.BC() - 1)
+			z80.reg.setBC(z80.reg.BC() - 1)
 		case dec_de:
-			cpu.reg.setDE(cpu.reg.DE() - 1)
+			z80.reg.setDE(z80.reg.DE() - 1)
 		case dec_hl:
-			cpu.reg.setHL(cpu.reg.HL() - 1)
+			z80.reg.setHL(z80.reg.HL() - 1)
 		case dec_sp:
-			cpu.reg.SP -= 1
+			z80.reg.SP -= 1
 		case dec_mhl:
-			addr := cpu.getHL()
-			b := cpu.mem.Read(addr)
-			cpu.reg.F = cpu.reg.F&f_C | f_N
+			addr := z80.getHL()
+			b := z80.mem.Read(addr)
+			z80.reg.F = z80.reg.F&fC | fN
 			if b == 0x80 {
-				cpu.reg.F |= f_P
+				z80.reg.F |= fP
 			}
 			if b&0x0F == 0 {
-				cpu.reg.F |= f_H
+				z80.reg.F |= fH
 			}
 			b -= 1
 			if b == 0x00 {
-				cpu.reg.F |= f_Z
+				z80.reg.F |= fZ
 			}
-			cpu.reg.F |= b & (f_S | f_Y | f_X)
-			cpu.mem.Write(addr, b)
+			z80.reg.F |= b & (fS | fY | fX)
+			z80.mem.Write(addr, b)
 		case jr_o:
-			o := cpu.readByte()
+			o := z80.readByte()
 			if o&0x80 == 0 {
-				cpu.reg.PC += uint16(o)
+				z80.reg.PC += uint16(o)
 			} else {
-				cpu.reg.PC -= uint16(^o + 1)
+				z80.reg.PC -= uint16(^o + 1)
 			}
 		case jr_z_o:
-			o := cpu.readByte()
-			if cpu.reg.F&f_Z == f_Z {
+			o := z80.readByte()
+			if z80.reg.F&fZ == fZ {
 				if o&0x80 == 0 {
-					cpu.reg.PC += uint16(o)
+					z80.reg.PC += uint16(o)
 				} else {
-					cpu.reg.PC -= uint16(^o + 1)
+					z80.reg.PC -= uint16(^o + 1)
 				}
-				cpu.t += 5
+				z80.TC += 5
 			}
 		case jr_nz_o:
-			o := cpu.readByte()
-			if cpu.reg.F&f_Z == 0 {
+			o := z80.readByte()
+			if z80.reg.F&fZ == 0 {
 				if o&0x80 == 0 {
-					cpu.reg.PC += uint16(o)
+					z80.reg.PC += uint16(o)
 				} else {
-					cpu.reg.PC -= uint16(^o + 1)
+					z80.reg.PC -= uint16(^o + 1)
 				}
-				cpu.t += 5
+				z80.TC += 5
 			}
 		case jr_c:
-			o := cpu.readByte()
-			if cpu.reg.F&f_C == f_C {
+			o := z80.readByte()
+			if z80.reg.F&fC == fC {
 				if o&0x80 == 0 {
-					cpu.reg.PC += uint16(o)
+					z80.reg.PC += uint16(o)
 				} else {
-					cpu.reg.PC -= uint16(^o + 1)
+					z80.reg.PC -= uint16(^o + 1)
 				}
-				cpu.t += 5
+				z80.TC += 5
 			}
 		case jr_nc_o:
-			o := cpu.readByte()
-			if cpu.reg.F&f_C == 0 {
+			o := z80.readByte()
+			if z80.reg.F&fC == 0 {
 				if o&0x80 == 0 {
-					cpu.reg.PC += uint16(o)
+					z80.reg.PC += uint16(o)
 				} else {
-					cpu.reg.PC -= uint16(^o + 1)
+					z80.reg.PC -= uint16(^o + 1)
 				}
-				cpu.t += 5
+				z80.TC += 5
 			}
 		case djnz:
-			o := cpu.readByte()
-			cpu.reg.B -= 1
-			if cpu.reg.B != 0 {
+			o := z80.readByte()
+			z80.reg.B -= 1
+			if z80.reg.B != 0 {
 				if o&0x80 == 0 {
-					cpu.reg.PC += uint16(o)
+					z80.reg.PC += uint16(o)
 				} else {
-					cpu.reg.PC -= uint16(^o + 1)
+					z80.reg.PC -= uint16(^o + 1)
 				}
-				cpu.t += 5
+				z80.TC += 5
 			}
 		case jp_nn:
-			cpu.reg.PC = cpu.readWord()
+			z80.reg.PC = z80.readWord()
 		case jp_c_nn, jp_m_nn, jp_nc_nn, jp_nz_nn, jp_p_nn, jp_pe_nn, jp_po_nn, jp_z_nn:
-			if cpu.shouldJump(opcode) {
-				cpu.reg.PC = cpu.readWord()
+			if z80.shouldJump(opcode) {
+				z80.reg.PC = z80.readWord()
 			} else {
-				cpu.reg.PC += 2
+				z80.reg.PC += 2
 			}
 		case jp_hl:
-			cpu.reg.PC = cpu.reg.HL()
-		case call_nn, call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
-			if cpu.shouldJump(opcode) {
-				pc := cpu.readWord()
-				cpu.reg.SP -= 1
-				cpu.mem.Write(cpu.reg.SP, byte(cpu.reg.PC>>8))
-				cpu.reg.SP -= 1
-				cpu.mem.Write(cpu.reg.SP, byte(cpu.reg.PC))
-				cpu.reg.PC = pc
-				cpu.t += 7
+			z80.reg.PC = z80.reg.HL()
+		case call_nn:
+			pc := z80.readWord()
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC>>8))
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
+			z80.reg.PC = pc
+		case call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
+			if z80.shouldJump(opcode) {
+				pc := z80.readWord()
+				z80.reg.SP -= 1
+				z80.mem.Write(z80.reg.SP, byte(z80.reg.PC>>8))
+				z80.reg.SP -= 1
+				z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
+				z80.reg.PC = pc
+				z80.TC += 7
 			} else {
-				cpu.reg.PC += 2
+				z80.reg.PC += 2
 			}
 		case ret:
-			cpu.reg.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
-			cpu.reg.SP += 2
+			z80.reg.PC = uint16(z80.mem.Read(z80.reg.SP+1))<<8 | uint16(z80.mem.Read(z80.reg.SP))
+			z80.reg.SP += 2
 		case ret_c, ret_m, ret_nc, ret_nz, ret_p, ret_pe, ret_po, ret_z:
-			if cpu.shouldJump(opcode) {
-				cpu.reg.PC = uint16(cpu.mem.Read(cpu.reg.SP+1))<<8 | uint16(cpu.mem.Read(cpu.reg.SP))
-				cpu.reg.SP += 2
-				cpu.t += 6
+			if z80.shouldJump(opcode) {
+				z80.reg.PC = uint16(z80.mem.Read(z80.reg.SP+1))<<8 | uint16(z80.mem.Read(z80.reg.SP))
+				z80.reg.SP += 2
+				z80.TC += 6
 			}
 		case rst_00h, rst_08h, rst_10h, rst_18h, rst_20h, rst_28h, rst_30h, rst_38h:
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, byte(cpu.reg.PC>>8))
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, byte(cpu.reg.PC))
-			cpu.reg.PC = uint16(8 * ((opcode & 0b00111000) >> 3))
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC>>8))
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
+			z80.reg.PC = uint16(8 * ((opcode & 0b00111000) >> 3))
 		case push_af:
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, cpu.reg.A)
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, cpu.reg.F)
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, z80.reg.A)
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, z80.reg.F)
 		case push_bc:
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, cpu.reg.B)
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, cpu.reg.C)
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, z80.reg.B)
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, z80.reg.C)
 		case push_de:
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, cpu.reg.D)
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, cpu.reg.E)
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, z80.reg.D)
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, z80.reg.E)
 		case push_hl:
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, *cpu.reg.r(r_H))
-			cpu.reg.SP -= 1
-			cpu.mem.Write(cpu.reg.SP, *cpu.reg.r(r_L))
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, *z80.reg.r(rH))
+			z80.reg.SP -= 1
+			z80.mem.Write(z80.reg.SP, *z80.reg.r(rL))
 		case pop_af:
-			cpu.reg.A, cpu.reg.F = cpu.mem.Read(cpu.reg.SP+1), cpu.mem.Read(cpu.reg.SP)
-			cpu.reg.SP += 2
+			z80.reg.A, z80.reg.F = z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
+			z80.reg.SP += 2
 		case pop_bc:
-			cpu.reg.B, cpu.reg.C = cpu.mem.Read(cpu.reg.SP+1), cpu.mem.Read(cpu.reg.SP)
-			cpu.reg.SP += 2
+			z80.reg.B, z80.reg.C = z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
+			z80.reg.SP += 2
 		case pop_de:
-			cpu.reg.D, cpu.reg.E = cpu.mem.Read(cpu.reg.SP+1), cpu.mem.Read(cpu.reg.SP)
-			cpu.reg.SP += 2
+			z80.reg.D, z80.reg.E = z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
+			z80.reg.SP += 2
 		case pop_hl:
-			*cpu.reg.r(r_H), *cpu.reg.r(r_L) = cpu.mem.Read(cpu.reg.SP+1), cpu.mem.Read(cpu.reg.SP)
-			cpu.reg.SP += 2
+			*z80.reg.r(rH), *z80.reg.r(rL) = z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
+			z80.reg.SP += 2
 		case in_a_n:
-			cpu.reg.A = cpu.IN(cpu.reg.A, cpu.readByte())
-		case out_n_a:
-			cpu.OUT(cpu.reg.A, cpu.readByte(), cpu.reg.A)
-		case prefix_cb:
-			cpu.prefixCB()
-		case prefix_ed:
-			cpu.prefixED(cpu.readByte())
-		case useIX:
-			if cpu.reg.prefix != noPrefix {
-				cpu.wait()
+			n := z80.readByte()
+			if z80.IOBus != nil {
+				z80.reg.A = z80.IOBus.Read(z80.reg.A, n)
+			} else {
+				z80.reg.A = 0xFF
 			}
-			cpu.reg.prefix = useIX
+		case out_n_a:
+			if z80.IOBus != nil {
+				z80.IOBus.Write(z80.reg.A, z80.readByte(), z80.reg.A)
+			}
+		case prefix_cb:
+			z80.incR()
+			z80.prefixCB()
+		case prefix_ed:
+			z80.incR()
+			z80.prefixED(z80.readByte())
+		case useIX:
+			z80.incR()
+			if z80.reg.prefix != noPrefix {
+				z80.TC += tStatesPrimary[nop]
+			}
+			z80.reg.prefix = useIX
 			continue
 		case useIY:
-			if cpu.reg.prefix != noPrefix {
-				cpu.wait()
+			z80.incR()
+			if z80.reg.prefix != noPrefix {
+				z80.TC += tStatesPrimary[nop]
 			}
-			cpu.reg.prefix = useIY
+			z80.reg.prefix = useIY
 			continue
 		}
-
-		cpu.reg.prefix = noPrefix
-		cpu.wait()
+		z80.reg.prefix = noPrefix
 	}
 }
 
-func (cpu *CPU) shouldJump(opcode byte) bool {
-	if opcode == call_nn {
-		return true
-	}
-
+func (z80 *Z80) shouldJump(opcode byte) bool {
 	switch opcode & 0b00111000 {
 	case 0b00000000: // Non-Zero (NZ)
-		return cpu.reg.F&f_Z == 0
+		return z80.reg.F&fZ == 0
 	case 0b00001000: // Zero (Z)
-		return cpu.reg.F&f_Z != 0
+		return z80.reg.F&fZ != 0
 	case 0b00010000: // Non Carry (NC)
-		return cpu.reg.F&f_C == 0
+		return z80.reg.F&fC == 0
 	case 0b00011000: // Carry (C)
-		return cpu.reg.F&f_C != 0
+		return z80.reg.F&fC != 0
 	case 0b00100000: // Parity Odd (PO)
-		return cpu.reg.F&f_P == 0
+		return z80.reg.F&fP == 0
 	case 0b00101000: // Parity Even (PE)
-		return cpu.reg.F&f_P != 0
+		return z80.reg.F&fP != 0
 	case 0b00110000: // Sign Positive (P)
-		return cpu.reg.F&f_S == 0
+		return z80.reg.F&fS == 0
 	case 0b00111000: // Sign Negative (M)
-		return cpu.reg.F&f_S != 0
+		return z80.reg.F&fS != 0
 	}
 
 	panic(fmt.Sprintf("Invalid opcode %v", opcode))
@@ -640,16 +703,16 @@ func (cpu *CPU) shouldJump(opcode byte) bool {
 
 // Returns value of HL / (IX + d) / (IY + d) register. The current prefix
 // determines whether to use IX or IY register instead of HL.
-func (cpu *CPU) getHL() uint16 {
-	if cpu.reg.prefix != noPrefix {
-		return cpu.getHLOffset(cpu.readByte())
+func (z80 *Z80) getHL() uint16 {
+	if z80.reg.prefix != noPrefix {
+		return z80.getHLOffset(z80.readByte())
 	}
-	return cpu.reg.HL()
+	return z80.reg.HL()
 }
 
 // For IX or IY add offset to register value, otherwise return HL.
-func (cpu *CPU) getHLOffset(offset byte) uint16 {
-	hl := cpu.reg.HL()
+func (z80 *Z80) getHLOffset(offset byte) uint16 {
+	hl := z80.reg.HL()
 	if offset == 0 {
 		return hl
 	} else if offset&0x80 == 0 {

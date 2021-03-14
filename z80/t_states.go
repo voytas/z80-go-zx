@@ -1,7 +1,7 @@
 package z80
 
-// t-states for primary opcodes
-var tStates = []byte{
+// T states for primary opcodes
+var tStatesPrimary = []int{
 	nop:        4,
 	ld_bc_nn:   10,
 	ld_bc_a:    7,
@@ -205,7 +205,7 @@ var tStates = []byte{
 	ret_z:      5, // 11 or 5 based on condition
 	ret:        10,
 	jp_z_nn:    10,
-	prefix_cb:  4,
+	prefix_cb:  0,  // timings are handled in the code
 	call_z_nn:  10, // 17 or 10 based on condition
 	call_nn:    17,
 	adc_a_n:    7,
@@ -223,7 +223,7 @@ var tStates = []byte{
 	in_a_n:     11,
 	out_n_a:    11,
 	call_c_nn:  10, // 17 or 10 based on condition
-	useIX:      4,
+	useIX:      0,  // use IX prefixed timing
 	sbc_a_n:    7,
 	rst_18h:    11,
 	ret_po:     5, // 11 or 5 based on condition
@@ -255,13 +255,13 @@ var tStates = []byte{
 	jp_m_nn:    10,
 	ei:         4,
 	call_m_nn:  10, // 17 or 10 based on condition
-	useIY:      4,
+	useIY:      0,  // use IY prefixed timing
 	cp_n:       7,
 	rst_38h:    11,
 }
 
-// t-states for IX/IY prefixed opcodes which values are not just simply +4 t-state
-var tStatesIXY = []byte{
+// T states for IX/IY prefixed opcodes, only values that are not just +4 T state
+var tStatesIXY = []int{
 	inc_mhl:  23,
 	dec_mhl:  23,
 	ld_mhl_n: 19,
@@ -292,7 +292,8 @@ var tStatesIXY = []byte{
 	0xFF:     0,
 }
 
-var tStatesED = []byte{
+// T states for ED prefixed opcodes
+var tStatesED = []int{
 	in_b_c:      12,
 	out_c_b:     12,
 	sbc_hl_bc:   15,

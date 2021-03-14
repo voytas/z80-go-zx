@@ -9,13 +9,13 @@ import (
 func Test_getR(t *testing.T) {
 	r := newRegisters()
 	r.A, r.B, r.C, r.D, r.E, r.H, r.L = 1, 2, 3, 4, 5, 6, 7
-	assert.Equal(t, &r.A, r.raw[r_A])
-	assert.Equal(t, &r.B, r.raw[r_B])
-	assert.Equal(t, &r.C, r.raw[r_C])
-	assert.Equal(t, &r.D, r.raw[r_D])
-	assert.Equal(t, &r.E, r.raw[r_E])
-	assert.Equal(t, &r.H, r.raw[r_H])
-	assert.Equal(t, &r.L, r.raw[r_L])
+	assert.Equal(t, &r.A, r.raw[rA])
+	assert.Equal(t, &r.B, r.raw[rB])
+	assert.Equal(t, &r.C, r.raw[rC])
+	assert.Equal(t, &r.D, r.raw[rD])
+	assert.Equal(t, &r.E, r.raw[rE])
+	assert.Equal(t, &r.H, r.raw[rH])
+	assert.Equal(t, &r.L, r.raw[rL])
 }
 
 func Test_getRR(t *testing.T) {
@@ -48,21 +48,21 @@ func Test_getReg(t *testing.T) {
 	r.IYH, r.IYL = 0x0B, 0x0C
 
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
-		for _, reg := range []byte{r_A, r_B, r_C, r_D, r_E, r_H, r_L} {
+		for _, reg := range []byte{rA, rB, rC, rD, rE, rH, rL} {
 			r.prefix = prefix
 			result := *r.r(reg)
 			switch reg {
-			case r_A:
+			case rA:
 				assert.Equal(t, r.A, result)
-			case r_B:
+			case rB:
 				assert.Equal(t, r.B, result)
-			case r_C:
+			case rC:
 				assert.Equal(t, r.C, result)
-			case r_D:
+			case rD:
 				assert.Equal(t, r.D, result)
-			case r_E:
+			case rE:
 				assert.Equal(t, r.E, result)
-			case r_H:
+			case rH:
 				switch prefix {
 				case useIX:
 					assert.Equal(t, r.IXH, result)
@@ -71,7 +71,7 @@ func Test_getReg(t *testing.T) {
 				default:
 					assert.Equal(t, r.H, result)
 				}
-			case r_L:
+			case rL:
 				switch prefix {
 				case useIX:
 					assert.Equal(t, r.IXL, result)
@@ -87,24 +87,24 @@ func Test_getReg(t *testing.T) {
 
 func Test_setReg(t *testing.T) {
 	for _, prefix := range []byte{noPrefix, useIX, useIY} {
-		for _, reg := range []byte{r_A, r_B, r_C, r_D, r_E, r_H, r_L} {
+		for _, reg := range []byte{rA, rB, rC, rD, rE, rH, rL} {
 			var val byte = 0x76
 			r := newRegisters()
 			r.prefix = prefix
 			r.setR(reg, val)
 
 			switch reg {
-			case r_A:
+			case rA:
 				assert.Equal(t, val, r.A)
-			case r_B:
+			case rB:
 				assert.Equal(t, val, r.B)
-			case r_C:
+			case rC:
 				assert.Equal(t, val, r.C)
-			case r_D:
+			case rD:
 				assert.Equal(t, val, r.D)
-			case r_E:
+			case rE:
 				assert.Equal(t, val, r.E)
-			case r_H:
+			case rH:
 				switch prefix {
 				case useIX:
 					assert.Equal(t, val, r.IXH)
@@ -113,7 +113,7 @@ func Test_setReg(t *testing.T) {
 				default:
 					assert.Equal(t, val, r.H)
 				}
-			case r_L:
+			case rL:
 				switch prefix {
 				case useIX:
 					assert.Equal(t, val, r.IXL)

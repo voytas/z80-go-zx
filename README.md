@@ -1,27 +1,19 @@
 # Z80 CPU Emulator
-This is just my fun project to see how to write CPU emulator in Go. There is no real goal here apart
-from having fun and learn Go language a bit.
-My first computer I had was Sinclair ZX Spectrum 48k and hence my first assembler programs were
-written for Z80 CPU. I am fan of retro computing as well and wanted to see how easy or hard it is
-to write some kind of emulator. Obvious choice was Z80 CPU which features are well documented, including
-many "undocumented" features.
+This is just my fun project to see how to write some CPU emulator and also idea to learn go. My first computer was Sinclair ZX Spectrum 48k and hence my first assembler programs were written for the Z80 CPU which I most familiar with.
 
-The implementation passes both zexdoc and zexall tests, however this does not mean that there are no bugs
-or issues. I tried to implement most of the undocumented features.
+I tried to implement all documented features and as many as possible undocumented ones.
+
+Now, once I have working Z80 emulator, I decided to go a bit further and see how can I emulate my favourite [ZX Spectrum computer](spectrum/README.md).
 
 ## Testing
-There are two popular programs usually used to test the implementation: zexdoc and zexdall. I believe
-these programs were written for CP/M platform and require a little bootstrapping in order to execute
-them.
+The implementation passes both zexdoc and zexall tests. These tests were written for CP/M and required a little bootstrapping in order to execute them (some basic BDOS functions that output the text to screen).
 
-In the exerciser folder there is a small exerciser command line utility that can be run the tests:
+In the exerciser folder there is a small command line utility that can be used to execute the tests:
 
 `go run ./main.go exercise ./exerciser/exercises/zexall.com`
 
-It implements required CP/M bdos functions to output the test results.
-
 ## Dasm
-There is very basic disassembler in the dasm folder. I used it during debugging and testing to output
+There is a very basic disassembler in the dasm folder. I used it during debugging and testing to output
 the actual instruction being executed.
 
 ## Some implementation notes
@@ -49,7 +41,7 @@ When there is no carry from bit 3 then bit 4 would normally be equal a4 + b4:
 | 1  | 0  | 1  |    0     |
 | 1  | 1  | 0  |    0     |
 
-However when carry happened from bit 3 to bit 4 then result would be r4 + carry:
+However when carry occurred from bit 3 to bit 4 then result would be r4 + carry:
 | a4 | b4 | r4 | a4^b4^r4 |
 |:--:|:--:|:--:|:--------:|
 | 0  | 0  | 1  |    1     |
@@ -57,8 +49,7 @@ However when carry happened from bit 3 to bit 4 then result would be r4 + carry:
 | 1  | 0  | 0  |    1     |
 | 1  | 1  | 1  |    1     |
 
-Using simple xor operation detects overflow situation. This will actually work for any bit, not just carry from bit 3 to bit 4.
-The same logic applies to subtraction since it also changes expected bit value in exactly the same way.
+Using simple xor operation detects overflow situation. This will actually work for any bit, not just carry from bit 3 to bit 4. The same logic applies to subtraction since it also changes expected bit value in exactly the same way.
 
 ### Overflow condition
 For addition, operands with different signs never cause overflow. When adding operands with similar signs and the result contains a different sign, the Overflow Flag is set.
@@ -73,4 +64,4 @@ for this, mostly for the performance reasons.
 
 ### DAA
 This is the most complicated instruction to implement. However if you follow "The Undocumented Z80 Documented",
-it should be easy and it actually passes the test.
+it should be easy and it actually works.

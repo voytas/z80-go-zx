@@ -8,7 +8,7 @@ import (
 var exerciseCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Use:   "exercise program",
-	Short: "Executes specified test program",
+	Short: "Execute specified test program",
 	Long: `The program can be for example prelim.com,
 		zexdoc.com or zexall.com`,
 	Run: func(cmd *cobra.Command, args []string) {
