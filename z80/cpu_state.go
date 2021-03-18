@@ -39,25 +39,3 @@ func (z80 *Z80) State(state *CPUState) {
 	z80.iff1 = state.IFF1
 	z80.iff2 = state.IFF2
 }
-
-func (z80 *Z80) GetState() CPUState {
-	return CPUState{
-		AF:   uint16(z80.reg.A)<<8 | uint16(z80.reg.F),
-		BC:   uint16(z80.reg.B)<<8 | uint16(z80.reg.C),
-		DE:   uint16(z80.reg.D)<<8 | uint16(z80.reg.E),
-		HL:   uint16(z80.reg.H)<<8 | uint16(z80.reg.L),
-		AF_:  uint16(z80.reg.A_)<<8 | uint16(z80.reg.F_),
-		BC_:  uint16(z80.reg.B_)<<8 | uint16(z80.reg.C_),
-		DE_:  uint16(z80.reg.D_)<<8 | uint16(z80.reg.E_),
-		HL_:  uint16(z80.reg.H_)<<8 | uint16(z80.reg.L_),
-		IX:   uint16(z80.reg.IXH)<<8 | uint16(z80.reg.IXL),
-		IY:   uint16(z80.reg.IYH)<<8 | uint16(z80.reg.IYL),
-		PC:   z80.reg.PC,
-		SP:   z80.reg.SP,
-		I:    z80.reg.I,
-		R:    z80.reg.R,
-		IM:   z80.im,
-		IFF1: z80.iff1,
-		IFF2: z80.iff2,
-	}
-}
