@@ -28,13 +28,62 @@ func NewZ80(mem memory.Memory) *Z80 {
 	return z80
 }
 
-func (z80 *Z80) readByte() byte {
+// Fetches the opcode and increments PC afterwards. The cost is 4T.
+func (z80 *Z80) fetch() byte {
+	z80.TC.Add(4)
 	b := z80.mem.Read(z80.reg.PC)
 	z80.reg.PC += 1
 	return b
 }
 
+// Reads 8 bit value from memory location specified by current PC value
+// and increments PC afterwards. The cost is 3T.
+func (z80 *Z80) readByte() byte {
+	z80.TC.Add(3)
+	b := z80.mem.Read(z80.reg.PC)
+	z80.reg.PC += 1
+	return b
+}
+
+// Reads 8 bit value from memory address. Does not affect PC. The cost is 3T.
+func (z80 *Z80) read(addr uint16) byte {
+	z80.TC.Add(3)
+	b := z80.mem.Read(addr)
+	return b
+}
+
+// Reads 8 bit value from the bus (IN port).
+func (z80 *Z80) readBus(hi, lo byte) byte {
+	z80.TC.Add(4)
+	if z80.IOBus != nil {
+		return z80.IOBus.Read(hi, lo)
+	}
+
+	return 0xFF
+}
+
+func (z80 *Z80) contention(addr uint16, t int) {
+	z80.TC.Add(t)
+}
+
+// Writes 8 bit value to memory address. The cost is 3T.
+func (z80 *Z80) write(addr uint16, value byte) {
+	z80.TC.Add(3)
+	z80.mem.Write(addr, value)
+}
+
+// Writes 8 bit value to the bus (OUT port).
+func (z80 *Z80) writeBus(hi, lo, data byte) {
+	z80.TC.Add(4)
+	if z80.IOBus != nil {
+		z80.IOBus.Write(hi, lo, data)
+	}
+}
+
+// TODO: pass address
+// Reads 16 bit value from memory. The cost is 2*3T.
 func (z80 *Z80) readWord() uint16 {
+	z80.TC.Add(2 * 3)
 	w := uint16(z80.mem.Read(z80.reg.PC)) | uint16(z80.mem.Read(z80.reg.PC+1))<<8
 	z80.reg.PC += 2
 	return w
@@ -108,22 +157,10 @@ func (z80 *Z80) Run(limit int) {
 			z80.TC.halt()
 			break
 		} else {
-			opcode = z80.readByte()
+			opcode = z80.fetch()
 		}
 
 		// debugger.Debug(opcode, z80.reg.prefix, z80.reg.PC, z80.mem)
-
-		if z80.reg.prefix == noPrefix {
-			z80.TC.Add(tStatesPrimary[opcode])
-		} else {
-			t := tStatesIXY[opcode]
-			if t != 0 {
-				z80.TC.Add(t - 4)
-			} else {
-				z80.TC.Add(4 + tStatesPrimary[opcode])
-			}
-		}
-
 		z80.incR()
 
 		switch opcode {
@@ -195,9 +232,11 @@ func (z80 *Z80) Run(limit int) {
 			z80.reg.D, z80.reg.E, z80.reg.H, z80.reg.L = z80.reg.H, z80.reg.L, z80.reg.D, z80.reg.E
 		case ex_sp_hl:
 			h, l := z80.reg.r(rH), z80.reg.r(rL)
-			x, y := z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
-			z80.mem.Write(z80.reg.SP, *l)
-			z80.mem.Write(z80.reg.SP+1, *h)
+			x, y := z80.read(z80.reg.SP+1), z80.read(z80.reg.SP)
+			z80.contention(z80.reg.SP+1, 1)
+			z80.write(z80.reg.SP, *l)
+			z80.write(z80.reg.SP+1, *h)
+			z80.contention(z80.reg.SP, 2)
 			*h, *l = x, y
 		case add_a_n, add_a_a, add_a_b, add_a_c, add_a_d, add_a_e, add_a_h, add_a_l, add_a_hl:
 			a := z80.reg.A
@@ -206,7 +245,11 @@ func (z80 *Z80) Run(limit int) {
 			case add_a_n:
 				n = z80.readByte()
 			case add_a_hl:
-				n = z80.mem.Read(z80.getHL())
+				hl := z80.getHL()
+				if z80.reg.prefix != noPrefix {
+					z80.contention(z80.reg.PC-1, 5)
+				}
+				n = z80.read(hl)
 			default:
 				n = *z80.reg.r(opcode & 0b00000111)
 			}
@@ -228,7 +271,11 @@ func (z80 *Z80) Run(limit int) {
 			case adc_a_n:
 				n = z80.readByte()
 			case adc_a_hl:
-				n = z80.mem.Read(z80.getHL())
+				hl := z80.getHL()
+				if z80.reg.prefix != noPrefix {
+					z80.contention(z80.reg.PC-1, 5)
+				}
+				n = z80.read(hl)
 			default:
 				n = *z80.reg.r(opcode & 0b00000111)
 			}
@@ -248,6 +295,7 @@ func (z80 *Z80) Run(limit int) {
 			}
 			z80.reg.A = sum_b
 		case add_hl_bc, add_hl_de, add_hl_hl, add_hl_sp:
+			z80.contention(z80.reg.IR(), 7)
 			hl := z80.reg.HL()
 			var nn uint16
 			switch opcode {
@@ -273,7 +321,11 @@ func (z80 *Z80) Run(limit int) {
 			case sub_n:
 				n = z80.readByte()
 			case sub_hl:
-				n = z80.mem.Read(z80.getHL())
+				hl := z80.getHL()
+				if z80.reg.prefix != noPrefix {
+					z80.contention(z80.reg.PC-1, 1)
+				}
+				n = z80.read(hl)
 			default:
 				n = *z80.reg.r(opcode & 0b00000111)
 			}
@@ -294,7 +346,11 @@ func (z80 *Z80) Run(limit int) {
 			case cp_n:
 				n = z80.readByte()
 			case cp_hl:
-				n = z80.mem.Read(z80.getHL())
+				hl := z80.getHL()
+				if z80.reg.prefix != noPrefix {
+					z80.contention(z80.reg.PC-1, 5)
+				}
+				n = z80.read(hl)
 			default:
 				n = *z80.reg.r(opcode & 0b00000111)
 			}
@@ -315,7 +371,11 @@ func (z80 *Z80) Run(limit int) {
 			case sbc_a_n:
 				n = z80.readByte()
 			case sbc_a_hl:
-				n = z80.mem.Read(z80.getHL())
+				hl := z80.getHL()
+				if z80.reg.prefix != noPrefix {
+					z80.contention(z80.reg.PC-1, 5)
+				}
+				n = z80.read(hl)
 			default:
 				n = *z80.reg.r(opcode & 0b00000111)
 			}
@@ -339,7 +399,11 @@ func (z80 *Z80) Run(limit int) {
 			case and_n:
 				n = z80.readByte()
 			case and_hl:
-				n = z80.mem.Read(z80.getHL())
+				hl := z80.getHL()
+				if z80.reg.prefix != noPrefix {
+					z80.contention(z80.reg.PC-1, 5)
+				}
+				n = z80.read(hl)
 			default:
 				n = *z80.reg.r(opcode & 0b00000111)
 			}
@@ -354,7 +418,11 @@ func (z80 *Z80) Run(limit int) {
 			case or_n:
 				n = z80.readByte()
 			case or_hl:
-				n = z80.mem.Read(z80.getHL())
+				hl := z80.getHL()
+				if z80.reg.prefix != noPrefix {
+					z80.contention(z80.reg.PC-1, 5)
+				}
+				n = z80.read(hl)
 			default:
 				n = *z80.reg.r(opcode & 0b00000111)
 			}
@@ -369,7 +437,11 @@ func (z80 *Z80) Run(limit int) {
 			case xor_n:
 				n = z80.readByte()
 			case xor_hl:
-				n = z80.mem.Read(z80.getHL())
+				hl := z80.getHL()
+				if z80.reg.prefix != noPrefix {
+					z80.contention(z80.reg.PC-1, 5)
+				}
+				n = z80.read(hl)
 			default:
 				n = *z80.reg.r(opcode & 0b00000111)
 			}
@@ -402,35 +474,49 @@ func (z80 *Z80) Run(limit int) {
 		case ld_sp_nn:
 			z80.reg.SP = z80.readWord()
 		case ld_sp_hl:
+			z80.contention(z80.reg.IR(), 2)
 			z80.reg.SP = z80.reg.HL()
 		case ld_hl_mm:
 			addr := z80.readWord()
 			h, l := z80.reg.r(rH), z80.reg.r(rL)
-			*l = z80.mem.Read(addr)
-			*h = z80.mem.Read(addr + 1)
+			*l = z80.read(addr)
+			*h = z80.read(addr + 1)
 		case ld_mm_hl:
 			addr := z80.readWord()
 			h, l := z80.reg.r(rH), z80.reg.r(rL)
-			z80.mem.Write(addr, *l)
-			z80.mem.Write(addr+1, *h)
+			z80.write(addr, *l)
+			z80.write(addr+1, *h)
 		case ld_mhl_n:
-			z80.mem.Write(z80.getHL(), z80.readByte())
+			hl := z80.getHL()
+			n := z80.readByte()
+			if z80.reg.prefix != noPrefix {
+				z80.contention(z80.reg.PC-1, 2)
+			}
+			z80.write(hl, n)
 		case ld_mm_a:
-			z80.mem.Write(z80.readWord(), z80.reg.A)
+			z80.write(z80.readWord(), z80.reg.A)
 		case ld_a_mm:
-			z80.reg.A = z80.mem.Read(z80.readWord())
+			z80.reg.A = z80.read(z80.readWord())
 		case ld_bc_a:
-			z80.mem.Write(z80.reg.BC(), z80.reg.A)
+			z80.write(z80.reg.BC(), z80.reg.A)
 		case ld_de_a:
-			z80.mem.Write(z80.reg.DE(), z80.reg.A)
+			z80.write(z80.reg.DE(), z80.reg.A)
 		case ld_a_bc:
-			z80.reg.A = z80.mem.Read(z80.reg.BC())
+			z80.reg.A = z80.read(z80.reg.BC())
 		case ld_a_de:
-			z80.reg.A = z80.mem.Read(z80.reg.DE())
+			z80.reg.A = z80.read(z80.reg.DE())
 		case ld_a_hl, ld_b_hl, ld_c_hl, ld_d_hl, ld_e_hl, ld_h_hl, ld_l_hl:
-			*z80.reg.raw[opcode&0b00111000>>3] = z80.mem.Read(z80.getHL())
+			hl := z80.getHL()
+			if z80.reg.prefix != noPrefix {
+				z80.contention(z80.reg.PC-1, 5)
+			}
+			*z80.reg.raw[opcode&0b00111000>>3] = z80.read(hl)
 		case ld_hl_a, ld_hl_b, ld_hl_c, ld_hl_d, ld_hl_e, ld_hl_h, ld_hl_l:
-			z80.mem.Write(z80.getHL(), *z80.reg.raw[opcode&0b00000111])
+			hl := z80.getHL()
+			if z80.reg.prefix != noPrefix {
+				z80.contention(z80.reg.PC-1, 5)
+			}
+			z80.write(hl, *z80.reg.raw[opcode&0b00000111])
 		case inc_a, inc_b, inc_c, inc_d, inc_e, inc_h, inc_l:
 			r := z80.reg.r(opcode & 0b00111000 >> 3)
 			z80.reg.F &= fC
@@ -446,16 +532,24 @@ func (z80 *Z80) Run(limit int) {
 				z80.reg.F |= fZ
 			}
 		case inc_bc:
+			z80.contention(z80.reg.IR(), 2)
 			z80.reg.setBC(z80.reg.BC() + 1)
 		case inc_de:
+			z80.contention(z80.reg.IR(), 2)
 			z80.reg.setDE(z80.reg.DE() + 1)
 		case inc_hl:
+			z80.contention(z80.reg.IR(), 2)
 			z80.reg.setHL(z80.reg.HL() + 1)
 		case inc_sp:
+			z80.contention(z80.reg.IR(), 2)
 			z80.reg.SP += 1
 		case inc_mhl:
 			addr := z80.getHL()
-			b := z80.mem.Read(addr)
+			if z80.reg.prefix != noPrefix {
+				z80.contention(z80.reg.PC-1, 5)
+			}
+			b := z80.read(addr)
+			z80.contention(addr, 1)
 			z80.reg.F &= fC
 			if b == 0x7F {
 				z80.reg.F |= fP
@@ -468,7 +562,7 @@ func (z80 *Z80) Run(limit int) {
 				z80.reg.F |= fZ
 			}
 			z80.reg.F |= b & (fS | fY | fX)
-			z80.mem.Write(addr, b)
+			z80.write(addr, b)
 		case dec_a, dec_b, dec_c, dec_d, dec_e, dec_h, dec_l:
 			r := z80.reg.r(opcode & 0b00111000 >> 3)
 			z80.reg.F = z80.reg.F&fC | fN
@@ -484,16 +578,24 @@ func (z80 *Z80) Run(limit int) {
 				z80.reg.F |= fZ
 			}
 		case dec_bc:
+			z80.contention(z80.reg.IR(), 2)
 			z80.reg.setBC(z80.reg.BC() - 1)
 		case dec_de:
+			z80.contention(z80.reg.IR(), 2)
 			z80.reg.setDE(z80.reg.DE() - 1)
 		case dec_hl:
+			z80.contention(z80.reg.IR(), 2)
 			z80.reg.setHL(z80.reg.HL() - 1)
 		case dec_sp:
+			z80.contention(z80.reg.IR(), 2)
 			z80.reg.SP -= 1
 		case dec_mhl:
 			addr := z80.getHL()
-			b := z80.mem.Read(addr)
+			if z80.reg.prefix != noPrefix {
+				z80.contention(z80.reg.PC-1, 5)
+			}
+			b := z80.read(addr)
+			z80.contention(addr, 1)
 			z80.reg.F = z80.reg.F&fC | fN
 			if b == 0x80 {
 				z80.reg.F |= fP
@@ -506,9 +608,10 @@ func (z80 *Z80) Run(limit int) {
 				z80.reg.F |= fZ
 			}
 			z80.reg.F |= b & (fS | fY | fX)
-			z80.mem.Write(addr, b)
+			z80.write(addr, b)
 		case jr_o:
 			o := z80.readByte()
+			z80.contention(z80.reg.PC-1, 5)
 			if o&0x80 == 0 {
 				z80.reg.PC += uint16(o)
 			} else {
@@ -517,159 +620,150 @@ func (z80 *Z80) Run(limit int) {
 		case jr_z_o:
 			o := z80.readByte()
 			if z80.reg.F&fZ == fZ {
+				z80.contention(z80.reg.PC-1, 5)
 				if o&0x80 == 0 {
 					z80.reg.PC += uint16(o)
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC.Add(5)
 			}
 		case jr_nz_o:
 			o := z80.readByte()
 			if z80.reg.F&fZ == 0 {
+				z80.contention(z80.reg.PC-1, 5)
 				if o&0x80 == 0 {
 					z80.reg.PC += uint16(o)
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC.Add(5)
 			}
 		case jr_c:
 			o := z80.readByte()
 			if z80.reg.F&fC == fC {
+				z80.contention(z80.reg.PC-1, 5)
 				if o&0x80 == 0 {
 					z80.reg.PC += uint16(o)
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC.Add(5)
 			}
 		case jr_nc_o:
 			o := z80.readByte()
 			if z80.reg.F&fC == 0 {
+				z80.contention(z80.reg.PC-1, 5)
 				if o&0x80 == 0 {
 					z80.reg.PC += uint16(o)
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC.Add(5)
 			}
 		case djnz:
+			z80.contention(z80.reg.IR(), 1)
 			o := z80.readByte()
 			z80.reg.B -= 1
 			if z80.reg.B != 0 {
+				z80.contention(z80.reg.PC, 5)
 				if o&0x80 == 0 {
 					z80.reg.PC += uint16(o)
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC.Add(5)
 			}
 		case jp_nn:
 			z80.reg.PC = z80.readWord()
 		case jp_c_nn, jp_m_nn, jp_nc_nn, jp_nz_nn, jp_p_nn, jp_pe_nn, jp_po_nn, jp_z_nn:
+			pc := z80.readWord()
 			if z80.shouldJump(opcode) {
-				z80.reg.PC = z80.readWord()
-			} else {
-				z80.reg.PC += 2
+				z80.reg.PC = pc
 			}
 		case jp_hl:
 			z80.reg.PC = z80.reg.HL()
 		case call_nn:
 			pc := z80.readWord()
+			z80.contention(z80.reg.PC, 1)
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC>>8))
+			z80.write(z80.reg.SP, byte(z80.reg.PC>>8))
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
+			z80.write(z80.reg.SP, byte(z80.reg.PC))
 			z80.reg.PC = pc
 		case call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
+			pc := z80.readWord()
 			if z80.shouldJump(opcode) {
-				pc := z80.readWord()
+				z80.contention(z80.reg.PC, 1)
 				z80.reg.SP -= 1
-				z80.mem.Write(z80.reg.SP, byte(z80.reg.PC>>8))
+				z80.write(z80.reg.SP, byte(z80.reg.PC>>8))
 				z80.reg.SP -= 1
-				z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
+				z80.write(z80.reg.SP, byte(z80.reg.PC))
 				z80.reg.PC = pc
-				z80.TC.Add(7)
-			} else {
-				z80.reg.PC += 2
 			}
 		case ret:
-			z80.reg.PC = uint16(z80.mem.Read(z80.reg.SP+1))<<8 | uint16(z80.mem.Read(z80.reg.SP))
+			z80.reg.PC = uint16(z80.read(z80.reg.SP+1))<<8 | uint16(z80.read(z80.reg.SP))
 			z80.reg.SP += 2
 		case ret_c, ret_m, ret_nc, ret_nz, ret_p, ret_pe, ret_po, ret_z:
+			z80.contention(z80.reg.IR(), 1)
 			if z80.shouldJump(opcode) {
-				z80.reg.PC = uint16(z80.mem.Read(z80.reg.SP+1))<<8 | uint16(z80.mem.Read(z80.reg.SP))
+				z80.reg.PC = uint16(z80.read(z80.reg.SP+1))<<8 | uint16(z80.read(z80.reg.SP))
 				z80.reg.SP += 2
-				z80.TC.Add(6)
 			}
 		case rst_00h, rst_08h, rst_10h, rst_18h, rst_20h, rst_28h, rst_30h, rst_38h:
+			z80.contention(z80.reg.IR(), 1)
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC>>8))
+			z80.write(z80.reg.SP, byte(z80.reg.PC>>8))
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
+			z80.write(z80.reg.SP, byte(z80.reg.PC))
 			z80.reg.PC = uint16(8 * ((opcode & 0b00111000) >> 3))
 		case push_af:
+			z80.contention(z80.reg.IR(), 1)
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, z80.reg.A)
+			z80.write(z80.reg.SP, z80.reg.A)
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, z80.reg.F)
+			z80.write(z80.reg.SP, z80.reg.F)
 		case push_bc:
+			z80.contention(z80.reg.IR(), 1)
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, z80.reg.B)
+			z80.write(z80.reg.SP, z80.reg.B)
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, z80.reg.C)
+			z80.write(z80.reg.SP, z80.reg.C)
 		case push_de:
+			z80.contention(z80.reg.IR(), 1)
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, z80.reg.D)
+			z80.write(z80.reg.SP, z80.reg.D)
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, z80.reg.E)
+			z80.write(z80.reg.SP, z80.reg.E)
 		case push_hl:
+			z80.contention(z80.reg.IR(), 1)
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, *z80.reg.r(rH))
+			z80.write(z80.reg.SP, *z80.reg.r(rH))
 			z80.reg.SP -= 1
-			z80.mem.Write(z80.reg.SP, *z80.reg.r(rL))
+			z80.write(z80.reg.SP, *z80.reg.r(rL))
 		case pop_af:
-			z80.reg.A, z80.reg.F = z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
+			z80.reg.A, z80.reg.F = z80.read(z80.reg.SP+1), z80.read(z80.reg.SP)
 			z80.reg.SP += 2
 		case pop_bc:
-			z80.reg.B, z80.reg.C = z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
+			z80.reg.B, z80.reg.C = z80.read(z80.reg.SP+1), z80.read(z80.reg.SP)
 			z80.reg.SP += 2
 		case pop_de:
-			z80.reg.D, z80.reg.E = z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
+			z80.reg.D, z80.reg.E = z80.read(z80.reg.SP+1), z80.read(z80.reg.SP)
 			z80.reg.SP += 2
 		case pop_hl:
-			*z80.reg.r(rH), *z80.reg.r(rL) = z80.mem.Read(z80.reg.SP+1), z80.mem.Read(z80.reg.SP)
+			*z80.reg.r(rH), *z80.reg.r(rL) = z80.read(z80.reg.SP+1), z80.read(z80.reg.SP)
 			z80.reg.SP += 2
 		case in_a_n:
-			n := z80.readByte()
-			if z80.IOBus != nil {
-				z80.reg.A = z80.IOBus.Read(z80.reg.A, n)
-			} else {
-				z80.reg.A = 0xFF
-			}
+			z80.reg.A = z80.readBus(z80.reg.A, z80.readByte())
 		case out_n_a:
-			if z80.IOBus != nil {
-				z80.IOBus.Write(z80.reg.A, z80.readByte(), z80.reg.A)
-			}
+			z80.writeBus(z80.reg.A, z80.readByte(), z80.reg.A)
 		case prefix_cb:
 			z80.incR()
 			z80.prefixCB()
 		case prefix_ed:
 			z80.incR()
-			z80.prefixED(z80.readByte())
+			z80.prefixED(z80.fetch())
 		case useIX:
 			z80.incR()
-			if z80.reg.prefix != noPrefix {
-				z80.TC.Add(tStatesPrimary[nop])
-			}
 			z80.reg.prefix = useIX
 			continue
 		case useIY:
 			z80.incR()
-			if z80.reg.prefix != noPrefix {
-				z80.TC.Add(tStatesPrimary[nop])
-			}
 			z80.reg.prefix = useIY
 			continue
 		}

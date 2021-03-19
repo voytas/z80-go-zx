@@ -155,3 +155,8 @@ func (r *registers) setHL(value uint16) {
 		r.H, r.L = h, l
 	}
 }
+
+// Gets the virtual IR register value.
+func (r *registers) IR() uint16 {
+	return uint16(r.I)<<8 | uint16(r.R)
+}
