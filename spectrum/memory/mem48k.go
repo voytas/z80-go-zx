@@ -52,7 +52,7 @@ func createContendedIndex() {
 // Add extra states if memory address is contended
 func (m *Mem48k) addContendedState(addr uint16) {
 	if addr >= 0x4000 && addr <= 0x7fff && m.TC.Current < len(contendedStates) {
-		//m.TC.Add(int(contendedStates[m.TC.Current]))
+		m.TC.Add(int(contendedStates[m.TC.Current]))
 	}
 }
 
