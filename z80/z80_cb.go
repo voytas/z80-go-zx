@@ -88,7 +88,7 @@ func (z80 *Z80) prefixCB() {
 			if reg == HL {
 				// Might not be 100%, this undocumented behaviour is not clear, but it passses test
 				z80.reg.F |= fS&test | (fY|fX)&byte(hl>>8)
-				// TODO: z80.TC.Add(-3) // bit and HL is 12 T states
+				z80.contention(hl, 1)
 			} else {
 				z80.reg.F |= fS&test | (fY|fX)&v
 			}

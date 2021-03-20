@@ -115,7 +115,7 @@ func (z80 *Z80) INT(data byte) {
 	case 2:
 		z80.pushPC()
 		addr := uint16(z80.reg.I)<<8 + uint16(data)
-		z80.reg.PC = uint16(z80.mem.Read(addr+1))<<8 | uint16(z80.mem.Read(addr))
+		z80.reg.PC = uint16(z80.read(addr+1))<<8 | uint16(z80.read(addr))
 		z80.TC.Add(19)
 	}
 	z80.incR()
@@ -148,6 +148,9 @@ func (z80 *Z80) Run(limit int) {
 	// Update limit with remaining from previous run
 	z80.TC.limit(limit)
 	for {
+
+		// debugger.Debug(z80.reg.prefix, z80.reg.PC, z80.mem)
+
 		if z80.TC.done() {
 			break
 		}
@@ -160,7 +163,6 @@ func (z80 *Z80) Run(limit int) {
 			opcode = z80.fetch()
 		}
 
-		// debugger.Debug(opcode, z80.reg.prefix, z80.reg.PC, z80.mem)
 		z80.incR()
 
 		switch opcode {
