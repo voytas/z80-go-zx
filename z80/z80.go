@@ -48,8 +48,7 @@ func (z80 *Z80) readByte() byte {
 // Reads 8 bit value from memory address. Does not affect PC. The cost is 3T.
 func (z80 *Z80) read(addr uint16) byte {
 	z80.TC.Add(3)
-	b := z80.mem.Read(addr)
-	return b
+	return z80.mem.Read(addr)
 }
 
 // Reads 8 bit value from the bus (IN port).
