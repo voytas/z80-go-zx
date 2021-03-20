@@ -325,7 +325,7 @@ func (z80 *Z80) Run(limit int) {
 			case sub_hl:
 				hl := z80.getHL()
 				if z80.reg.prefix != noPrefix {
-					z80.contention(z80.reg.PC-1, 1)
+					z80.contention(z80.reg.PC-1, 5)
 				}
 				n = z80.read(hl)
 			default:

@@ -1,0 +1,3542 @@
+0000: 00            NOP
+T=4
+0000: AF            XOR  A
+T=4
+0001: 76            HALT
+T=8
+0002: 3E 87         LD   A,87
+0000: F3            DI
+T=4
+T=4
+0001: FB            EI
+T=8
+0000: ED 46         IM   0
+T=8
+T=8
+T=8
+0000: 08            EX   AF,AF'
+T=4
+T=4
+0000: D9            EXX
+T=4
+0000: EB            EX   DE,HL
+T=4
+0000: 21 12 70      LD   HL,7012
+T=10
+0003: 31 08 00      LD   SP,0008
+T=20
+0006: E3            EX   (SP),HL
+T=39
+0000: DD 21 12 70   LD   IX,7012
+T=14
+0004: 31 0A 00      LD   SP,000A
+T=24
+0007: DD E3         EX   (SP),IX
+T=47
+0000: FD 21 12 70   LD   IY,7012
+T=14
+0004: 31 0A 00      LD   SP,000A
+T=24
+0007: FD E3         EX   (SP),IY
+T=47
+0000: 3E 00         LD   A,00
+T=7
+0002: C6 00         ADD  A,00
+T=14
+0000: 3E FF         LD   A,FF
+T=7
+0002: 26 00         LD   H,00
+T=14
+0004: 2E 08         LD   L,08
+T=21
+0006: 86            ADD  A,(HL)
+T=28
+0000: 3E 70         LD   A,70
+T=7
+0002: 2E 70         LD   L,70
+T=14
+0004: 85            ADD  A,L
+T=18
+0000: 3E F0         LD   A,F0
+T=7
+0002: C6 B0         ADD  A,B0
+T=14
+0000: 3E 8F         LD   A,8F
+T=7
+0002: C6 81         ADD  A,81
+T=14
+0000: 3E 22         LD   A,22
+T=7
+0002: DD 21 13 00   LD   IX,0013
+T=21
+0006: DD 85         ADD  A,IXL
+T=29
+0000: 3E 22         LD   A,22
+T=7
+0002: DD 21 09 00   LD   IX,0009
+T=21
+0006: DD 86 01      ADD  A,(IX+01)
+T=40
+0000: 3E 22         LD   A,22
+T=7
+0002: FD 21 13 00   LD   IY,0013
+T=21
+0006: FD 85         ADD  A,IYL
+T=29
+0000: 3E 22         LD   A,22
+T=7
+0002: FD 21 09 00   LD   IY,0009
+T=21
+0006: FD 86 01      ADD  A,(IY+01)
+T=40
+0000: 3E 20         LD   A,20
+T=7
+0002: CE 20         ADC  A,20
+T=14
+0000: 3E 00         LD   A,00
+T=7
+0002: 06 FF         LD   B,FF
+T=14
+0004: 88            ADC  A,B
+T=18
+0000: 3E 0F         LD   A,0F
+T=7
+0002: 06 00         LD   B,00
+T=14
+0004: 88            ADC  A,B
+T=18
+0000: 3E 0F         LD   A,0F
+T=7
+0002: 2E 06         LD   L,06
+T=14
+0004: 8E            ADC  A,(HL)
+T=21
+0000: 3E 0F         LD   A,0F
+T=7
+0002: 06 69         LD   B,69
+T=14
+0004: 88            ADC  A,B
+T=18
+0000: 3E 0E         LD   A,0E
+T=7
+0002: 06 01         LD   B,01
+T=14
+0004: 88            ADC  A,B
+T=18
+0000: 3E 0E         LD   A,0E
+T=7
+0002: 06 01         LD   B,01
+T=14
+0004: 88            ADC  A,B
+T=18
+0000: 3E 22         LD   A,22
+T=7
+0002: DD 21 13 00   LD   IX,0013
+T=21
+0006: DD 8D         ADC  A,IXL
+T=29
+0000: 3E 22         LD   A,22
+T=7
+0002: DD 21 09 00   LD   IX,0009
+T=21
+0006: DD 8E 01      ADC  A,(IX+01)
+T=40
+0000: 3E 22         LD   A,22
+T=7
+0002: FD 21 13 00   LD   IY,0013
+T=21
+0006: FD 8D         ADC  A,IYL
+T=29
+0000: 3E 22         LD   A,22
+T=7
+0002: FD 21 09 00   LD   IY,0009
+T=21
+0006: FD 8E 01      ADC  A,(IY+01)
+T=40
+0000: 21 FF FF      LD   HL,FFFF
+T=10
+0003: 01 01 00      LD   BC,0001
+T=20
+0006: 09            ADD  HL,BC
+T=31
+0000: 21 41 42      LD   HL,4241
+T=10
+0003: 11 11 11      LD   DE,1111
+T=20
+0006: 19            ADD  HL,DE
+T=31
+0000: 21 41 42      LD   HL,4241
+T=10
+0003: 29            ADD  HL,HL
+T=21
+0000: 21 FE FF      LD   HL,FFFE
+T=10
+0003: 31 02 00      LD   SP,0002
+T=20
+0006: 39            ADD  HL,SP
+T=31
+0000: 00            NOP
+T=4
+0001: 21 FE FF      LD   HL,FFFE
+T=14
+0004: 31 03 00      LD   SP,0003
+T=24
+0007: 00            NOP
+T=28
+0008: 39            ADD  HL,SP
+T=39
+0000: DD 21 FE FF   LD   IX,FFFE
+T=14
+0004: 31 03 00      LD   SP,0003
+T=24
+0007: DD 39         ADD  IX,SP
+T=39
+0000: FD 21 FE FF   LD   IY,FFFE
+T=14
+0004: 31 03 00      LD   SP,0003
+T=24
+0007: FD 39         ADD  IY,SP
+T=39
+0000: 37            SCF
+T=4
+0001: 21 FE FF      LD   HL,FFFE
+T=14
+0004: 01 01 00      LD   BC,0001
+T=24
+0007: ED 4A         ADC  HL,BC
+T=39
+0000: 37            SCF
+T=4
+0001: 21 C0 63      LD   HL,63C0
+T=14
+0004: 11 D0 8A      LD   DE,8AD0
+T=24
+0007: ED 5A         ADC  HL,DE
+T=39
+0000: 37            SCF
+T=4
+0001: 21 18 7F      LD   HL,7F18
+T=14
+0004: 11 48 77      LD   DE,7748
+T=24
+0007: ED 5A         ADC  HL,DE
+T=39
+0000: 3E 00         LD   A,00
+T=7
+0002: D6 01         SUB  01
+T=14
+0000: 3E 20         LD   A,20
+T=7
+0002: 97            SUB  A
+T=11
+0000: 3E 90         LD   A,90
+T=7
+0002: 26 20         LD   H,20
+T=14
+0004: 94            SUB  H
+T=18
+0000: 3E 7F         LD   A,7F
+T=7
+0002: 2E 06         LD   L,06
+T=14
+0004: 96            SUB  (HL)
+T=21
+0000: 3E 12         LD   A,12
+T=7
+0002: DD 26 02      LD   IXH,02
+T=18
+0005: DD 94         SUB  IXH
+T=26
+0000: 3E 12         LD   A,12
+T=7
+0002: DD 96 06      SUB  (IX+06)
+T=26
+0000: 3E 12         LD   A,12
+T=7
+0002: FD 26 02      LD   IYH,02
+T=18
+0005: FD 94         SUB  IYH
+T=26
+0000: 3E 12         LD   A,12
+T=7
+0002: FD 96 06      SUB  (IY+06)
+T=26
+0000: 3E 00         LD   A,00
+T=7
+0002: 06 01         LD   B,01
+T=14
+0004: B8            CP   B
+T=18
+0000: 3E 20         LD   A,20
+T=7
+0002: BF            CP   A
+T=11
+0000: 3E 90         LD   A,90
+T=7
+0002: FE 20         CP   20
+T=14
+0000: 3E 7F         LD   A,7F
+T=7
+0002: 2E 06         LD   L,06
+T=14
+0004: BE            CP   (HL)
+T=21
+0000: 3E 7F         LD   A,7F
+T=7
+0002: DD 26 80      LD   IXH,80
+T=18
+0005: DD BC         CP   IXH
+T=26
+0000: 3E 7F         LD   A,7F
+T=7
+0002: DD BE 06      CP   (IX+06)
+T=26
+0000: 3E 7F         LD   A,7F
+T=7
+0002: FD 26 80      LD   IYH,80
+T=18
+0005: FD BC         CP   IYH
+T=26
+0000: 3E 7F         LD   A,7F
+T=7
+0002: FD BE 06      CP   (IY+06)
+T=26
+0000: 3E 01         LD   A,01
+T=7
+0002: 06 01         LD   B,01
+T=14
+0004: 98            SBC  A,B
+T=18
+0000: 3E 7F         LD   A,7F
+T=7
+0002: 2E 80         LD   L,80
+T=14
+0004: 9D            SBC  A,L
+T=18
+0000: 3E 02         LD   A,02
+T=7
+0002: DE 01         SBC  A,01
+T=14
+0000: 3E 81         LD   A,81
+T=7
+0002: 2E 06         LD   L,06
+T=14
+0004: 9E            SBC  A,(HL)
+T=21
+0000: 3E 12         LD   A,12
+T=7
+0002: DD 26 02      LD   IXH,02
+T=18
+0005: DD 9C         SBC  A,IXH
+T=26
+0000: 3E 12         LD   A,12
+T=7
+0002: DD 9E 06      SBC  A,(IX+06)
+T=26
+0000: 3E 12         LD   A,12
+T=7
+0002: FD 26 02      LD   IYH,02
+T=18
+0005: FD 9C         SBC  A,IYH
+T=26
+0000: 3E 12         LD   A,12
+T=7
+0002: FD 9E 06      SBC  A,(IY+06)
+T=26
+0000: 37            SCF
+T=4
+0001: 21 FE FF      LD   HL,FFFE
+T=14
+0004: 01 FD FF      LD   BC,FFFD
+T=24
+0007: ED 42         SBC  HL,BC
+T=39
+0000: 37            SCF
+T=4
+0001: 21 01 00      LD   HL,0001
+T=14
+0004: 01 FD 7F      LD   BC,7FFD
+T=24
+0007: ED 42         SBC  HL,BC
+T=39
+0000: 37            SCF
+T=4
+0001: 21 01 70      LD   HL,7001
+T=14
+0004: 01 FD 8F      LD   BC,8FFD
+T=24
+0007: ED 42         SBC  HL,BC
+T=39
+0000: 3E 55         LD   A,55
+T=7
+0002: ED 44         NEG
+T=15
+0000: 3E 00         LD   A,00
+T=7
+0002: ED 44         NEG
+T=15
+0000: 3E 80         LD   A,80
+T=7
+0002: ED 44         NEG
+T=15
+0000: 3E AA         LD   A,AA
+T=7
+0002: ED 44         NEG
+T=15
+0000: 3E 0F         LD   A,0F
+T=7
+0002: 06 F0         LD   B,F0
+T=14
+0004: A0            AND  B
+T=18
+0000: 3E 8F         LD   A,8F
+T=7
+0002: E6 F3         AND  F3
+T=14
+0000: 3E FF         LD   A,FF
+T=7
+0002: 2E 06         LD   L,06
+T=14
+0004: A6            AND  (HL)
+T=21
+0000: 3E 01         LD   A,01
+T=7
+0002: DD 2E 03      LD   IXL,03
+T=18
+0005: DD A5         AND  IXL
+T=26
+0000: 3E 88         LD   A,88
+T=7
+0002: DD A6 06      AND  (IX+06)
+T=26
+0000: 3E 01         LD   A,01
+T=7
+0002: FD 2E 03      LD   IYL,03
+T=18
+0005: FD A5         AND  IYL
+T=26
+0000: 3E 88         LD   A,88
+T=7
+0002: FD A6 06      AND  (IY+06)
+T=26
+0000: 3E 00         LD   A,00
+T=7
+0002: 06 00         LD   B,00
+T=14
+0004: B0            OR   B
+T=18
+0000: 3E 8A         LD   A,8A
+T=7
+0002: 2E 06         LD   L,06
+T=14
+0004: B6            OR   (HL)
+T=21
+0000: 3E 11         LD   A,11
+T=7
+0002: F6 20         OR   20
+T=14
+0000: 3E 01         LD   A,01
+T=7
+0002: DD 2E 12      LD   IXL,12
+T=18
+0005: DD B5         OR   IXL
+T=26
+0000: 3E 80         LD   A,80
+T=7
+0002: DD B6 06      OR   (IX+06)
+T=26
+0000: 3E 01         LD   A,01
+T=7
+0002: FD 2E 12      LD   IYL,12
+T=18
+0005: FD B5         OR   IYL
+T=26
+0000: 3E 80         LD   A,80
+T=7
+0002: FD B6 06      OR   (IY+06)
+T=26
+0000: 3E 1F         LD   A,1F
+T=7
+0002: 06 1F         LD   B,1F
+T=14
+0004: A8            XOR  B
+T=18
+0000: 3E 1F         LD   A,1F
+T=7
+0002: 2E 06         LD   L,06
+T=14
+0004: AE            XOR  (HL)
+T=21
+0000: 3E 1F         LD   A,1F
+T=7
+0002: EE 0F         XOR  0F
+T=14
+0000: 3E 01         LD   A,01
+T=7
+0002: DD 2E 03      LD   IXL,03
+T=18
+0005: DD AD         XOR  IXL
+T=26
+0000: 3E 88         LD   A,88
+T=7
+0002: DD AE 06      XOR  (IX+06)
+T=26
+0000: 3E 01         LD   A,01
+T=7
+0002: FD 2E 03      LD   IYL,03
+T=18
+0005: FD AD         XOR  IYL
+T=26
+0000: 3E 88         LD   A,88
+T=7
+0002: FD AE 06      XOR  (IY+06)
+T=26
+0000: 3E 00         LD   A,00
+T=7
+0002: 3C            INC  A
+T=11
+0000: 3E FF         LD   A,FF
+T=7
+0002: 3C            INC  A
+T=11
+0000: 3E 7F         LD   A,7F
+T=7
+0002: 3C            INC  A
+T=11
+0000: 3E 92         LD   A,92
+T=7
+0002: 3C            INC  A
+T=11
+0000: 3E 10         LD   A,10
+T=7
+0002: 3C            INC  A
+T=11
+0000: 00            NOP
+T=4
+0001: 26 10         LD   H,10
+T=11
+0003: 00            NOP
+T=15
+0004: 24            INC  H
+T=19
+0005: 00            NOP
+T=23
+0006: 2E 20         LD   L,20
+T=30
+0008: 00            NOP
+T=34
+0009: 2C            INC  L
+T=38
+0000: DD 26 10      LD   IXH,10
+T=11
+0003: DD 24         INC  IXH
+T=19
+0005: DD 2E 20      LD   IXL,20
+T=30
+0008: DD 2C         INC  IXL
+T=38
+0000: FD 26 10      LD   IYH,10
+T=11
+0003: FD 24         INC  IYH
+T=19
+0005: FD 2E 20      LD   IYL,20
+T=30
+0008: FD 2C         INC  IYL
+T=38
+0000: 01 34 12      LD   BC,1234
+T=10
+0003: 03            INC  BC
+T=16
+0004: 11 35 13      LD   DE,1335
+T=26
+0007: 13            INC  DE
+T=32
+0008: 21 36 14      LD   HL,1436
+T=42
+000B: 23            INC  HL
+T=48
+000C: 31 37 15      LD   SP,1537
+T=58
+000F: 33            INC  SP
+T=64
+0010: DD 21 38 16   LD   IX,1638
+T=78
+0014: DD 23         INC  IX
+T=88
+0016: FD 21 39 17   LD   IY,1739
+T=102
+001A: FD 23         INC  IY
+T=112
+0000: 21 05 00      LD   HL,0005
+T=10
+0003: 34            INC  (HL)
+T=21
+0000: 21 05 00      LD   HL,0005
+T=10
+0003: 34            INC  (HL)
+T=21
+0000: 21 05 00      LD   HL,0005
+T=10
+0003: 34            INC  (HL)
+T=21
+0000: DD 21 05 00   LD   IX,0005
+T=14
+0004: DD 34 03      INC  (IX+03)
+T=37
+0000: FD 21 05 00   LD   IY,0005
+T=14
+0004: FD 34 03      INC  (IY+03)
+T=37
+0000: 3E 01         LD   A,01
+T=7
+0002: 3D            DEC  A
+T=11
+0000: 3E 00         LD   A,00
+T=7
+0002: 3D            DEC  A
+T=11
+0000: 3E 80         LD   A,80
+T=7
+0002: 3D            DEC  A
+T=11
+0000: 3E AB         LD   A,AB
+T=7
+0002: 3D            DEC  A
+T=11
+0000: 00            NOP
+T=4
+0001: 26 10         LD   H,10
+T=11
+0003: 00            NOP
+T=15
+0004: 25            DEC  H
+T=19
+0005: 00            NOP
+T=23
+0006: 2E 20         LD   L,20
+T=30
+0008: 00            NOP
+T=34
+0009: 2D            DEC  L
+T=38
+0000: DD 26 10      LD   IXH,10
+T=11
+0003: DD 25         DEC  IXH
+T=19
+0005: DD 2E 20      LD   IXL,20
+T=30
+0008: DD 2D         DEC  IXL
+T=38
+0000: FD 26 10      LD   IYH,10
+T=11
+0003: FD 25         DEC  IYH
+T=19
+0005: FD 2E 20      LD   IYL,20
+T=30
+0008: FD 2D         DEC  IYL
+T=38
+0000: 01 34 12      LD   BC,1234
+T=10
+0003: 0B            DEC  BC
+T=16
+0004: 11 35 13      LD   DE,1335
+T=26
+0007: 1B            DEC  DE
+T=32
+0008: 21 36 14      LD   HL,1436
+T=42
+000B: 2B            DEC  HL
+T=48
+000C: 31 37 15      LD   SP,1537
+T=58
+000F: 3B            DEC  SP
+T=64
+0010: DD 21 38 16   LD   IX,1638
+T=78
+0014: DD 2B         DEC  IX
+T=88
+0016: FD 21 39 17   LD   IY,1739
+T=102
+001A: FD 2B         DEC  IY
+T=112
+0000: 21 05 00      LD   HL,0005
+T=10
+0003: 35            DEC  (HL)
+T=21
+0000: 21 05 00      LD   HL,0005
+T=10
+0003: 35            DEC  (HL)
+T=21
+0000: 21 05 00      LD   HL,0005
+T=10
+0003: 35            DEC  (HL)
+T=21
+0000: DD 21 05 00   LD   IX,0005
+T=14
+0004: DD 35         DEC  (IX)
+T=37
+0000: FD 21 05 00   LD   IY,0005
+T=14
+0004: FD 35         DEC  (IY)
+T=37
+0000: 01 34 12      LD   BC,1234
+T=10
+0000: 00            NOP
+T=4
+0001: 21 34 12      LD   HL,1234
+T=14
+0000: DD 21 34 12   LD   IX,1234
+T=14
+0000: FD 21 34 12   LD   IY,1234
+T=14
+0000: 00            NOP
+T=4
+0001: 21 3A 48      LD   HL,483A
+T=14
+0004: 00            NOP
+T=18
+0005: 22 09 00      LD   (0009),HL
+T=34
+0000: DD 21 3A 48   LD   IX,483A
+T=14
+0004: DD 22 09 00   LD   (0009),IX
+T=34
+0000: FD 21 3A 48   LD   IY,483A
+T=14
+0004: FD 22 09 00   LD   (0009),IY
+T=34
+0000: 31 3A 48      LD   SP,483A
+T=10
+0003: ED 73 08 00   LD   (0008),SP
+T=30
+0000: 00            NOP
+T=4
+0001: 2A 05 00      LD   HL,(0005)
+T=20
+0000: DD 2A 05 00   LD   IX,(0005)
+T=20
+0000: FD 2A 05 00   LD   IY,(0005)
+T=20
+0000: ED 5B 05 00   LD   DE,(0005)
+T=20
+0000: 21 06 00      LD   HL,0006
+T=10
+0003: 36 AB         LD   (HL),AB
+T=20
+0000: DD 21 06 00   LD   IX,0006
+T=14
+0004: DD 36 03 AB   LD   (IX+AB),03
+T=33
+0000: FD 21 06 00   LD   IY,0006
+T=14
+0004: FD 36 03 AB   LD   (IY+AB),03
+T=33
+0000: 00            NOP
+T=4
+0001: 21 20 30      LD   HL,3020
+T=14
+0004: 00            NOP
+T=18
+0005: F9            LD   SP,HL
+T=24
+0000: DD 21 20 30   LD   IX,3020
+T=14
+0004: DD F9         LD   SP,IX
+T=24
+0000: FD 21 20 30   LD   IY,3020
+T=14
+0004: FD F9         LD   SP,IY
+T=24
+0000: DD 21 02 00   LD   IX,0002
+T=14
+0004: DD 36 07 AB   LD   (IX+AB),07
+T=33
+0000: FD 21 02 00   LD   IY,0002
+T=14
+0004: FD 36 07 AB   LD   (IY+AB),07
+T=33
+0000: 3E 9F         LD   A,9F
+T=7
+0002: 32 06 00      LD   (0006),A
+T=20
+0000: 3A 04 00      LD   A,(0004)
+T=13
+0000: 3E 76         LD   A,76
+T=7
+0002: 01 07 00      LD   BC,0007
+T=17
+0005: 02            LD   (BC),A
+T=24
+0000: 3E 76         LD   A,76
+T=7
+0002: 11 07 00      LD   DE,0007
+T=17
+0005: 12            LD   (DE),A
+T=24
+0000: 01 05 00      LD   BC,0005
+T=10
+0003: 0A            LD   A,(BC)
+T=17
+0000: 11 05 00      LD   DE,0005
+T=10
+0003: 1A            LD   A,(BC)
+T=17
+0000: ED 5F         LD   A,R
+T=9
+0000: 3E 7E         LD   A,7E
+T=7
+0002: ED 4F         LD   R,A
+T=16
+0004: ED 5F         LD   A,R
+T=25
+0000: 3E 05         LD   A,05
+T=7
+0002: ED 57         LD   A,I
+T=16
+0000: 3E 85         LD   A,85
+T=7
+0002: ED 4F         LD   R,A
+T=16
+0000: 3E 85         LD   A,85
+T=7
+0002: ED 47         LD   I,A
+T=16
+0000: 3E 01         LD   A,01
+T=7
+0002: 06 02         LD   B,02
+T=14
+0004: 0E 03         LD   C,03
+T=21
+0006: 16 04         LD   D,04
+T=28
+0008: 1E 05         LD   C,05
+T=35
+000A: 26 06         LD   H,06
+T=42
+000C: 2E 07         LD   L,07
+T=49
+000E: DD 26 08      LD   IXH,08
+T=60
+0011: DD 2E 09      LD   IXL,09
+T=71
+0014: FD 26 0A      LD   IYH,0A
+T=82
+0017: FD 2E 0B      LD   IYL,0B
+T=93
+0000: 3E 56         LD   A,56
+T=7
+0002: 47            LD   B,A
+T=11
+0003: 48            LD   C,B
+T=15
+0004: 51            LD   D,C
+T=19
+0005: 5A            LD   E,D
+T=23
+0006: 63            LD   H,E
+T=27
+0007: 6C            LD   L,H
+T=31
+0008: 3E 00         LD   A,00
+T=38
+000A: DD 60         LD   IXH,B
+T=46
+000C: DD 6C         LD   IXL,IXH
+T=54
+000E: FD 68         LD   IYL,B
+T=62
+0010: FD 6B         LD   IYL,E
+T=70
+0012: FD 7D         LD   A,IYL
+T=78
+0000: 21 06 00      LD   HL,0006
+T=10
+0003: 7E            LD   A,(HL)
+T=17
+0004: 6E            LD   L,(HL)
+T=24
+0000: DD 21 01 00   LD   IX,0001
+T=14
+0004: DD 6E 07      LD   L,(IX+07)
+T=33
+0000: FD 21 01 00   LD   IY,0001
+T=14
+0004: FD 6E 07      LD   L,(IY+07)
+T=33
+0000: 16 99         LD   D,99
+T=7
+0002: 21 07 00      LD   HL,0007
+T=17
+0005: 72            LD   (HL),D
+T=24
+0000: 16 99         LD   D,99
+T=7
+0002: DD 21 07 00   LD   IX,0007
+T=21
+0006: DD 72 03      LD   (IX+03),D
+T=40
+0000: 16 99         LD   D,99
+T=7
+0002: FD 21 07 00   LD   IY,0007
+T=21
+0006: FD 72 03      LD   (IY+03),D
+T=40
+0000: 3E 5B         LD   A,5B
+T=7
+0002: 2F            CPL
+T=11
+0000: 37            SCF
+T=4
+0000: 3F            CCF
+T=4
+T=4
+T=4
+0000: 3E 55         LD   A,55
+T=7
+0002: 07            RLCA
+T=11
+0000: 3E AA         LD   A,AA
+T=7
+0002: 07            RLCA
+T=11
+0000: 3E 00         LD   A,00
+T=7
+0002: 07            RLCA
+T=11
+0000: 3E FF         LD   A,FF
+T=7
+0002: 07            RLCA
+T=11
+0000: 3E 55         LD   A,55
+T=7
+0002: 0F            RRCA
+T=11
+0000: 3E AA         LD   A,AA
+T=7
+0002: 0F            RRCA
+T=11
+0000: 3E 00         LD   A,00
+T=7
+0002: 0F            RRCA
+T=11
+0000: 3E FF         LD   A,FF
+T=7
+0002: 0F            RRCA
+T=11
+0000: 3E 80         LD   A,80
+T=7
+0002: 17            RLA
+T=11
+0000: 3E 55         LD   A,55
+T=7
+0002: 17            RLA
+T=11
+0000: 3E 88         LD   A,88
+T=7
+0002: 17            RLA
+T=11
+0003: 47            LD   B,A
+T=15
+0004: 17            RLA
+T=19
+0000: 3E 80         LD   A,80
+T=7
+0002: 1F            RRA
+T=11
+0000: 3E 55         LD   A,55
+T=7
+0002: 1F            RRA
+T=11
+0000: 3E 89         LD   A,89
+T=7
+0002: 1F            RRA
+T=11
+0003: 47            LD   B,A
+T=15
+0004: 1F            RRA
+T=19
+0000: 3E 7A         LD   A,7A
+T=7
+0002: 21 08 00      LD   HL,0008
+T=17
+0005: ED 6F         RLD
+T=35
+0000: 3E 0F         LD   A,0F
+T=7
+0002: 21 08 00      LD   HL,0008
+T=17
+0005: ED 6F         RLD
+T=35
+0000: 3E 84         LD   A,84
+T=7
+0002: 21 08 00      LD   HL,0008
+T=17
+0005: ED 67         RRD
+T=35
+0000: 3E 03         LD   A,03
+T=7
+0002: 21 08 00      LD   HL,0008
+T=17
+0005: ED 67         RRD
+T=35
+0000: 3E 9A         LD   A,9A
+T=7
+0002: 27            DAA
+T=11
+0000: 3E 99         LD   A,99
+T=7
+0002: 27            DAA
+T=11
+0000: 3E 8F         LD   A,8F
+T=7
+0002: 27            DAA
+T=11
+0000: 3E 8F         LD   A,8F
+T=7
+0002: 27            DAA
+T=11
+0000: 3E CA         LD   A,CA
+T=7
+0002: 27            DAA
+T=11
+0000: 3E C5         LD   A,C5
+T=7
+0002: 27            DAA
+T=11
+0000: 3E CA         LD   A,CA
+T=7
+0002: 27            DAA
+T=11
+0000: 06 20         LD   B,20
+T=7
+0002: 3E 00         LD   A,00
+T=14
+0004: 3C            INC  A
+T=18
+0005: 10 FD         DJNZ FD
+T=31
+0004: 3C            INC  A
+T=35
+0005: 10 FD         DJNZ FD
+T=48
+0004: 3C            INC  A
+T=52
+0005: 10 FD         DJNZ FD
+T=65
+0004: 3C            INC  A
+T=69
+0005: 10 FD         DJNZ FD
+T=82
+0004: 3C            INC  A
+T=86
+0005: 10 FD         DJNZ FD
+T=99
+0004: 3C            INC  A
+T=103
+0005: 10 FD         DJNZ FD
+T=116
+0004: 3C            INC  A
+T=120
+0005: 10 FD         DJNZ FD
+T=133
+0004: 3C            INC  A
+T=137
+0005: 10 FD         DJNZ FD
+T=150
+0004: 3C            INC  A
+T=154
+0005: 10 FD         DJNZ FD
+T=167
+0004: 3C            INC  A
+T=171
+0005: 10 FD         DJNZ FD
+T=184
+0004: 3C            INC  A
+T=188
+0005: 10 FD         DJNZ FD
+T=201
+0004: 3C            INC  A
+T=205
+0005: 10 FD         DJNZ FD
+T=218
+0004: 3C            INC  A
+T=222
+0005: 10 FD         DJNZ FD
+T=235
+0004: 3C            INC  A
+T=239
+0005: 10 FD         DJNZ FD
+T=252
+0004: 3C            INC  A
+T=256
+0005: 10 FD         DJNZ FD
+T=269
+0004: 3C            INC  A
+T=273
+0005: 10 FD         DJNZ FD
+T=286
+0004: 3C            INC  A
+T=290
+0005: 10 FD         DJNZ FD
+T=303
+0004: 3C            INC  A
+T=307
+0005: 10 FD         DJNZ FD
+T=320
+0004: 3C            INC  A
+T=324
+0005: 10 FD         DJNZ FD
+T=337
+0004: 3C            INC  A
+T=341
+0005: 10 FD         DJNZ FD
+T=354
+0004: 3C            INC  A
+T=358
+0005: 10 FD         DJNZ FD
+T=371
+0004: 3C            INC  A
+T=375
+0005: 10 FD         DJNZ FD
+T=388
+0004: 3C            INC  A
+T=392
+0005: 10 FD         DJNZ FD
+T=405
+0004: 3C            INC  A
+T=409
+0005: 10 FD         DJNZ FD
+T=422
+0004: 3C            INC  A
+T=426
+0005: 10 FD         DJNZ FD
+T=439
+0004: 3C            INC  A
+T=443
+0005: 10 FD         DJNZ FD
+T=456
+0004: 3C            INC  A
+T=460
+0005: 10 FD         DJNZ FD
+T=473
+0004: 3C            INC  A
+T=477
+0005: 10 FD         DJNZ FD
+T=490
+0004: 3C            INC  A
+T=494
+0005: 10 FD         DJNZ FD
+T=507
+0004: 3C            INC  A
+T=511
+0005: 10 FD         DJNZ FD
+T=524
+0004: 3C            INC  A
+T=528
+0005: 10 FD         DJNZ FD
+T=541
+0004: 3C            INC  A
+T=545
+0005: 10 FD         DJNZ FD
+T=553
+0000: 06 FF         LD   B,FF
+T=7
+0002: 3E 01         LD   A,01
+T=14
+0004: 10 01         DJNZ 01
+T=27
+0007: 3C            INC  A
+T=31
+0008: 18 FA         JR   FA
+T=43
+0004: 10 01         DJNZ 01
+T=56
+0007: 3C            INC  A
+T=60
+0008: 18 FA         JR   FA
+T=72
+0004: 10 01         DJNZ 01
+T=85
+0007: 3C            INC  A
+T=89
+0008: 18 FA         JR   FA
+T=101
+0004: 10 01         DJNZ 01
+T=114
+0007: 3C            INC  A
+T=118
+0008: 18 FA         JR   FA
+T=130
+0004: 10 01         DJNZ 01
+T=143
+0007: 3C            INC  A
+T=147
+0008: 18 FA         JR   FA
+T=159
+0004: 10 01         DJNZ 01
+T=172
+0007: 3C            INC  A
+T=176
+0008: 18 FA         JR   FA
+T=188
+0004: 10 01         DJNZ 01
+T=201
+0007: 3C            INC  A
+T=205
+0008: 18 FA         JR   FA
+T=217
+0004: 10 01         DJNZ 01
+T=230
+0007: 3C            INC  A
+T=234
+0008: 18 FA         JR   FA
+T=246
+0004: 10 01         DJNZ 01
+T=259
+0007: 3C            INC  A
+T=263
+0008: 18 FA         JR   FA
+T=275
+0004: 10 01         DJNZ 01
+T=288
+0007: 3C            INC  A
+T=292
+0008: 18 FA         JR   FA
+T=304
+0004: 10 01         DJNZ 01
+T=317
+0007: 3C            INC  A
+T=321
+0008: 18 FA         JR   FA
+T=333
+0004: 10 01         DJNZ 01
+T=346
+0007: 3C            INC  A
+T=350
+0008: 18 FA         JR   FA
+T=362
+0004: 10 01         DJNZ 01
+T=375
+0007: 3C            INC  A
+T=379
+0008: 18 FA         JR   FA
+T=391
+0004: 10 01         DJNZ 01
+T=404
+0007: 3C            INC  A
+T=408
+0008: 18 FA         JR   FA
+T=420
+0004: 10 01         DJNZ 01
+T=433
+0007: 3C            INC  A
+T=437
+0008: 18 FA         JR   FA
+T=449
+0004: 10 01         DJNZ 01
+T=462
+0007: 3C            INC  A
+T=466
+0008: 18 FA         JR   FA
+T=478
+0004: 10 01         DJNZ 01
+T=491
+0007: 3C            INC  A
+T=495
+0008: 18 FA         JR   FA
+T=507
+0004: 10 01         DJNZ 01
+T=520
+0007: 3C            INC  A
+T=524
+0008: 18 FA         JR   FA
+T=536
+0004: 10 01         DJNZ 01
+T=549
+0007: 3C            INC  A
+T=553
+0008: 18 FA         JR   FA
+T=565
+0004: 10 01         DJNZ 01
+T=578
+0007: 3C            INC  A
+T=582
+0008: 18 FA         JR   FA
+T=594
+0004: 10 01         DJNZ 01
+T=607
+0007: 3C            INC  A
+T=611
+0008: 18 FA         JR   FA
+T=623
+0004: 10 01         DJNZ 01
+T=636
+0007: 3C            INC  A
+T=640
+0008: 18 FA         JR   FA
+T=652
+0004: 10 01         DJNZ 01
+T=665
+0007: 3C            INC  A
+T=669
+0008: 18 FA         JR   FA
+T=681
+0004: 10 01         DJNZ 01
+T=694
+0007: 3C            INC  A
+T=698
+0008: 18 FA         JR   FA
+T=710
+0004: 10 01         DJNZ 01
+T=723
+0007: 3C            INC  A
+T=727
+0008: 18 FA         JR   FA
+T=739
+0004: 10 01         DJNZ 01
+T=752
+0007: 3C            INC  A
+T=756
+0008: 18 FA         JR   FA
+T=768
+0004: 10 01         DJNZ 01
+T=781
+0007: 3C            INC  A
+T=785
+0008: 18 FA         JR   FA
+T=797
+0004: 10 01         DJNZ 01
+T=810
+0007: 3C            INC  A
+T=814
+0008: 18 FA         JR   FA
+T=826
+0004: 10 01         DJNZ 01
+T=839
+0007: 3C            INC  A
+T=843
+0008: 18 FA         JR   FA
+T=855
+0004: 10 01         DJNZ 01
+T=868
+0007: 3C            INC  A
+T=872
+0008: 18 FA         JR   FA
+T=884
+0004: 10 01         DJNZ 01
+T=897
+0007: 3C            INC  A
+T=901
+0008: 18 FA         JR   FA
+T=913
+0004: 10 01         DJNZ 01
+T=926
+0007: 3C            INC  A
+T=930
+0008: 18 FA         JR   FA
+T=942
+0004: 10 01         DJNZ 01
+T=955
+0007: 3C            INC  A
+T=959
+0008: 18 FA         JR   FA
+T=971
+0004: 10 01         DJNZ 01
+T=984
+0007: 3C            INC  A
+T=988
+0008: 18 FA         JR   FA
+T=1000
+0004: 10 01         DJNZ 01
+T=1013
+0007: 3C            INC  A
+T=1017
+0008: 18 FA         JR   FA
+T=1029
+0004: 10 01         DJNZ 01
+T=1042
+0007: 3C            INC  A
+T=1046
+0008: 18 FA         JR   FA
+T=1058
+0004: 10 01         DJNZ 01
+T=1071
+0007: 3C            INC  A
+T=1075
+0008: 18 FA         JR   FA
+T=1087
+0004: 10 01         DJNZ 01
+T=1100
+0007: 3C            INC  A
+T=1104
+0008: 18 FA         JR   FA
+T=1116
+0004: 10 01         DJNZ 01
+T=1129
+0007: 3C            INC  A
+T=1133
+0008: 18 FA         JR   FA
+T=1145
+0004: 10 01         DJNZ 01
+T=1158
+0007: 3C            INC  A
+T=1162
+0008: 18 FA         JR   FA
+T=1174
+0004: 10 01         DJNZ 01
+T=1187
+0007: 3C            INC  A
+T=1191
+0008: 18 FA         JR   FA
+T=1203
+0004: 10 01         DJNZ 01
+T=1216
+0007: 3C            INC  A
+T=1220
+0008: 18 FA         JR   FA
+T=1232
+0004: 10 01         DJNZ 01
+T=1245
+0007: 3C            INC  A
+T=1249
+0008: 18 FA         JR   FA
+T=1261
+0004: 10 01         DJNZ 01
+T=1274
+0007: 3C            INC  A
+T=1278
+0008: 18 FA         JR   FA
+T=1290
+0004: 10 01         DJNZ 01
+T=1303
+0007: 3C            INC  A
+T=1307
+0008: 18 FA         JR   FA
+T=1319
+0004: 10 01         DJNZ 01
+T=1332
+0007: 3C            INC  A
+T=1336
+0008: 18 FA         JR   FA
+T=1348
+0004: 10 01         DJNZ 01
+T=1361
+0007: 3C            INC  A
+T=1365
+0008: 18 FA         JR   FA
+T=1377
+0004: 10 01         DJNZ 01
+T=1390
+0007: 3C            INC  A
+T=1394
+0008: 18 FA         JR   FA
+T=1406
+0004: 10 01         DJNZ 01
+T=1419
+0007: 3C            INC  A
+T=1423
+0008: 18 FA         JR   FA
+T=1435
+0004: 10 01         DJNZ 01
+T=1448
+0007: 3C            INC  A
+T=1452
+0008: 18 FA         JR   FA
+T=1464
+0004: 10 01         DJNZ 01
+T=1477
+0007: 3C            INC  A
+T=1481
+0008: 18 FA         JR   FA
+T=1493
+0004: 10 01         DJNZ 01
+T=1506
+0007: 3C            INC  A
+T=1510
+0008: 18 FA         JR   FA
+T=1522
+0004: 10 01         DJNZ 01
+T=1535
+0007: 3C            INC  A
+T=1539
+0008: 18 FA         JR   FA
+T=1551
+0004: 10 01         DJNZ 01
+T=1564
+0007: 3C            INC  A
+T=1568
+0008: 18 FA         JR   FA
+T=1580
+0004: 10 01         DJNZ 01
+T=1593
+0007: 3C            INC  A
+T=1597
+0008: 18 FA         JR   FA
+T=1609
+0004: 10 01         DJNZ 01
+T=1622
+0007: 3C            INC  A
+T=1626
+0008: 18 FA         JR   FA
+T=1638
+0004: 10 01         DJNZ 01
+T=1651
+0007: 3C            INC  A
+T=1655
+0008: 18 FA         JR   FA
+T=1667
+0004: 10 01         DJNZ 01
+T=1680
+0007: 3C            INC  A
+T=1684
+0008: 18 FA         JR   FA
+T=1696
+0004: 10 01         DJNZ 01
+T=1709
+0007: 3C            INC  A
+T=1713
+0008: 18 FA         JR   FA
+T=1725
+0004: 10 01         DJNZ 01
+T=1738
+0007: 3C            INC  A
+T=1742
+0008: 18 FA         JR   FA
+T=1754
+0004: 10 01         DJNZ 01
+T=1767
+0007: 3C            INC  A
+T=1771
+0008: 18 FA         JR   FA
+T=1783
+0004: 10 01         DJNZ 01
+T=1796
+0007: 3C            INC  A
+T=1800
+0008: 18 FA         JR   FA
+T=1812
+0004: 10 01         DJNZ 01
+T=1825
+0007: 3C            INC  A
+T=1829
+0008: 18 FA         JR   FA
+T=1841
+0004: 10 01         DJNZ 01
+T=1854
+0007: 3C            INC  A
+T=1858
+0008: 18 FA         JR   FA
+T=1870
+0004: 10 01         DJNZ 01
+T=1883
+0007: 3C            INC  A
+T=1887
+0008: 18 FA         JR   FA
+T=1899
+0004: 10 01         DJNZ 01
+T=1912
+0007: 3C            INC  A
+T=1916
+0008: 18 FA         JR   FA
+T=1928
+0004: 10 01         DJNZ 01
+T=1941
+0007: 3C            INC  A
+T=1945
+0008: 18 FA         JR   FA
+T=1957
+0004: 10 01         DJNZ 01
+T=1970
+0007: 3C            INC  A
+T=1974
+0008: 18 FA         JR   FA
+T=1986
+0004: 10 01         DJNZ 01
+T=1999
+0007: 3C            INC  A
+T=2003
+0008: 18 FA         JR   FA
+T=2015
+0004: 10 01         DJNZ 01
+T=2028
+0007: 3C            INC  A
+T=2032
+0008: 18 FA         JR   FA
+T=2044
+0004: 10 01         DJNZ 01
+T=2057
+0007: 3C            INC  A
+T=2061
+0008: 18 FA         JR   FA
+T=2073
+0004: 10 01         DJNZ 01
+T=2086
+0007: 3C            INC  A
+T=2090
+0008: 18 FA         JR   FA
+T=2102
+0004: 10 01         DJNZ 01
+T=2115
+0007: 3C            INC  A
+T=2119
+0008: 18 FA         JR   FA
+T=2131
+0004: 10 01         DJNZ 01
+T=2144
+0007: 3C            INC  A
+T=2148
+0008: 18 FA         JR   FA
+T=2160
+0004: 10 01         DJNZ 01
+T=2173
+0007: 3C            INC  A
+T=2177
+0008: 18 FA         JR   FA
+T=2189
+0004: 10 01         DJNZ 01
+T=2202
+0007: 3C            INC  A
+T=2206
+0008: 18 FA         JR   FA
+T=2218
+0004: 10 01         DJNZ 01
+T=2231
+0007: 3C            INC  A
+T=2235
+0008: 18 FA         JR   FA
+T=2247
+0004: 10 01         DJNZ 01
+T=2260
+0007: 3C            INC  A
+T=2264
+0008: 18 FA         JR   FA
+T=2276
+0004: 10 01         DJNZ 01
+T=2289
+0007: 3C            INC  A
+T=2293
+0008: 18 FA         JR   FA
+T=2305
+0004: 10 01         DJNZ 01
+T=2318
+0007: 3C            INC  A
+T=2322
+0008: 18 FA         JR   FA
+T=2334
+0004: 10 01         DJNZ 01
+T=2347
+0007: 3C            INC  A
+T=2351
+0008: 18 FA         JR   FA
+T=2363
+0004: 10 01         DJNZ 01
+T=2376
+0007: 3C            INC  A
+T=2380
+0008: 18 FA         JR   FA
+T=2392
+0004: 10 01         DJNZ 01
+T=2405
+0007: 3C            INC  A
+T=2409
+0008: 18 FA         JR   FA
+T=2421
+0004: 10 01         DJNZ 01
+T=2434
+0007: 3C            INC  A
+T=2438
+0008: 18 FA         JR   FA
+T=2450
+0004: 10 01         DJNZ 01
+T=2463
+0007: 3C            INC  A
+T=2467
+0008: 18 FA         JR   FA
+T=2479
+0004: 10 01         DJNZ 01
+T=2492
+0007: 3C            INC  A
+T=2496
+0008: 18 FA         JR   FA
+T=2508
+0004: 10 01         DJNZ 01
+T=2521
+0007: 3C            INC  A
+T=2525
+0008: 18 FA         JR   FA
+T=2537
+0004: 10 01         DJNZ 01
+T=2550
+0007: 3C            INC  A
+T=2554
+0008: 18 FA         JR   FA
+T=2566
+0004: 10 01         DJNZ 01
+T=2579
+0007: 3C            INC  A
+T=2583
+0008: 18 FA         JR   FA
+T=2595
+0004: 10 01         DJNZ 01
+T=2608
+0007: 3C            INC  A
+T=2612
+0008: 18 FA         JR   FA
+T=2624
+0004: 10 01         DJNZ 01
+T=2637
+0007: 3C            INC  A
+T=2641
+0008: 18 FA         JR   FA
+T=2653
+0004: 10 01         DJNZ 01
+T=2666
+0007: 3C            INC  A
+T=2670
+0008: 18 FA         JR   FA
+T=2682
+0004: 10 01         DJNZ 01
+T=2695
+0007: 3C            INC  A
+T=2699
+0008: 18 FA         JR   FA
+T=2711
+0004: 10 01         DJNZ 01
+T=2724
+0007: 3C            INC  A
+T=2728
+0008: 18 FA         JR   FA
+T=2740
+0004: 10 01         DJNZ 01
+T=2753
+0007: 3C            INC  A
+T=2757
+0008: 18 FA         JR   FA
+T=2769
+0004: 10 01         DJNZ 01
+T=2782
+0007: 3C            INC  A
+T=2786
+0008: 18 FA         JR   FA
+T=2798
+0004: 10 01         DJNZ 01
+T=2811
+0007: 3C            INC  A
+T=2815
+0008: 18 FA         JR   FA
+T=2827
+0004: 10 01         DJNZ 01
+T=2840
+0007: 3C            INC  A
+T=2844
+0008: 18 FA         JR   FA
+T=2856
+0004: 10 01         DJNZ 01
+T=2869
+0007: 3C            INC  A
+T=2873
+0008: 18 FA         JR   FA
+T=2885
+0004: 10 01         DJNZ 01
+T=2898
+0007: 3C            INC  A
+T=2902
+0008: 18 FA         JR   FA
+T=2914
+0004: 10 01         DJNZ 01
+T=2927
+0007: 3C            INC  A
+T=2931
+0008: 18 FA         JR   FA
+T=2943
+0004: 10 01         DJNZ 01
+T=2956
+0007: 3C            INC  A
+T=2960
+0008: 18 FA         JR   FA
+T=2972
+0004: 10 01         DJNZ 01
+T=2985
+0007: 3C            INC  A
+T=2989
+0008: 18 FA         JR   FA
+T=3001
+0004: 10 01         DJNZ 01
+T=3014
+0007: 3C            INC  A
+T=3018
+0008: 18 FA         JR   FA
+T=3030
+0004: 10 01         DJNZ 01
+T=3043
+0007: 3C            INC  A
+T=3047
+0008: 18 FA         JR   FA
+T=3059
+0004: 10 01         DJNZ 01
+T=3072
+0007: 3C            INC  A
+T=3076
+0008: 18 FA         JR   FA
+T=3088
+0004: 10 01         DJNZ 01
+T=3101
+0007: 3C            INC  A
+T=3105
+0008: 18 FA         JR   FA
+T=3117
+0004: 10 01         DJNZ 01
+T=3130
+0007: 3C            INC  A
+T=3134
+0008: 18 FA         JR   FA
+T=3146
+0004: 10 01         DJNZ 01
+T=3159
+0007: 3C            INC  A
+T=3163
+0008: 18 FA         JR   FA
+T=3175
+0004: 10 01         DJNZ 01
+T=3188
+0007: 3C            INC  A
+T=3192
+0008: 18 FA         JR   FA
+T=3204
+0004: 10 01         DJNZ 01
+T=3217
+0007: 3C            INC  A
+T=3221
+0008: 18 FA         JR   FA
+T=3233
+0004: 10 01         DJNZ 01
+T=3246
+0007: 3C            INC  A
+T=3250
+0008: 18 FA         JR   FA
+T=3262
+0004: 10 01         DJNZ 01
+T=3275
+0007: 3C            INC  A
+T=3279
+0008: 18 FA         JR   FA
+T=3291
+0004: 10 01         DJNZ 01
+T=3304
+0007: 3C            INC  A
+T=3308
+0008: 18 FA         JR   FA
+T=3320
+0004: 10 01         DJNZ 01
+T=3333
+0007: 3C            INC  A
+T=3337
+0008: 18 FA         JR   FA
+T=3349
+0004: 10 01         DJNZ 01
+T=3362
+0007: 3C            INC  A
+T=3366
+0008: 18 FA         JR   FA
+T=3378
+0004: 10 01         DJNZ 01
+T=3391
+0007: 3C            INC  A
+T=3395
+0008: 18 FA         JR   FA
+T=3407
+0004: 10 01         DJNZ 01
+T=3420
+0007: 3C            INC  A
+T=3424
+0008: 18 FA         JR   FA
+T=3436
+0004: 10 01         DJNZ 01
+T=3449
+0007: 3C            INC  A
+T=3453
+0008: 18 FA         JR   FA
+T=3465
+0004: 10 01         DJNZ 01
+T=3478
+0007: 3C            INC  A
+T=3482
+0008: 18 FA         JR   FA
+T=3494
+0004: 10 01         DJNZ 01
+T=3507
+0007: 3C            INC  A
+T=3511
+0008: 18 FA         JR   FA
+T=3523
+0004: 10 01         DJNZ 01
+T=3536
+0007: 3C            INC  A
+T=3540
+0008: 18 FA         JR   FA
+T=3552
+0004: 10 01         DJNZ 01
+T=3565
+0007: 3C            INC  A
+T=3569
+0008: 18 FA         JR   FA
+T=3581
+0004: 10 01         DJNZ 01
+T=3594
+0007: 3C            INC  A
+T=3598
+0008: 18 FA         JR   FA
+T=3610
+0004: 10 01         DJNZ 01
+T=3623
+0007: 3C            INC  A
+T=3627
+0008: 18 FA         JR   FA
+T=3639
+0004: 10 01         DJNZ 01
+T=3652
+0007: 3C            INC  A
+T=3656
+0008: 18 FA         JR   FA
+T=3668
+0004: 10 01         DJNZ 01
+T=3681
+0007: 3C            INC  A
+T=3685
+0008: 18 FA         JR   FA
+T=3697
+0004: 10 01         DJNZ 01
+T=3710
+0007: 3C            INC  A
+T=3714
+0008: 18 FA         JR   FA
+T=3726
+0004: 10 01         DJNZ 01
+T=3739
+0007: 3C            INC  A
+T=3743
+0008: 18 FA         JR   FA
+T=3755
+0004: 10 01         DJNZ 01
+T=3768
+0007: 3C            INC  A
+T=3772
+0008: 18 FA         JR   FA
+T=3784
+0004: 10 01         DJNZ 01
+T=3797
+0007: 3C            INC  A
+T=3801
+0008: 18 FA         JR   FA
+T=3813
+0004: 10 01         DJNZ 01
+T=3826
+0007: 3C            INC  A
+T=3830
+0008: 18 FA         JR   FA
+T=3842
+0004: 10 01         DJNZ 01
+T=3855
+0007: 3C            INC  A
+T=3859
+0008: 18 FA         JR   FA
+T=3871
+0004: 10 01         DJNZ 01
+T=3884
+0007: 3C            INC  A
+T=3888
+0008: 18 FA         JR   FA
+T=3900
+0004: 10 01         DJNZ 01
+T=3913
+0007: 3C            INC  A
+T=3917
+0008: 18 FA         JR   FA
+T=3929
+0004: 10 01         DJNZ 01
+T=3942
+0007: 3C            INC  A
+T=3946
+0008: 18 FA         JR   FA
+T=3958
+0004: 10 01         DJNZ 01
+T=3971
+0007: 3C            INC  A
+T=3975
+0008: 18 FA         JR   FA
+T=3987
+0004: 10 01         DJNZ 01
+T=4000
+0007: 3C            INC  A
+T=4004
+0008: 18 FA         JR   FA
+T=4016
+0004: 10 01         DJNZ 01
+T=4029
+0007: 3C            INC  A
+T=4033
+0008: 18 FA         JR   FA
+T=4045
+0004: 10 01         DJNZ 01
+T=4058
+0007: 3C            INC  A
+T=4062
+0008: 18 FA         JR   FA
+T=4074
+0004: 10 01         DJNZ 01
+T=4087
+0007: 3C            INC  A
+T=4091
+0008: 18 FA         JR   FA
+T=4103
+0004: 10 01         DJNZ 01
+T=4116
+0007: 3C            INC  A
+T=4120
+0008: 18 FA         JR   FA
+T=4132
+0004: 10 01         DJNZ 01
+T=4145
+0007: 3C            INC  A
+T=4149
+0008: 18 FA         JR   FA
+T=4161
+0004: 10 01         DJNZ 01
+T=4174
+0007: 3C            INC  A
+T=4178
+0008: 18 FA         JR   FA
+T=4190
+0004: 10 01         DJNZ 01
+T=4203
+0007: 3C            INC  A
+T=4207
+0008: 18 FA         JR   FA
+T=4219
+0004: 10 01         DJNZ 01
+T=4232
+0007: 3C            INC  A
+T=4236
+0008: 18 FA         JR   FA
+T=4248
+0004: 10 01         DJNZ 01
+T=4261
+0007: 3C            INC  A
+T=4265
+0008: 18 FA         JR   FA
+T=4277
+0004: 10 01         DJNZ 01
+T=4290
+0007: 3C            INC  A
+T=4294
+0008: 18 FA         JR   FA
+T=4306
+0004: 10 01         DJNZ 01
+T=4319
+0007: 3C            INC  A
+T=4323
+0008: 18 FA         JR   FA
+T=4335
+0004: 10 01         DJNZ 01
+T=4348
+0007: 3C            INC  A
+T=4352
+0008: 18 FA         JR   FA
+T=4364
+0004: 10 01         DJNZ 01
+T=4377
+0007: 3C            INC  A
+T=4381
+0008: 18 FA         JR   FA
+T=4393
+0004: 10 01         DJNZ 01
+T=4406
+0007: 3C            INC  A
+T=4410
+0008: 18 FA         JR   FA
+T=4422
+0004: 10 01         DJNZ 01
+T=4435
+0007: 3C            INC  A
+T=4439
+0008: 18 FA         JR   FA
+T=4451
+0004: 10 01         DJNZ 01
+T=4464
+0007: 3C            INC  A
+T=4468
+0008: 18 FA         JR   FA
+T=4480
+0004: 10 01         DJNZ 01
+T=4493
+0007: 3C            INC  A
+T=4497
+0008: 18 FA         JR   FA
+T=4509
+0004: 10 01         DJNZ 01
+T=4522
+0007: 3C            INC  A
+T=4526
+0008: 18 FA         JR   FA
+T=4538
+0004: 10 01         DJNZ 01
+T=4551
+0007: 3C            INC  A
+T=4555
+0008: 18 FA         JR   FA
+T=4567
+0004: 10 01         DJNZ 01
+T=4580
+0007: 3C            INC  A
+T=4584
+0008: 18 FA         JR   FA
+T=4596
+0004: 10 01         DJNZ 01
+T=4609
+0007: 3C            INC  A
+T=4613
+0008: 18 FA         JR   FA
+T=4625
+0004: 10 01         DJNZ 01
+T=4638
+0007: 3C            INC  A
+T=4642
+0008: 18 FA         JR   FA
+T=4654
+0004: 10 01         DJNZ 01
+T=4667
+0007: 3C            INC  A
+T=4671
+0008: 18 FA         JR   FA
+T=4683
+0004: 10 01         DJNZ 01
+T=4696
+0007: 3C            INC  A
+T=4700
+0008: 18 FA         JR   FA
+T=4712
+0004: 10 01         DJNZ 01
+T=4725
+0007: 3C            INC  A
+T=4729
+0008: 18 FA         JR   FA
+T=4741
+0004: 10 01         DJNZ 01
+T=4754
+0007: 3C            INC  A
+T=4758
+0008: 18 FA         JR   FA
+T=4770
+0004: 10 01         DJNZ 01
+T=4783
+0007: 3C            INC  A
+T=4787
+0008: 18 FA         JR   FA
+T=4799
+0004: 10 01         DJNZ 01
+T=4812
+0007: 3C            INC  A
+T=4816
+0008: 18 FA         JR   FA
+T=4828
+0004: 10 01         DJNZ 01
+T=4841
+0007: 3C            INC  A
+T=4845
+0008: 18 FA         JR   FA
+T=4857
+0004: 10 01         DJNZ 01
+T=4870
+0007: 3C            INC  A
+T=4874
+0008: 18 FA         JR   FA
+T=4886
+0004: 10 01         DJNZ 01
+T=4899
+0007: 3C            INC  A
+T=4903
+0008: 18 FA         JR   FA
+T=4915
+0004: 10 01         DJNZ 01
+T=4928
+0007: 3C            INC  A
+T=4932
+0008: 18 FA         JR   FA
+T=4944
+0004: 10 01         DJNZ 01
+T=4957
+0007: 3C            INC  A
+T=4961
+0008: 18 FA         JR   FA
+T=4973
+0004: 10 01         DJNZ 01
+T=4986
+0007: 3C            INC  A
+T=4990
+0008: 18 FA         JR   FA
+T=5002
+0004: 10 01         DJNZ 01
+T=5015
+0007: 3C            INC  A
+T=5019
+0008: 18 FA         JR   FA
+T=5031
+0004: 10 01         DJNZ 01
+T=5044
+0007: 3C            INC  A
+T=5048
+0008: 18 FA         JR   FA
+T=5060
+0004: 10 01         DJNZ 01
+T=5073
+0007: 3C            INC  A
+T=5077
+0008: 18 FA         JR   FA
+T=5089
+0004: 10 01         DJNZ 01
+T=5102
+0007: 3C            INC  A
+T=5106
+0008: 18 FA         JR   FA
+T=5118
+0004: 10 01         DJNZ 01
+T=5131
+0007: 3C            INC  A
+T=5135
+0008: 18 FA         JR   FA
+T=5147
+0004: 10 01         DJNZ 01
+T=5160
+0007: 3C            INC  A
+T=5164
+0008: 18 FA         JR   FA
+T=5176
+0004: 10 01         DJNZ 01
+T=5189
+0007: 3C            INC  A
+T=5193
+0008: 18 FA         JR   FA
+T=5205
+0004: 10 01         DJNZ 01
+T=5218
+0007: 3C            INC  A
+T=5222
+0008: 18 FA         JR   FA
+T=5234
+0004: 10 01         DJNZ 01
+T=5247
+0007: 3C            INC  A
+T=5251
+0008: 18 FA         JR   FA
+T=5263
+0004: 10 01         DJNZ 01
+T=5276
+0007: 3C            INC  A
+T=5280
+0008: 18 FA         JR   FA
+T=5292
+0004: 10 01         DJNZ 01
+T=5305
+0007: 3C            INC  A
+T=5309
+0008: 18 FA         JR   FA
+T=5321
+0004: 10 01         DJNZ 01
+T=5334
+0007: 3C            INC  A
+T=5338
+0008: 18 FA         JR   FA
+T=5350
+0004: 10 01         DJNZ 01
+T=5363
+0007: 3C            INC  A
+T=5367
+0008: 18 FA         JR   FA
+T=5379
+0004: 10 01         DJNZ 01
+T=5392
+0007: 3C            INC  A
+T=5396
+0008: 18 FA         JR   FA
+T=5408
+0004: 10 01         DJNZ 01
+T=5421
+0007: 3C            INC  A
+T=5425
+0008: 18 FA         JR   FA
+T=5437
+0004: 10 01         DJNZ 01
+T=5450
+0007: 3C            INC  A
+T=5454
+0008: 18 FA         JR   FA
+T=5466
+0004: 10 01         DJNZ 01
+T=5479
+0007: 3C            INC  A
+T=5483
+0008: 18 FA         JR   FA
+T=5495
+0004: 10 01         DJNZ 01
+T=5508
+0007: 3C            INC  A
+T=5512
+0008: 18 FA         JR   FA
+T=5524
+0004: 10 01         DJNZ 01
+T=5537
+0007: 3C            INC  A
+T=5541
+0008: 18 FA         JR   FA
+T=5553
+0004: 10 01         DJNZ 01
+T=5566
+0007: 3C            INC  A
+T=5570
+0008: 18 FA         JR   FA
+T=5582
+0004: 10 01         DJNZ 01
+T=5595
+0007: 3C            INC  A
+T=5599
+0008: 18 FA         JR   FA
+T=5611
+0004: 10 01         DJNZ 01
+T=5624
+0007: 3C            INC  A
+T=5628
+0008: 18 FA         JR   FA
+T=5640
+0004: 10 01         DJNZ 01
+T=5653
+0007: 3C            INC  A
+T=5657
+0008: 18 FA         JR   FA
+T=5669
+0004: 10 01         DJNZ 01
+T=5682
+0007: 3C            INC  A
+T=5686
+0008: 18 FA         JR   FA
+T=5698
+0004: 10 01         DJNZ 01
+T=5711
+0007: 3C            INC  A
+T=5715
+0008: 18 FA         JR   FA
+T=5727
+0004: 10 01         DJNZ 01
+T=5740
+0007: 3C            INC  A
+T=5744
+0008: 18 FA         JR   FA
+T=5756
+0004: 10 01         DJNZ 01
+T=5769
+0007: 3C            INC  A
+T=5773
+0008: 18 FA         JR   FA
+T=5785
+0004: 10 01         DJNZ 01
+T=5798
+0007: 3C            INC  A
+T=5802
+0008: 18 FA         JR   FA
+T=5814
+0004: 10 01         DJNZ 01
+T=5827
+0007: 3C            INC  A
+T=5831
+0008: 18 FA         JR   FA
+T=5843
+0004: 10 01         DJNZ 01
+T=5856
+0007: 3C            INC  A
+T=5860
+0008: 18 FA         JR   FA
+T=5872
+0004: 10 01         DJNZ 01
+T=5885
+0007: 3C            INC  A
+T=5889
+0008: 18 FA         JR   FA
+T=5901
+0004: 10 01         DJNZ 01
+T=5914
+0007: 3C            INC  A
+T=5918
+0008: 18 FA         JR   FA
+T=5930
+0004: 10 01         DJNZ 01
+T=5943
+0007: 3C            INC  A
+T=5947
+0008: 18 FA         JR   FA
+T=5959
+0004: 10 01         DJNZ 01
+T=5972
+0007: 3C            INC  A
+T=5976
+0008: 18 FA         JR   FA
+T=5988
+0004: 10 01         DJNZ 01
+T=6001
+0007: 3C            INC  A
+T=6005
+0008: 18 FA         JR   FA
+T=6017
+0004: 10 01         DJNZ 01
+T=6030
+0007: 3C            INC  A
+T=6034
+0008: 18 FA         JR   FA
+T=6046
+0004: 10 01         DJNZ 01
+T=6059
+0007: 3C            INC  A
+T=6063
+0008: 18 FA         JR   FA
+T=6075
+0004: 10 01         DJNZ 01
+T=6088
+0007: 3C            INC  A
+T=6092
+0008: 18 FA         JR   FA
+T=6104
+0004: 10 01         DJNZ 01
+T=6117
+0007: 3C            INC  A
+T=6121
+0008: 18 FA         JR   FA
+T=6133
+0004: 10 01         DJNZ 01
+T=6146
+0007: 3C            INC  A
+T=6150
+0008: 18 FA         JR   FA
+T=6162
+0004: 10 01         DJNZ 01
+T=6175
+0007: 3C            INC  A
+T=6179
+0008: 18 FA         JR   FA
+T=6191
+0004: 10 01         DJNZ 01
+T=6204
+0007: 3C            INC  A
+T=6208
+0008: 18 FA         JR   FA
+T=6220
+0004: 10 01         DJNZ 01
+T=6233
+0007: 3C            INC  A
+T=6237
+0008: 18 FA         JR   FA
+T=6249
+0004: 10 01         DJNZ 01
+T=6262
+0007: 3C            INC  A
+T=6266
+0008: 18 FA         JR   FA
+T=6278
+0004: 10 01         DJNZ 01
+T=6291
+0007: 3C            INC  A
+T=6295
+0008: 18 FA         JR   FA
+T=6307
+0004: 10 01         DJNZ 01
+T=6320
+0007: 3C            INC  A
+T=6324
+0008: 18 FA         JR   FA
+T=6336
+0004: 10 01         DJNZ 01
+T=6349
+0007: 3C            INC  A
+T=6353
+0008: 18 FA         JR   FA
+T=6365
+0004: 10 01         DJNZ 01
+T=6378
+0007: 3C            INC  A
+T=6382
+0008: 18 FA         JR   FA
+T=6394
+0004: 10 01         DJNZ 01
+T=6407
+0007: 3C            INC  A
+T=6411
+0008: 18 FA         JR   FA
+T=6423
+0004: 10 01         DJNZ 01
+T=6436
+0007: 3C            INC  A
+T=6440
+0008: 18 FA         JR   FA
+T=6452
+0004: 10 01         DJNZ 01
+T=6465
+0007: 3C            INC  A
+T=6469
+0008: 18 FA         JR   FA
+T=6481
+0004: 10 01         DJNZ 01
+T=6494
+0007: 3C            INC  A
+T=6498
+0008: 18 FA         JR   FA
+T=6510
+0004: 10 01         DJNZ 01
+T=6523
+0007: 3C            INC  A
+T=6527
+0008: 18 FA         JR   FA
+T=6539
+0004: 10 01         DJNZ 01
+T=6552
+0007: 3C            INC  A
+T=6556
+0008: 18 FA         JR   FA
+T=6568
+0004: 10 01         DJNZ 01
+T=6581
+0007: 3C            INC  A
+T=6585
+0008: 18 FA         JR   FA
+T=6597
+0004: 10 01         DJNZ 01
+T=6610
+0007: 3C            INC  A
+T=6614
+0008: 18 FA         JR   FA
+T=6626
+0004: 10 01         DJNZ 01
+T=6639
+0007: 3C            INC  A
+T=6643
+0008: 18 FA         JR   FA
+T=6655
+0004: 10 01         DJNZ 01
+T=6668
+0007: 3C            INC  A
+T=6672
+0008: 18 FA         JR   FA
+T=6684
+0004: 10 01         DJNZ 01
+T=6697
+0007: 3C            INC  A
+T=6701
+0008: 18 FA         JR   FA
+T=6713
+0004: 10 01         DJNZ 01
+T=6726
+0007: 3C            INC  A
+T=6730
+0008: 18 FA         JR   FA
+T=6742
+0004: 10 01         DJNZ 01
+T=6755
+0007: 3C            INC  A
+T=6759
+0008: 18 FA         JR   FA
+T=6771
+0004: 10 01         DJNZ 01
+T=6784
+0007: 3C            INC  A
+T=6788
+0008: 18 FA         JR   FA
+T=6800
+0004: 10 01         DJNZ 01
+T=6813
+0007: 3C            INC  A
+T=6817
+0008: 18 FA         JR   FA
+T=6829
+0004: 10 01         DJNZ 01
+T=6842
+0007: 3C            INC  A
+T=6846
+0008: 18 FA         JR   FA
+T=6858
+0004: 10 01         DJNZ 01
+T=6871
+0007: 3C            INC  A
+T=6875
+0008: 18 FA         JR   FA
+T=6887
+0004: 10 01         DJNZ 01
+T=6900
+0007: 3C            INC  A
+T=6904
+0008: 18 FA         JR   FA
+T=6916
+0004: 10 01         DJNZ 01
+T=6929
+0007: 3C            INC  A
+T=6933
+0008: 18 FA         JR   FA
+T=6945
+0004: 10 01         DJNZ 01
+T=6958
+0007: 3C            INC  A
+T=6962
+0008: 18 FA         JR   FA
+T=6974
+0004: 10 01         DJNZ 01
+T=6987
+0007: 3C            INC  A
+T=6991
+0008: 18 FA         JR   FA
+T=7003
+0004: 10 01         DJNZ 01
+T=7016
+0007: 3C            INC  A
+T=7020
+0008: 18 FA         JR   FA
+T=7032
+0004: 10 01         DJNZ 01
+T=7045
+0007: 3C            INC  A
+T=7049
+0008: 18 FA         JR   FA
+T=7061
+0004: 10 01         DJNZ 01
+T=7074
+0007: 3C            INC  A
+T=7078
+0008: 18 FA         JR   FA
+T=7090
+0004: 10 01         DJNZ 01
+T=7103
+0007: 3C            INC  A
+T=7107
+0008: 18 FA         JR   FA
+T=7119
+0004: 10 01         DJNZ 01
+T=7132
+0007: 3C            INC  A
+T=7136
+0008: 18 FA         JR   FA
+T=7148
+0004: 10 01         DJNZ 01
+T=7161
+0007: 3C            INC  A
+T=7165
+0008: 18 FA         JR   FA
+T=7177
+0004: 10 01         DJNZ 01
+T=7190
+0007: 3C            INC  A
+T=7194
+0008: 18 FA         JR   FA
+T=7206
+0004: 10 01         DJNZ 01
+T=7219
+0007: 3C            INC  A
+T=7223
+0008: 18 FA         JR   FA
+T=7235
+0004: 10 01         DJNZ 01
+T=7248
+0007: 3C            INC  A
+T=7252
+0008: 18 FA         JR   FA
+T=7264
+0004: 10 01         DJNZ 01
+T=7277
+0007: 3C            INC  A
+T=7281
+0008: 18 FA         JR   FA
+T=7293
+0004: 10 01         DJNZ 01
+T=7306
+0007: 3C            INC  A
+T=7310
+0008: 18 FA         JR   FA
+T=7322
+0004: 10 01         DJNZ 01
+T=7335
+0007: 3C            INC  A
+T=7339
+0008: 18 FA         JR   FA
+T=7351
+0004: 10 01         DJNZ 01
+T=7364
+0007: 3C            INC  A
+T=7368
+0008: 18 FA         JR   FA
+T=7380
+0004: 10 01         DJNZ 01
+T=7388
+0000: 18 03         JR   03
+T=12
+0005: 16 22         LD   D,22
+T=19
+0000: 18 06         JR   06
+T=12
+0008: 18 F9         JR   F9
+T=24
+0003: 0E 11         LD   C,11
+T=31
+0005: 06 33         LD   B,33
+T=38
+0000: 3E 02         LD   A,02
+T=7
+0002: 3D            DEC  A
+T=11
+0003: 28 02         JR   Z,02
+T=18
+0005: 06 AB         LD   B,AB
+T=25
+0000: 3E 01         LD   A,01
+T=7
+0002: 3D            DEC  A
+T=11
+0003: 28 02         JR   Z,02
+T=23
+0000: 3E 01         LD   A,01
+T=7
+0002: 3D            DEC  A
+T=11
+0003: 28 FD         JR   Z,FD
+T=23
+0002: 3D            DEC  A
+T=27
+0003: 28 FD         JR   Z,FD
+T=34
+0000: 3E 02         LD   A,02
+T=7
+0002: 3D            DEC  A
+T=11
+0003: 20 02         JR NZ,02
+T=23
+0000: 3E 01         LD   A,01
+T=7
+0002: 3D            DEC  A
+T=11
+0003: 20 02         JR NZ,02
+T=18
+0005: 06 AB         LD   B,AB
+T=25
+0000: 3E 02         LD   A,02
+T=7
+0002: 3D            DEC  A
+T=11
+0003: 20 FD         JR NZ,FD
+T=23
+0002: 3D            DEC  A
+T=27
+0003: 20 FD         JR NZ,FD
+T=34
+0000: 3E FF         LD   A,FF
+T=7
+0002: 06 AB         LD   B,AB
+T=14
+0004: 3D            DEC  A
+T=18
+0005: C6 01         ADD  A,01
+T=25
+0007: 38 02         JR   C,02
+T=32
+0009: 47            LD   B,A
+T=36
+0000: 06 AB         LD   B,AB
+T=7
+0002: 37            SCF
+T=11
+0003: 38 01         JR   C,01
+T=23
+0006: 47            LD   B,A
+T=27
+0000: AF            XOR  A
+T=4
+0001: 3D            DEC  A
+T=8
+0002: C6 01         ADD  A,01
+T=15
+0004: 38 FC         JR   C,FC
+T=27
+0002: C6 01         ADD  A,01
+T=34
+0004: 38 FC         JR   C,FC
+T=41
+0000: 3E FF         LD   A,FF
+T=7
+0002: 06 AB         LD   B,AB
+T=14
+0004: 3C            INC  A
+T=18
+0005: C6 01         ADD  A,01
+T=25
+0007: 30 01         JR   NC,01
+T=37
+0000: 06 AB         LD   B,AB
+T=7
+0002: 37            SCF
+T=11
+0003: 3F            CCF
+T=15
+0004: 30 01         JR   NC,01
+T=27
+0007: 47            LD   B,A
+T=31
+0000: 3E FE         LD   A,FE
+T=7
+0002: C6 01         ADD  A,01
+T=14
+0004: 30 FC         JR   NC,FC
+T=26
+0002: C6 01         ADD  A,01
+T=33
+0004: 30 FC         JR   NC,FC
+T=40
+0000: C3 06 00      JP   0006
+T=10
+0006: 3E 55         LD   A,55
+T=17
+0000: 00            NOP
+T=4
+0001: 21 09 00      LD   HL,0009
+T=14
+0004: 00            NOP
+T=18
+0005: E9            JP   (HL)
+T=22
+0009: 3E 55         LD   A,55
+T=29
+0000: DD 21 09 00   LD   IX,0009
+T=14
+0004: DD E9         JP   (IX)
+T=22
+0009: 3E 55         LD   A,55
+T=29
+0000: FD 21 09 00   LD   IY,0009
+T=14
+0004: FD E9         JP   (IY)
+T=22
+0009: 3E 55         LD   A,55
+T=29
+0000: DA 06 00      JP   C,0006
+T=10
+0006: 3E 55         LD   A,55
+T=17
+0000: D2 06 00      JP   NC,0006
+T=10
+0006: 3E 55         LD   A,55
+T=17
+0000: CA 06 00      JP   Z,0006
+T=10
+0006: 3E 55         LD   A,55
+T=17
+0000: C2 06 00      JP   NZ,0006
+T=10
+0006: 3E 55         LD   A,55
+T=17
+0000: FA 06 00      JP   M,0006
+T=10
+0006: 3E 55         LD   A,55
+T=17
+0000: F2 06 00      JP   P,0006
+T=10
+0006: 3E 55         LD   A,55
+T=17
+0000: EA 06 00      JP   PE,0006
+T=10
+0006: 3E 55         LD   A,55
+T=17
+0000: E2 06 00      JP   PO,0006
+T=10
+0006: 3E 55         LD   A,55
+T=17
+0000: DA 06 00      JP   C,0006
+T=10
+0003: 3E AA         LD   A,AA
+T=17
+0000: D2 06 00      JP   NC,0006
+T=10
+0003: 3E AA         LD   A,AA
+T=17
+0000: CA 06 00      JP   Z,0006
+T=10
+0003: 3E AA         LD   A,AA
+T=17
+0000: C2 06 00      JP   NZ,0006
+T=10
+0003: 3E AA         LD   A,AA
+T=17
+0000: FA 06 00      JP   M,0006
+T=10
+0003: 3E AA         LD   A,AA
+T=17
+0000: F2 06 00      JP   P,0006
+T=10
+0003: 3E AA         LD   A,AA
+T=17
+0000: EA 06 00      JP   PE,0006
+T=10
+0003: 3E AA         LD   A,AA
+T=17
+0000: E2 06 00      JP   PO,0006
+T=10
+0003: 3E AA         LD   A,AA
+T=17
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: DC 09 00      CALL C,0009
+T=27
+0009: 3E 55         LD   A,55
+T=34
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: D4 09 00      CALL NC,0009
+T=27
+0009: 3E 55         LD   A,55
+T=34
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: CC 09 00      CALL Z,0009
+T=27
+0009: 3E 55         LD   A,55
+T=34
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: C4 09 00      CALL NZ,0009
+T=27
+0009: 3E 55         LD   A,55
+T=34
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: FC 09 00      CALL M,0009
+T=27
+0009: 3E 55         LD   A,55
+T=34
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: F4 09 00      CALL P,0009
+T=27
+0009: 3E 55         LD   A,55
+T=34
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: EC 09 00      CALL PE,0009
+T=27
+0009: 3E 55         LD   A,55
+T=34
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: E4 09 00      CALL PO,0009
+T=27
+0009: 3E 55         LD   A,55
+T=34
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: DC 09 00      CALL C,0009
+T=20
+0006: 3E AA         LD   A,AA
+T=27
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: D4 09 00      CALL NC,0009
+T=20
+0006: 3E AA         LD   A,AA
+T=27
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: CC 09 00      CALL Z,0009
+T=20
+0006: 3E AA         LD   A,AA
+T=27
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: C4 09 00      CALL NZ,0009
+T=20
+0006: 3E AA         LD   A,AA
+T=27
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: FC 09 00      CALL M,0009
+T=20
+0006: 3E AA         LD   A,AA
+T=27
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: F4 09 00      CALL P,0009
+T=20
+0006: 3E AA         LD   A,AA
+T=27
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: EC 09 00      CALL PE,0009
+T=20
+0006: 3E AA         LD   A,AA
+T=27
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: E4 09 00      CALL PO,0009
+T=20
+0006: 3E AA         LD   A,AA
+T=27
+0000: 31 10 00      LD   SP,0010
+T=10
+0003: CD 09 00      CALL 0009
+T=27
+0009: 3E 55         LD   A,55
+T=34
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: C9            RET
+T=20
+0007: 3E 55         LD   A,55
+T=27
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: D8            RET  C
+T=21
+0007: 3E 55         LD   A,55
+T=28
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: D0            RET  NC
+T=21
+0007: 3E 55         LD   A,55
+T=28
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: C8            RET  Z
+T=21
+0007: 3E 55         LD   A,55
+T=28
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: C0            RET  NZ
+T=21
+0007: 3E 55         LD   A,55
+T=28
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: F8            RET  M
+T=21
+0007: 3E 55         LD   A,55
+T=28
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: F0            RET  P
+T=21
+0007: 3E 55         LD   A,55
+T=28
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: E8            RET  PE
+T=21
+0007: 3E 55         LD   A,55
+T=28
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: E0            RET  PO
+T=21
+0007: 3E 55         LD   A,55
+T=28
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: D8            RET  C
+T=15
+0004: 3E AA         LD   A,AA
+T=22
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: D0            RET  NC
+T=15
+0004: 3E AA         LD   A,AA
+T=22
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: C8            RET  Z
+T=15
+0004: 3E AA         LD   A,AA
+T=22
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: C0            RET  NZ
+T=15
+0004: 3E AA         LD   A,AA
+T=22
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: F8            RET  M
+T=15
+0004: 3E AA         LD   A,AA
+T=22
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: F0            RET  P
+T=15
+0004: 3E AA         LD   A,AA
+T=22
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: E8            RET  PE
+T=15
+0004: 3E AA         LD   A,AA
+T=22
+0000: 31 0A 00      LD   SP,000A
+T=10
+0003: E0            RET  PO
+T=15
+0004: 3E AA         LD   A,AA
+T=22
+0000: 31 0B 00      LD   SP,000B
+T=10
+0003: ED 45         RETN
+T=24
+0008: 3E 55         LD   A,55
+T=31
+0040: 31 50 00      LD   SP,0050
+T=10
+0043: C7            RST  0h
+T=21
+0000: 3E 01         LD   A,01
+T=28
+0002: C9            RET
+T=38
+0044: CF            RST  08h
+T=49
+0008: C6 02         ADD  A,02
+T=56
+000A: C9            RET
+T=66
+0045: D7            RST  10h
+T=77
+0010: C6 04         ADD  A,04
+T=84
+0012: C9            RET
+T=94
+0046: DF            RST  18h
+T=105
+0018: C6 08         ADD  A,08
+T=112
+001A: C9            RET
+T=122
+0047: E7            RST  20h
+T=133
+0020: C6 10         ADD  A,10
+T=140
+0022: C9            RET
+T=150
+0048: EF            RST  28h
+T=161
+0028: C6 20         ADD  A,20
+T=168
+002A: C9            RET
+T=178
+0049: F7            RST  30h
+T=189
+0030: C6 40         ADD  A,40
+T=196
+0032: C9            RET
+T=206
+004A: FF            RST  38h
+T=217
+0038: C6 80         ADD  A,80
+T=224
+003A: C9            RET
+T=234
+004B: 06 55         LD   B,55
+T=241
+0000: 31 23 00      LD   SP,0023
+T=10
+0003: 3E 98         LD   A,98
+T=17
+0005: 01 34 12      LD   BC,1234
+T=27
+0008: 11 35 13      LD   DE,1335
+T=37
+000B: 21 36 14      LD   HL,1436
+T=47
+000E: F5            PUSH AF
+T=58
+000F: C5            PUSH BC
+T=69
+0010: D5            PUSH DE
+T=80
+0011: E5            PUSH HL
+T=91
+0012: DD E5         PUSH IX
+T=106
+0014: FD E5         PUSH IY
+T=121
+0000: 31 0C 00      LD   SP,000C
+T=10
+0003: F1            POP  AF
+T=20
+0004: C1            POP  BC
+T=30
+0005: D1            POP  DE
+T=40
+0006: E1            POP  HL
+T=50
+0007: DD E1         POP  IX
+T=64
+0009: FD E1         POP  IY
+T=78
+0000: 3E 23         LD   A,23
+T=7
+0002: DB 01         IN   A,(01)
+T=18
+0000: 3E 23         LD   A,23
+T=7
+0002: DB 01         IN   A,(01)
+T=18
+0000: 01 23 01      LD   BC,0123
+T=10
+0003: 16 01         LD   D,01
+T=17
+0005: ED 50         IN   D,(C)
+T=29
+0000: 01 23 01      LD   BC,0123
+T=10
+0003: 16 01         LD   D,01
+T=17
+0005: ED 50         IN   D,(C)
+T=29
+0000: 3E 23         LD   A,23
+T=7
+0002: D3 01         OUT  (01),A
+T=18
+0000: 01 11 22      LD   BC,2211
+T=10
+0003: 26 33         LD   H,33
+T=17
+0005: ED 61         OUT  (C),H
+T=29
+0000: 1E 55         LD   C,55
+T=7
+0002: CB 03         RLC  E
+T=15
+0000: 16 AA         LD   D,AA
+T=7
+0002: CB 02         RLC  D
+T=15
+0000: 3E 00         LD   A,00
+T=7
+0002: CB 07         RLC  A
+T=15
+0000: 06 80         LD   B,80
+T=7
+0002: CB 00         RLC  B
+T=15
+0000: 21 06 00      LD   HL,0006
+T=10
+0003: CB 06         RLC  (HL)
+T=25
+0000: DD 21 04 00   LD   IX,0004
+T=14
+0004: DD CB 05 06   RLC  (IX+05)
+T=37
+0000: 1E 55         LD   C,55
+T=7
+0002: CB 0B         RRC  E
+T=15
+0000: 16 AA         LD   D,AA
+T=7
+0002: CB 0A         RRC  D
+T=15
+0000: 3E 00         LD   A,00
+T=7
+0002: CB 0F         RRC  A
+T=15
+0000: 06 80         LD   B,80
+T=7
+0002: CB 08         RRC  B
+T=15
+0000: 21 06 00      LD   HL,0006
+T=10
+0003: CB 0E         RRC  (HL)
+T=25
+0000: 1E 55         LD   C,55
+T=7
+0002: CB 13         RL   E
+T=15
+0000: 16 AA         LD   D,AA
+T=7
+0002: CB 12         RL   D
+T=15
+0000: 3E 80         LD   A,80
+T=7
+0002: CB 17         RL   A
+T=15
+0000: 06 80         LD   B,80
+T=7
+0002: CB 10         RL   B
+T=15
+0000: 21 06 00      LD   HL,0006
+T=10
+0003: CB 16         RL   (HL)
+T=25
+0000: 1E 55         LD   C,55
+T=7
+0002: CB 1B         RR   E
+T=15
+0000: 16 AA         LD   D,AA
+T=7
+0002: CB 1A         RR   D
+T=15
+0000: 3E 01         LD   A,01
+T=7
+0002: CB 1F         RR   A
+T=15
+0000: 06 80         LD   B,80
+T=7
+0002: CB 18         RR   B
+T=15
+0000: 21 06 00      LD   HL,0006
+T=10
+0003: CB 1E         RR   (HL)
+T=25
+0000: 1E 55         LD   C,55
+T=7
+0002: CB 23         SLA  E
+T=15
+0000: 16 AA         LD   D,AA
+T=7
+0002: CB 22         SLA  D
+T=15
+0000: 1E 85         LD   C,85
+T=7
+0002: CB 2B         SRA  E
+T=15
+0000: 1E 95         LD   C,95
+T=7
+0002: CB 33         SL1  E
+T=15
+0000: 26 85         LD   H,85
+T=7
+0002: CB 3C         SRL  H
+T=15
+0000: DD 21 00 00   LD   IX,0000
+T=14
+0004: DD CB 08 38   SRL  (IX+08),B
+T=37
+0000: 1E 40         LD   C,40
+T=7
+0002: CB 73         BIT  6,E
+T=15
+0000: 2E FE         LD   L,FE
+T=7
+0002: CB 45         BIT  0,L
+T=15
+0000: 21 06 00      LD   HL,0006
+T=10
+0003: CB 56         BIT  2,(HL)
+T=22
+0000: FD 21 07 00   LD   IY,0007
+T=14
+0004: FD CB 02 56   BIT  2,(IY+02)
+T=34
+0000: 16 FF         LD   D,FF
+T=7
+0002: CB BA         RES  7,D
+T=15
+0000: 21 06 00      LD   HL,0006
+T=10
+0003: CB 96         RES  2,(HL)
+T=25
+0000: 16 00         LD   D,00
+T=7
+0002: CB FA         SET  7,D
+T=15
+0000: 21 06 00      LD   HL,0006
+T=10
+0003: CB D6         SET  2,(HL)
+T=25
+0000: FD 21 06 00   LD   IY,0006
+T=14
+0004: FD CB 03 D0   SET  2,(IY+03),B
+T=37
+0000: DD 21 06 01   LD   IX,0106
+T=14
+0004: FD 21 07 02   LD   IY,0207
+T=28
+0008: 21 08 03      LD   HL,0308
+T=38
+0000: 21 0C 00      LD   HL,000C
+T=10
+0003: 11 0D 00      LD   DE,000D
+T=20
+0006: 01 01 00      LD   BC,0001
+T=30
+0009: ED A0         LDI
+T=46
+0000: 21 0C 00      LD   HL,000C
+T=10
+0003: 11 0D 00      LD   DE,000D
+T=20
+0006: 01 02 00      LD   BC,0002
+T=30
+0009: ED A0         LDI
+T=46
+0000: 21 0C 00      LD   HL,000C
+T=10
+0003: 11 0F 00      LD   DE,000F
+T=20
+0006: 01 03 00      LD   BC,0003
+T=30
+0009: ED B0         LDIR
+T=51
+T=72
+T=88
+0000: 21 0B 00      LD   HL,000B
+T=10
+0003: 01 03 00      LD   BC,0003
+T=20
+0006: 3E 88         LD   A,88
+T=27
+0008: ED A1         CPI
+T=43
+0000: 21 0B 00      LD   HL,000B
+T=10
+0003: 01 01 00      LD   BC,0001
+T=20
+0006: 3E 88         LD   A,88
+T=27
+0008: ED A1         CPI
+T=43
+0000: 21 0B 00      LD   HL,000B
+T=10
+0003: 01 FF 00      LD   BC,00FF
+T=20
+0006: 3E 88         LD   A,88
+T=27
+0008: ED B1         CPIR
+T=48
+T=69
+T=90
+T=106
+0000: 21 09 00      LD   HL,0009
+T=10
+0003: 01 34 01      LD   BC,0134
+T=20
+0006: ED A2         INI
+T=36
+0000: 21 09 00      LD   HL,0009
+T=10
+0003: 01 34 05      LD   BC,0534
+T=20
+0006: ED B2         INIR
+T=41
+T=62
+T=83
+T=104
+T=120
+0000: 21 09 00      LD   HL,0009
+T=10
+0003: 01 34 01      LD   BC,0134
+T=20
+0006: ED A3         OUTI
+T=36
+0000: 21 09 00      LD   HL,0009
+T=10
+0003: 01 34 04      LD   BC,0434
+T=20
+0006: ED B3         OTIR
+T=41
+T=62
+T=83
+T=99
+0000: 21 0C 00      LD   HL,000C
+T=10
+0003: 11 0D 00      LD   DE,000D
+T=20
+0006: 01 01 00      LD   BC,0001
+T=30
+0009: ED A8         LDD
+T=46
+0000: 21 0C 00      LD   HL,000C
+T=10
+0003: 11 0D 00      LD   DE,000D
+T=20
+0006: 01 02 00      LD   BC,0002
+T=30
+0009: ED A8         LDD
+T=46
+0000: 21 0E 00      LD   HL,000E
+T=10
+0003: 11 11 00      LD   DE,0011
+T=20
+0006: 01 03 00      LD   BC,0003
+T=30
+0009: ED B8         LDDR
+T=51
+T=72
+T=88
+0000: 21 0B 00      LD   HL,000B
+T=10
+0003: 01 03 00      LD   BC,0003
+T=20
+0006: 3E 88         LD   A,88
+T=27
+0008: ED A9         CPD
+T=43
+0000: 21 0B 00      LD   HL,000B
+T=10
+0003: 01 01 00      LD   BC,0001
+T=20
+0006: 3E 88         LD   A,88
+T=27
+0008: ED A9         CPD
+T=43
+0000: 21 0F 00      LD   HL,000F
+T=10
+0003: 01 FF 00      LD   BC,00FF
+T=20
+0006: 3E 88         LD   A,88
+T=27
+0008: ED B9         CPDR
+T=48
+T=64
+0000: 21 09 00      LD   HL,0009
+T=10
+0003: 01 34 01      LD   BC,0134
+T=20
+0006: ED AA         IND
+T=36
+0000: 21 0D 00      LD   HL,000D
+T=10
+0003: 01 34 05      LD   BC,0534
+T=20
+0006: ED BA         INDR
+T=41
+T=62
+T=83
+T=104
+T=120
+0000: 21 09 00      LD   HL,0009
+T=10
+0003: 01 34 01      LD   BC,0134
+T=20
+0006: ED AB         OUTD
+T=36
+0000: 21 0C 00      LD   HL,000C
+T=10
+0003: 01 34 04      LD   BC,0434
+T=20
+0006: ED BB         OTDR
+T=41
+T=62
+T=83
+T=99
+0000: DD DD         [INVALID]
+0001: DD DD         [INVALID]
+0002: DD 2E 01      LD   IXL,01
+T=19
+0005: FD FD         [INVALID]
+0006: FD 2E 02      LD   IYL,02
+T=34
+0000: 21 34 12      LD   HL,1234
+T=10
+0003: DD 21 45 23   LD   IX,2345
+T=24
+0007: 00            NOP
+T=28
+PASS
+ok  	github.com/voytas/z80-go-zx/z80	0.158s

@@ -58,6 +58,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 	case rld:
 		hl := z80.reg.HL()
 		w := (uint16(z80.reg.A)<<8 | uint16(z80.read(hl))) << 4
+		z80.contention(hl, 4)
 		z80.write(hl, byte(w)|z80.reg.A&0x0F)
 		z80.reg.A = z80.reg.A&0xF0 | byte(w>>8)&0x0F
 		z80.reg.F = z80.reg.F&fC | z80.reg.A&(fS|fY|fX) | parity[z80.reg.A]
@@ -67,6 +68,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 	case rrd:
 		hl := z80.reg.HL()
 		w := (uint16(z80.reg.A)<<8 | uint16(z80.read(hl)))
+		z80.contention(hl, 4)
 		z80.write(hl, byte(w>>4))
 		z80.reg.A = z80.reg.A&0xF0 | byte(w)&0x0F
 		z80.reg.F = z80.reg.F&fC | z80.reg.A&(fS|fY|fX) | parity[z80.reg.A]
