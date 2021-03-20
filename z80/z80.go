@@ -3,6 +3,7 @@ package z80
 import (
 	"fmt"
 
+	"github.com/voytas/z80-go-zx/z80/debugger"
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
@@ -148,11 +149,11 @@ func (z80 *Z80) Run(limit int) {
 	z80.TC.limit(limit)
 	for {
 
-		// debugger.Debug(z80.reg.prefix, z80.reg.PC, z80.mem)
-
 		if z80.TC.done() {
 			break
 		}
+
+		debugger.Debug(z80.reg.prefix, z80.reg.PC, z80.mem)
 
 		var opcode byte
 		if z80.halt {
@@ -769,6 +770,7 @@ func (z80 *Z80) Run(limit int) {
 			continue
 		}
 		z80.reg.prefix = noPrefix
+		fmt.Printf("T=%v\n", z80.TC.Current)
 	}
 }
 
