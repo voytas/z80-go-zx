@@ -57,8 +57,8 @@ func Run(model model.Model, fileToLoad string) {
 	// 50.08 Hz
 	ticker := time.NewTicker(19968 * time.Microsecond)
 	for !window.ShouldClose() {
-		emu.z80.INT(0xFF)
 		emu.z80.Run(model.FrameStates)
+		emu.z80.INT(0xFF)
 		<-ticker.C
 
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

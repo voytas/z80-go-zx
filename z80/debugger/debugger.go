@@ -11,7 +11,8 @@ var lastOpcode byte = 0xFF
 var lastPC uint16 = 0xFFFF
 
 // Very basic console output for debugging the opcodes
-func Debug(opcode, prefix byte, PC uint16, mem memory.Memory) {
+func Debug(prefix byte, PC uint16, mem memory.Memory) {
+	opcode := mem.Read(PC)
 	if lastOpcode == opcode && lastPC == PC {
 		return
 	}
@@ -19,6 +20,6 @@ func Debug(opcode, prefix byte, PC uint16, mem memory.Memory) {
 	lastPC = PC
 
 	if prefix == 0 || opcode == 0xDD || opcode == 0xFD {
-		fmt.Println(dasm.Decode(PC-1, mem))
+		fmt.Println(dasm.Decode(PC, mem))
 	}
 }
