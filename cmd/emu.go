@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/voytas/z80-go-zx/spectrum"
-	"github.com/voytas/z80-go-zx/spectrum/settings"
+	"github.com/voytas/z80-go-zx/spectrum/model"
 )
 
 var emuCmd = &cobra.Command{
@@ -18,7 +18,7 @@ var emuCmd = &cobra.Command{
 		if len(args) > 0 {
 			fileName = args[0]
 		}
-		spectrum.Run(settings.ZX48k, fileName)
+		spectrum.Run(model.Current, fileName)
 	},
 }
 

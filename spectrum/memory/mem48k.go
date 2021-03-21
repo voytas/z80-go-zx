@@ -2,6 +2,8 @@ package memory
 
 import (
 	"io/ioutil"
+
+	"github.com/voytas/z80-go-zx/z80"
 )
 
 const ramStart = 0x4000
@@ -14,8 +16,8 @@ var contendedStates []byte // index of extra states per each
 // we need to add extra states when specific memory addresses are accessed.
 // https://sinclair.wiki.zxnet.co.uk/wiki/Contended_memory
 type Mem48k struct {
-	Cells  []byte
-	TCount *int
+	Cells []byte
+	TC    *z80.TCounter
 }
 
 func init() {
@@ -49,8 +51,8 @@ func createContendedIndex() {
 
 // Add extra states if memory address is contended
 func (m *Mem48k) addContendedState(addr uint16) {
-	if addr >= 0x4000 && addr <= 0x7fff && *m.TCount < len(contendedStates) {
-		*m.TCount += int(contendedStates[*m.TCount])
+	if addr >= 0x4000 && addr <= 0x7fff && m.TC.Current < len(contendedStates) {
+		m.TC.Add(int(contendedStates[m.TC.Current]))
 	}
 }
 

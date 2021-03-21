@@ -19,7 +19,7 @@ var (
 
 type borderState struct {
 	colour byte
-	tCount int
+	tc     int
 	index  int
 }
 
@@ -33,13 +33,13 @@ func init() {
 	}
 }
 
-func AddBorderState(colour byte, tCount int) {
+func BorderColour(colour byte, tc int) {
 	colour &= 0x07
 	if lastBorderState.colour != colour {
 		lastBorderState.colour = colour
 		borderStates = append(borderStates, &borderState{
 			colour: colour,
-			tCount: tCount,
+			tc:     tc,
 			index:  len(borderStates),
 		})
 
@@ -53,7 +53,7 @@ func findBorderColour(t int) []byte {
 
 	start := 0
 	if nextBorderState != nil {
-		if t < nextBorderState.tCount {
+		if t < nextBorderState.tc {
 			return borderPalette[lastBorderState.colour]
 		}
 		start = nextBorderState.index
@@ -61,7 +61,7 @@ func findBorderColour(t int) []byte {
 
 	var state *borderState
 	for i := start; i < len(borderStates); i++ {
-		if borderStates[i].tCount > t {
+		if borderStates[i].tc > t {
 			nextBorderState = borderStates[i]
 			break
 		}

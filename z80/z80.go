@@ -18,7 +18,7 @@ type Z80 struct {
 	reg              *registers    // registers
 	halt, iff1, iff2 bool          // states of halt, iff1 and iff2
 	im               byte          // interrupt mode (im0, im1 or in2)
-	TC               int           // running T states counter
+	TC               *TCounter     // T states counter
 }
 
 func NewZ80(mem memory.Memory) *Z80 {
@@ -62,12 +62,12 @@ func (z80 *Z80) INT(data byte) {
 	case 0, 1:
 		z80.pushPC()
 		z80.reg.PC = 0x38 // RST 38h
-		z80.TC += 13
+		z80.TC.Add(13)
 	case 2:
 		z80.pushPC()
 		addr := uint16(z80.reg.I)<<8 + uint16(data)
 		z80.reg.PC = uint16(z80.mem.Read(addr+1))<<8 | uint16(z80.mem.Read(addr))
-		z80.TC += 19
+		z80.TC.Add(19)
 	}
 	z80.incR()
 }
@@ -78,7 +78,7 @@ func (z80 *Z80) NMI() {
 	z80.iff2, z80.iff1 = z80.iff1, false
 	z80.pushPC()
 	z80.reg.PC = 0x66
-	z80.TC += 11
+	z80.TC.Add(11)
 	z80.incR()
 }
 
@@ -90,23 +90,22 @@ func (z80 *Z80) Reset() {
 	z80.reg.A, z80.reg.F = 0xFF, 0xFF
 	z80.reg.I, z80.reg.R = 0x00, 0x00
 	z80.halt = false
-	z80.TC = 0
+	z80.TC = &TCounter{}
 }
 
 // Executes the instructions until maximum number of T states is reached.
 // (tLimit equal to 0 specifies unlimited number of T states to execute)
-func (z80 *Z80) Run(tLimit int) {
+func (z80 *Z80) Run(limit int) {
+	// Update limit with remaining from previous run
+	z80.TC.limit(limit)
 	for {
-		if tLimit != 0 {
-			if z80.TC >= tLimit {
-				z80.TC -= tLimit
-				break
-			}
+		if z80.TC.done() {
+			break
 		}
 
 		var opcode byte
 		if z80.halt {
-			z80.TC = (tLimit - z80.TC) % 4
+			z80.TC.halt()
 			break
 		} else {
 			opcode = z80.readByte()
@@ -115,13 +114,13 @@ func (z80 *Z80) Run(tLimit int) {
 		// debugger.Debug(opcode, z80.reg.prefix, z80.reg.PC, z80.mem)
 
 		if z80.reg.prefix == noPrefix {
-			z80.TC += tStatesPrimary[opcode]
+			z80.TC.Add(tStatesPrimary[opcode])
 		} else {
 			t := tStatesIXY[opcode]
 			if t != 0 {
-				z80.TC += t - 4
+				z80.TC.Add(t - 4)
 			} else {
-				z80.TC += 4 + tStatesPrimary[opcode]
+				z80.TC.Add(4 + tStatesPrimary[opcode])
 			}
 		}
 
@@ -523,7 +522,7 @@ func (z80 *Z80) Run(tLimit int) {
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC += 5
+				z80.TC.Add(5)
 			}
 		case jr_nz_o:
 			o := z80.readByte()
@@ -533,7 +532,7 @@ func (z80 *Z80) Run(tLimit int) {
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC += 5
+				z80.TC.Add(5)
 			}
 		case jr_c:
 			o := z80.readByte()
@@ -543,7 +542,7 @@ func (z80 *Z80) Run(tLimit int) {
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC += 5
+				z80.TC.Add(5)
 			}
 		case jr_nc_o:
 			o := z80.readByte()
@@ -553,7 +552,7 @@ func (z80 *Z80) Run(tLimit int) {
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC += 5
+				z80.TC.Add(5)
 			}
 		case djnz:
 			o := z80.readByte()
@@ -564,7 +563,7 @@ func (z80 *Z80) Run(tLimit int) {
 				} else {
 					z80.reg.PC -= uint16(^o + 1)
 				}
-				z80.TC += 5
+				z80.TC.Add(5)
 			}
 		case jp_nn:
 			z80.reg.PC = z80.readWord()
@@ -591,7 +590,7 @@ func (z80 *Z80) Run(tLimit int) {
 				z80.reg.SP -= 1
 				z80.mem.Write(z80.reg.SP, byte(z80.reg.PC))
 				z80.reg.PC = pc
-				z80.TC += 7
+				z80.TC.Add(7)
 			} else {
 				z80.reg.PC += 2
 			}
@@ -602,7 +601,7 @@ func (z80 *Z80) Run(tLimit int) {
 			if z80.shouldJump(opcode) {
 				z80.reg.PC = uint16(z80.mem.Read(z80.reg.SP+1))<<8 | uint16(z80.mem.Read(z80.reg.SP))
 				z80.reg.SP += 2
-				z80.TC += 6
+				z80.TC.Add(6)
 			}
 		case rst_00h, rst_08h, rst_10h, rst_18h, rst_20h, rst_28h, rst_30h, rst_38h:
 			z80.reg.SP -= 1
@@ -662,14 +661,14 @@ func (z80 *Z80) Run(tLimit int) {
 		case useIX:
 			z80.incR()
 			if z80.reg.prefix != noPrefix {
-				z80.TC += tStatesPrimary[nop]
+				z80.TC.Add(tStatesPrimary[nop])
 			}
 			z80.reg.prefix = useIX
 			continue
 		case useIY:
 			z80.incR()
 			if z80.reg.prefix != noPrefix {
-				z80.TC += tStatesPrimary[nop]
+				z80.TC.Add(tStatesPrimary[nop])
 			}
 			z80.reg.prefix = useIY
 			continue

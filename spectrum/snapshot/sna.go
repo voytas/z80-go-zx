@@ -40,7 +40,7 @@ func LoadSNA(filePath string, cpu *z80.Z80, mem []byte) error {
 	}
 
 	// Restore border colour
-	screen.AddBorderState(sna[26], 0)
+	screen.BorderColour(sna[26], 0)
 
 	// Simulate RETN
 	state.PC = uint16(mem[state.SP+1])<<8 | uint16(mem[state.SP])
