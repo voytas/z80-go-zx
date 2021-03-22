@@ -54,8 +54,10 @@ func Run(model model.Model, fileToLoad string) {
 		log.Fatalln("failed to create emulator:", err)
 	}
 
-	// 50.08 Hz
-	ticker := time.NewTicker(19968 * time.Microsecond)
+	freq := model.Clock * 1000000 / float32(model.FrameStates)
+	ticker := time.NewTicker(time.Duration(1/freq*1000000) * time.Microsecond)
+	defer ticker.Stop()
+
 	for !window.ShouldClose() {
 		emu.z80.Run(model.FrameStates)
 		emu.z80.INT(0xFF)
@@ -75,7 +77,7 @@ func Run(model model.Model, fileToLoad string) {
 
 func createEmulator(model model.Model, fileToLoad string) (*Emulator, error) {
 	// Initialise memory
-	mem, err := memory.NewMem48k(model.ROMPath, model.Memory)
+	mem, err := memory.NewMem48k(model.ROM1Path)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +95,9 @@ func createEmulator(model model.Model, fileToLoad string) (*Emulator, error) {
 	// Share T state counter
 	mem.TC = cpu.TC
 	bus.tc = cpu.TC
+
+	// Use by paging
+	bus.mem = mem
 
 	emu := &Emulator{
 		mem: mem,

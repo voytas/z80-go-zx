@@ -31,7 +31,7 @@ func (z80 *Z80) prefixCB() {
 			*z80.reg.raw[reg] = v
 		}
 		if reg == HL || z80.reg.prefix != noPrefix {
-			z80.contention(hl, 1)
+			z80.addContention(hl, 1)
 			z80.write(hl, v)
 		}
 		if flags {
@@ -88,7 +88,7 @@ func (z80 *Z80) prefixCB() {
 			if reg == HL {
 				// Might not be 100%, this undocumented behaviour is not clear, but it passses test
 				z80.reg.F |= fS&test | (fY|fX)&byte(hl>>8)
-				z80.contention(hl, 1)
+				z80.addContention(hl, 1)
 			} else {
 				z80.reg.F |= fS&test | (fY|fX)&v
 			}

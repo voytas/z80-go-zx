@@ -160,3 +160,8 @@ func (r *registers) setHL(value uint16) {
 func (r *registers) IR() uint16 {
 	return uint16(r.I)<<8 | uint16(r.R)
 }
+
+// Increments R register.
+func (r *registers) IncR() {
+	r.R = r.R&0x80 | (r.R+1)&0x7F
+}

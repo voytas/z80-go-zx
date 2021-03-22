@@ -126,3 +126,28 @@ func Test_setReg(t *testing.T) {
 		}
 	}
 }
+
+func Test_IncR(t *testing.T) {
+	r := newRegisters()
+
+	for i := 0; i < 127; i++ {
+		r.IncR()
+		assert.EqualValues(t, i+1, r.R)
+	}
+
+	for i := 0; i < 127; i++ {
+		r.IncR()
+		assert.EqualValues(t, i, r.R)
+	}
+
+	r.R = 0x80
+	for i := 0; i < 127; i++ {
+		r.IncR()
+		assert.EqualValues(t, i+1+0x80, r.R)
+	}
+
+	for i := 0; i < 127; i++ {
+		r.IncR()
+		assert.EqualValues(t, i+0x80, r.R)
+	}
+}

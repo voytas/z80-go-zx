@@ -8,7 +8,6 @@ import (
 
 const ramStart = 0x4000
 
-var ramEnd uint16          // specifies last available RAM address
 var contendedStates []byte // index of extra states per each
 
 // Some memory addresses have slower access (extra T states), because of ULA priority
@@ -18,6 +17,21 @@ var contendedStates []byte // index of extra states per each
 type Mem48k struct {
 	Cells []byte
 	TC    *z80.TCounter
+}
+
+// Creates a memory using specified rom file and memory size.
+func NewMem48k(romPath string) (*Mem48k, error) {
+	mem := &Mem48k{}
+
+	rom, err := ioutil.ReadFile(romPath)
+	if err != nil {
+		return nil, err
+	}
+
+	mem.Cells = make([]byte, 0x10000)
+	copy(mem.Cells, rom)
+
+	return mem, err
 }
 
 func init() {
@@ -58,34 +72,14 @@ func (m *Mem48k) addContendedState(addr uint16) {
 
 // Read a value from the memory address.
 func (m *Mem48k) Read(addr uint16) byte {
-	if addr >= uint16(len(m.Cells)) {
-		return 0xFF
-	}
 	m.addContendedState(addr)
-
 	return m.Cells[addr]
 }
 
 // Write a value to the memory address.
 func (m *Mem48k) Write(addr uint16, value byte) {
-	if addr >= ramStart && addr < ramEnd {
+	if addr >= ramStart && addr <= 0xFFFF {
 		m.Cells[addr] = value
 	}
 	m.addContendedState(addr)
-}
-
-// Creates a memory using specified rom file and memory size.
-func NewMem48k(romPath string, size uint16) (*Mem48k, error) {
-	mem := &Mem48k{}
-	mem.Cells = make([]byte, size)
-
-	rom, err := ioutil.ReadFile(romPath)
-	if err != nil {
-		return nil, err
-	}
-
-	copy(mem.Cells, rom)
-	ramEnd = uint16(size)
-
-	return mem, err
 }

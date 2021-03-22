@@ -2,6 +2,7 @@ package spectrum
 
 import (
 	"github.com/voytas/z80-go-zx/spectrum/keyboard"
+	"github.com/voytas/z80-go-zx/spectrum/memory"
 	"github.com/voytas/z80-go-zx/spectrum/screen"
 	"github.com/voytas/z80-go-zx/spectrum/sound"
 	"github.com/voytas/z80-go-zx/z80"
@@ -10,6 +11,7 @@ import (
 type ioBus struct {
 	tc     *z80.TCounter
 	beeper *sound.Beeper
+	mem    interface{}
 }
 
 func NewBus() (*ioBus, error) {
@@ -33,7 +35,13 @@ func (b *ioBus) Read(hi, lo byte) byte {
 }
 
 func (b *ioBus) Write(hi, lo, data byte) {
-	if lo&0x01 == 0 {
+	if hi == 0x80 && lo == 0x02 {
+		// 128k memory port 0x7FFD
+		if mem, ok := b.mem.(memory.PageableMemory); ok {
+			mem.PageMode(data)
+		}
+	} else if lo&0x01 == 0 {
+		// ULA
 		screen.BorderColour(data, b.tc.Current)
 		b.beeper.Beep(data, b.tc.Total)
 	}

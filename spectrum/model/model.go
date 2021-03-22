@@ -1,17 +1,23 @@
 package model
 
 type Model struct {
-	Memory      uint16  // Total memory in bytes (ROM + RAM)
 	Clock       float32 // Clock im MHz
 	FrameStates int     // Number of frames to draw the screen
-	ROMPath     string  // Path to the ROM file
+	ROM1Path    string  // Path to the ROM file 1
+	ROM2Path    string  // Path to the ROM file 2 (128k only)
 }
 
 var ZX48k = Model{
-	Memory:      0xFFFF,
 	Clock:       3.5,
 	FrameStates: 69888,
-	ROMPath:     "./spectrum/rom/48k.rom",
+	ROM1Path:    "./spectrum/rom/48.rom",
+}
+
+var ZX128k = Model{
+	Clock:       3.5469,
+	FrameStates: 70908,
+	ROM1Path:    "./spectrum/rom/128-0.rom",
+	ROM2Path:    "./spectrum/rom/128-1.rom",
 }
 
 var Current Model = ZX48k
