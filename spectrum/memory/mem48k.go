@@ -15,7 +15,7 @@ var contendedStates []byte // index of extra states per each
 // we need to add extra states when specific memory addresses are accessed.
 // https://sinclair.wiki.zxnet.co.uk/wiki/Contended_memory
 type Mem48k struct {
-	Cells []byte
+	Cells []*byte
 	TC    *z80.TCounter
 }
 
@@ -28,8 +28,10 @@ func NewMem48k(romPath string) (*Mem48k, error) {
 		return nil, err
 	}
 
-	mem.Cells = make([]byte, 0x10000)
-	copy(mem.Cells, rom)
+	mem.Cells = make([]*byte, 0x10000)
+	for i := 0; i < len(rom); i++ {
+		*mem.Cells[i] = rom[i]
+	}
 
 	return mem, err
 }
@@ -73,13 +75,13 @@ func (m *Mem48k) addContendedState(addr uint16) {
 // Read a value from the memory address.
 func (m *Mem48k) Read(addr uint16) byte {
 	m.addContendedState(addr)
-	return m.Cells[addr]
+	return *m.Cells[addr]
 }
 
 // Write a value to the memory address.
 func (m *Mem48k) Write(addr uint16, value byte) {
 	if addr >= ramStart && addr <= 0xFFFF {
-		m.Cells[addr] = value
+		*m.Cells[addr] = value
 	}
 	m.addContendedState(addr)
 }

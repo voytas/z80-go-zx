@@ -19,7 +19,7 @@ import (
 type Emulator struct {
 	bus *ioBus
 	z80 *z80.Z80
-	mem *memory.Mem48k
+	mem *memory.Mem128k
 }
 
 func init() {
@@ -64,7 +64,7 @@ func Run(model model.Model, fileToLoad string) {
 		<-ticker.C
 
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		scr := screen.Render(emu.mem.Cells)
+		scr := screen.Render(emu.mem.Screen)
 		gl.DrawPixels(
 			screen.BorderLeft+256+screen.BorderRight,
 			screen.BorderTop+192+screen.BorderBottom,
@@ -77,7 +77,12 @@ func Run(model model.Model, fileToLoad string) {
 
 func createEmulator(model model.Model, fileToLoad string) (*Emulator, error) {
 	// Initialise memory
-	mem, err := memory.NewMem48k(model.ROM1Path)
+	// mem, err := memory.NewMem48k(model.ROM1Path)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	mem, err := memory.NewMem128k(model.ROM1Path, model.ROM2Path)
 	if err != nil {
 		return nil, err
 	}

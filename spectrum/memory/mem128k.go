@@ -1,20 +1,26 @@
 package memory
 
-import "io/ioutil"
+import (
+	"io/ioutil"
 
-type bank [0x4000]byte
+	"github.com/voytas/z80-go-zx/z80"
+)
+
+type Bank [0x4000]byte
 
 type PageableMemory interface {
 	PageMode(mode byte)
 }
 
 type Mem128k struct {
-	Cells    []*byte
-	banks    [8]bank
-	rom48    bank
-	rom128   bank
-	active   [4]*bank
-	disabled bool
+	Screen     *Bank
+	Cells      []*byte
+	TC         *z80.TCounter
+	banks      [8]Bank  // 8 memory banks
+	rom48      Bank     // ROM 1 (48k)
+	rom128     Bank     // ROM 2 (128k)
+	active     [4]*Bank // currently active banks
+	pgDisabled bool     // paging disabled until next reset
 }
 
 func NewMem128k(rom1Path, rom2Path string) (*Mem128k, error) {
@@ -27,12 +33,15 @@ func NewMem128k(rom1Path, rom2Path string) (*Mem128k, error) {
 	m.Cells = make([]*byte, 0x10000)
 	m.copyBank(0, &m.rom128)
 	m.copyBank(0x4000, &m.banks[5])
+	m.copyBank(0x8000, &m.banks[2])
 	m.copyBank(0xC000, &m.banks[0])
 
 	m.active[0] = &m.rom128   // ROM 1 or 2
-	m.active[1] = &m.banks[5] // Screen 1 or 2
-	m.active[2] = &m.banks[2] // Not swappable
+	m.active[1] = &m.banks[5] // Screen 1, not pageable
+	m.active[2] = &m.banks[2] // Not pageable
 	m.active[3] = &m.banks[0] // RAM 0-7
+
+	m.Screen = m.active[1]
 
 	return m, nil
 }
@@ -50,12 +59,12 @@ func (m *Mem128k) Write(addr uint16, value byte) {
 }
 
 func (m *Mem128k) PageMode(mode byte) {
-	if m.disabled {
+	if m.pgDisabled {
 		return
 	}
 
 	// Disable paging until next reset
-	m.disabled = mode&0b00100000 != 0
+	m.pgDisabled = mode&0b00100000 != 0
 
 	// ROM bank selection
 	if mode&0b00010000 != 0 {
@@ -71,16 +80,14 @@ func (m *Mem128k) PageMode(mode byte) {
 	}
 
 	// Screen bank selection
-	if mode&0b00010000 != 0 {
-		if m.active[1] != &m.banks[7] {
+	if mode&0b00001000 != 0 {
+		if m.Screen != &m.banks[7] {
 			// second screen select (bank 7)
-			m.copyBank(0x4000, &m.banks[7])
-			m.active[1] = &m.banks[7]
+			m.Screen = &m.banks[7]
 		}
-	} else if m.active[1] != &m.banks[5] {
+	} else if m.Screen != &m.banks[5] {
 		// normal screen select (bank 5)
-		m.copyBank(0x4000, &m.banks[5])
-		m.active[1] = &m.banks[5]
+		m.Screen = &m.banks[5]
 	}
 
 	// RAM bank selection
@@ -92,7 +99,7 @@ func (m *Mem128k) PageMode(mode byte) {
 }
 
 // Copies the memory bank to the specified address
-func (m *Mem128k) copyBank(addr int, src *bank) {
+func (m *Mem128k) copyBank(addr int, src *Bank) {
 	for i := 0; i < len(src); i++ {
 		m.Cells[addr+i] = &src[i]
 	}

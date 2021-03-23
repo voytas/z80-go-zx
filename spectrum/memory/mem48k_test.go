@@ -16,12 +16,12 @@ func Test_ReadWrite(t *testing.T) {
 	}
 
 	mem := Mem48k{
-		Cells: make([]byte, 0x10000),
+		Cells: make([]*byte, 0x10000),
 		TC:    &z80.TCounter{},
 	}
 
 	for i := 0; i < len(mem.Cells); i++ {
-		mem.Cells[i] = 0x55
+		*mem.Cells[i] = 0x55
 	}
 	for _, test := range tests {
 		mem.Write(test.addr, 0xAA)

@@ -20,4 +20,4 @@ var ZX128k = Model{
 	ROM2Path:    "./spectrum/rom/128-1.rom",
 }
 
-var Current Model = ZX48k
+var Current Model = ZX128k

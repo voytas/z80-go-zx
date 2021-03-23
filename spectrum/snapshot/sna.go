@@ -8,7 +8,7 @@ import (
 )
 
 // Loads SNA file to memory and updates the CPU state so it is ready to run
-func LoadSNA(filePath string, cpu *z80.Z80, mem []byte) error {
+func LoadSNA(filePath string, cpu *z80.Z80, mem []*byte) error {
 	sna, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return err
@@ -36,14 +36,14 @@ func LoadSNA(filePath string, cpu *z80.Z80, mem []byte) error {
 
 	// Fill the memory
 	for i := 16384; i < len(mem); i++ {
-		mem[i] = sna[i-16384+27]
+		*mem[i] = sna[i-16384+27]
 	}
 
 	// Restore border colour
 	screen.BorderColour(sna[26], 0)
 
 	// Simulate RETN
-	state.PC = uint16(mem[state.SP+1])<<8 | uint16(mem[state.SP])
+	state.PC = uint16(*mem[state.SP+1])<<8 | uint16(*mem[state.SP])
 	state.SP += 2
 
 	// Set CPU state

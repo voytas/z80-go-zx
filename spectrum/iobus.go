@@ -35,8 +35,9 @@ func (b *ioBus) Read(hi, lo byte) byte {
 }
 
 func (b *ioBus) Write(hi, lo, data byte) {
-	if hi == 0x80 && lo == 0x02 {
-		// 128k memory port 0x7FFD
+	if hi&0x80 == 0 && lo&0x02 == 0 {
+		// 128k memory port 0x7FFD is decoded, hardware will
+		// respond to any port address with bits 1 and 15 reset
 		if mem, ok := b.mem.(memory.PageableMemory); ok {
 			mem.PageMode(data)
 		}
