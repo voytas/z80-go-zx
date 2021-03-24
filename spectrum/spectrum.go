@@ -19,7 +19,7 @@ import (
 type Emulator struct {
 	bus *ioBus
 	z80 *z80.Z80
-	mem *memory.Mem128k
+	mem *memory.Memory
 }
 
 func init() {
@@ -82,7 +82,12 @@ func createEmulator(model model.Model, fileToLoad string) (*Emulator, error) {
 	// 	return nil, err
 	// }
 
-	mem, err := memory.NewMem128k(model.ROM1Path, model.ROM2Path)
+	// Initialise memory
+	// mem, err := memory.NewMem128k(model.ROM1Path, model.ROM2Path)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	mem, err := memory.NewMem48k_2(model.ROM1Path)
 	if err != nil {
 		return nil, err
 	}
