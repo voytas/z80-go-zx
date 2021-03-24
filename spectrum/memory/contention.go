@@ -8,11 +8,11 @@ func buildContentionIndex(mode int) {
 	var start, states int
 	switch mode {
 	case mode48k:
-		start = 14335 // starting contention state
-		states = 224  // number of T states per line
+		start = 14335 // starting contention state (48k model)
+		states = 224  // number of T states per line (48k model)
 	case mode128k:
-		start = 14361 // starting contention state
-		states = 228  // number of T states per line
+		start = 14361 // starting contention state (128k model)
+		states = 228  // number of T states per line (128k model)
 	}
 
 	contendedStates = make([]byte, start+192*states)

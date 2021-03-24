@@ -15,10 +15,6 @@ const (
 // Represents 16k memory bank
 type Bank [0x4000]byte
 
-type PageableMemory interface {
-	PageMode(mode byte)
-}
-
 type Memory struct {
 	Screen     *Bank         // current screen bank
 	Cells      []*byte       // memory as a single array of 65536 bytes
@@ -32,7 +28,7 @@ type Memory struct {
 }
 
 // Creates a new memory for 48k model
-func NewMem48k_2(romPath string) (*Memory, error) {
+func NewMem48k(romPath string) (*Memory, error) {
 	m := &Memory{mode: mode48k}
 	err := m.load48ROM(romPath)
 	if err != nil {

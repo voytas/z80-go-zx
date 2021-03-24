@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/hajimehoshi/oto"
-	"github.com/voytas/z80-go-zx/spectrum/model"
 )
 
 type Beeper struct {
@@ -25,8 +24,8 @@ const (
 var samples chan byte
 
 // Create a new instance of the Beeper
-func NewBeeper() (*Beeper, error) {
-	sampleRate := int(model.Current.Clock * 1000000 / statesPerSample)
+func NewBeeper(clock float32) (*Beeper, error) {
+	sampleRate := int(clock * 1000000 / statesPerSample)
 
 	ctx, err := oto.NewContext(sampleRate, 1, 1, 16384)
 	if err != nil {
