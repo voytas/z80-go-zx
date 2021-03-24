@@ -1,4 +1,4 @@
-package io
+package bus
 
 import (
 	"github.com/voytas/z80-go-zx/spectrum/keyboard"

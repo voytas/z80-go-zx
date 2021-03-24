@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-gl/gl/v2.1/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/voytas/z80-go-zx/spectrum/io"
+	"github.com/voytas/z80-go-zx/spectrum/bus"
 	"github.com/voytas/z80-go-zx/spectrum/keyboard"
 	"github.com/voytas/z80-go-zx/spectrum/machine"
 	"github.com/voytas/z80-go-zx/spectrum/memory"
@@ -18,7 +18,7 @@ import (
 )
 
 type Emulator struct {
-	bus *io.Bus
+	bus *bus.Bus
 	z80 *z80.Z80
 	mem *memory.Memory
 }
@@ -95,7 +95,7 @@ func createEmulator(m *machine.Machine, fileToLoad string) (*Emulator, error) {
 	cpu := z80.NewZ80(mem)
 
 	// Initialise IO bus (ports)
-	bus, err := io.NewBus(m, cpu.TC, mem)
+	bus, err := bus.NewBus(m, cpu.TC, mem)
 	if err != nil {
 		return nil, err
 	}
