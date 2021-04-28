@@ -130,6 +130,13 @@ func (m *Memory) PageMode(mode byte) {
 	}
 }
 
+// Loads the specified memory bank with data
+func (m *Memory) LoadBank(page int, data []byte) {
+	for i := 0; i < len(data); i++ {
+		m.banks[page][i] = data[i]
+	}
+}
+
 // Copies the memory bank to the specified address
 func (m *Memory) copyBank(addr int, src *Bank) {
 	for i := 0; i < len(src); i++ {

@@ -112,7 +112,7 @@ func createEmulator(m *machine.Machine, fileToLoad string) (*Emulator, error) {
 	}
 
 	if fileToLoad != "" {
-		err = snapshot.LoadSNA(fileToLoad, emu.z80, mem.Cells)
+		err = snapshot.Load(fileToLoad, emu.z80, mem)
 		if err != nil {
 			return nil, err
 		}

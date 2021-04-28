@@ -12,11 +12,11 @@ var Model string
 
 var emuCmd = &cobra.Command{
 	Args:  cobra.MaximumNArgs(1),
-	Use:   "emu [file.sna]",
+	Use:   "emu -m 48k|128k [snapshot.(sna|szx)]",
 	Short: "Run ZX Spectrum emulator",
 	Long: `
-		Run ZX Spectrum emulator. You can optionally specify program to run,
-		but only SNA format is currently supported
+		Run ZX Spectrum emulator. You can optionally specify snapshot file to load,
+		only SNA & SZX formats are supported.
 
 		Supported models are 48k and 128k`,
 	Run: func(cmd *cobra.Command, args []string) {
