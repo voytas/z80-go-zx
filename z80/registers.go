@@ -26,14 +26,14 @@ const (
 // X and Y flags are undocumented.
 const (
 	fNONE byte = 0x00
-	fC    byte = 0x01
-	fN    byte = 0x02
-	fP    byte = 0x04
-	fX    byte = 0x08
-	fH    byte = 0x10
-	fY    byte = 0x20
-	fZ    byte = 0x40
-	fS    byte = 0x80
+	FC    byte = 0x01
+	FN    byte = 0x02
+	FP    byte = 0x04
+	FX    byte = 0x08
+	FH    byte = 0x10
+	FY    byte = 0x20
+	FZ    byte = 0x40
+	FS    byte = 0x80
 	fALL  byte = 0xFF
 )
 
@@ -164,4 +164,14 @@ func (r *registers) IR() uint16 {
 // Increments R register.
 func (r *registers) IncR() {
 	r.R = r.R&0x80 | (r.R+1)&0x7F
+}
+
+// Gets the IX register value.
+func (r *registers) IX() uint16 {
+	return uint16(r.IXH)<<8 | uint16(r.IXL)
+}
+
+// Gets the IY register value.
+func (r *registers) IY() uint16 {
+	return uint16(r.IYH)<<8 | uint16(r.IYL)
 }

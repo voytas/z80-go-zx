@@ -14,6 +14,7 @@ import (
 	"github.com/voytas/z80-go-zx/spectrum/memory"
 	"github.com/voytas/z80-go-zx/spectrum/screen"
 	"github.com/voytas/z80-go-zx/spectrum/snapshot"
+	"github.com/voytas/z80-go-zx/spectrum/tape"
 	"github.com/voytas/z80-go-zx/z80"
 )
 
@@ -91,7 +92,7 @@ func createEmulator(m *machine.Machine, fileToLoad string) (*Emulator, error) {
 		return nil, err
 	}
 
-	// Initialise new CPU
+	// Initialise CPU
 	cpu := z80.NewZ80(mem)
 
 	// Initialise IO bus (ports)
@@ -99,11 +100,18 @@ func createEmulator(m *machine.Machine, fileToLoad string) (*Emulator, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	cpu.IOBus = bus
-
-	// Share T state counter
 	mem.TC = cpu.TC
+
+	// Initialise tape loader
+	tape := &tape.Tape{}
+
+	// Initialise CPU trap
+	cpu.Trap = func() {
+		if cpu.Reg.PC == 0x056A { // LD_BYTES trap to handle fast tape loading
+			tape.Load(cpu, mem)
+		}
+	}
 
 	emu := &Emulator{
 		mem: mem,
@@ -111,8 +119,14 @@ func createEmulator(m *machine.Machine, fileToLoad string) (*Emulator, error) {
 		z80: cpu,
 	}
 
+	// Load TAP, SNA or SZX file if specified
 	if fileToLoad != "" {
-		err = snapshot.Load(fileToLoad, emu.z80, mem)
+		var err error
+		if tape.IsTape(fileToLoad) {
+			err = tape.LoadFile(fileToLoad)
+		} else {
+			err = snapshot.LoadFile(fileToLoad, emu.z80, mem)
+		}
 		if err != nil {
 			return nil, err
 		}

@@ -9,15 +9,15 @@ import (
 	"github.com/voytas/z80-go-zx/z80"
 )
 
-func Load(filePath string, cpu *z80.Z80, mem *memory.Memory) error {
-	ext := strings.ToLower(filepath.Ext(filePath))
+func LoadFile(file string, cpu *z80.Z80, mem *memory.Memory) error {
+	ext := strings.ToLower(filepath.Ext(file))
 	switch ext {
 	case ".sna":
 		sna := &SNA{}
-		return sna.Load(filePath, cpu, mem)
+		return sna.Load(file, cpu, mem)
 	case ".szx":
 		szx := &SZX{}
-		return szx.Load(filePath, cpu, mem)
+		return szx.Load(file, cpu, mem)
 	default:
 		return fmt.Errorf("File format not supported: %s", ext)
 	}

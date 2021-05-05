@@ -21,7 +21,7 @@ const (
 
 type SZX struct {
 	offset int
-	bytes  []byte
+	data   []byte
 	state  *z80.CPUState
 }
 
@@ -31,18 +31,18 @@ type szxBlock struct {
 	data []byte
 }
 
-func (szx *SZX) Load(filePath string, cpu *z80.Z80, mem *memory.Memory) error {
-	bytes, err := ioutil.ReadFile(filePath)
+func (szx *SZX) Load(file string, cpu *z80.Z80, mem *memory.Memory) error {
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
 	}
-	szx.bytes = bytes
+	szx.data = data
 
-	if szx.dwToId(bytes[0:4]) != "ZXST" {
+	if szx.dwToId(data[0:4]) != "ZXST" {
 		return errors.New("Not a valid SZX file")
 	}
 
-	machine := bytes[6]
+	machine := data[6]
 	switch machine {
 	case zxstmid_16k:
 	case zxstmid_48k:
@@ -85,15 +85,15 @@ func (szx *SZX) readNextBlock() *szxBlock {
 		szx.offset = 8
 	}
 
-	if szx.offset >= len(szx.bytes) {
+	if szx.offset >= len(szx.data) {
 		return nil
 	}
 
-	size := szx.dwToInt(szx.bytes[szx.offset+4 : szx.offset+8])
+	size := szx.dwToInt(szx.data[szx.offset+4 : szx.offset+8])
 	block := &szxBlock{
-		id:   szx.dwToId(szx.bytes[szx.offset : szx.offset+4]),
+		id:   szx.dwToId(szx.data[szx.offset : szx.offset+4]),
 		size: size,
-		data: szx.bytes[szx.offset+8 : szx.offset+8+size],
+		data: szx.data[szx.offset+8 : szx.offset+8+size],
 	}
 	szx.offset += 8 + size
 
