@@ -1,13 +1,24 @@
 package tape
 
+import (
+	"io/ioutil"
+
+	"github.com/voytas/z80-go-zx/spectrum/helpers"
+)
+
 type tapReader struct {
-	reader *BinaryReader
+	reader *helpers.BinaryReader
 }
 
-func newTAPReader(data []byte) *tapReader {
-	return &tapReader{
-		reader: NewBinaryReader(data),
+func newTAPReader(file string) (*tapReader, error) {
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
 	}
+
+	return &tapReader{
+		reader: helpers.NewBinaryReader(data),
+	}, nil
 }
 
 func (t *tapReader) NextBlock() *TapeBlock {

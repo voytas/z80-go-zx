@@ -1,4 +1,4 @@
-package tape
+package helpers
 
 type BinaryReader struct {
 	pos  int
@@ -72,8 +72,8 @@ func (r *BinaryReader) ReadWords(count int) []uint16 {
 // Read a string value and advance the reader to the next postion
 func (r *BinaryReader) ReadString(len int) string {
 	v := ""
-	for _, b := range r.data {
-		v += string(b)
+	for i := 0; i < len; i++ {
+		v += string(r.data[i])
 	}
 	r.pos += len
 	return v
