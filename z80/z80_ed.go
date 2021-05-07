@@ -17,7 +17,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FC
 		}
 	case adc_hl_bc, adc_hl_de, adc_hl_hl, adc_hl_sp:
-		z80.addContention(z80.Reg.IR(), 7)
+		z80.TC.Add(7)
 		hl := z80.Reg.HL()
 		nn := z80.Reg.rr(opcode & 0b00110000 >> 4)
 		sum := hl + nn + uint16(z80.Reg.F&FC)
@@ -37,7 +37,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 
 		z80.Reg.setHL(sum)
 	case sbc_hl_bc, sbc_hl_de, sbc_hl_hl, sbc_hl_sp:
-		z80.addContention(z80.Reg.IR(), 7)
+		z80.TC.Add(7)
 		hl := z80.Reg.HL()
 		nn := z80.Reg.rr(opcode & 0b00110000 >> 4)
 		sub := hl - nn - uint16(z80.Reg.F&FC)
@@ -58,7 +58,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 	case rld:
 		hl := z80.Reg.HL()
 		w := (uint16(z80.Reg.A)<<8 | uint16(z80.read(hl))) << 4
-		z80.addContention(hl, 4)
+		z80.TC.Add(4)
 		z80.write(hl, byte(w)|z80.Reg.A&0x0F)
 		z80.Reg.A = z80.Reg.A&0xF0 | byte(w>>8)&0x0F
 		z80.Reg.F = z80.Reg.F&FC | z80.Reg.A&(FS|FY|FX) | parity[z80.Reg.A]
@@ -68,7 +68,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 	case rrd:
 		hl := z80.Reg.HL()
 		w := (uint16(z80.Reg.A)<<8 | uint16(z80.read(hl)))
-		z80.addContention(hl, 4)
+		z80.TC.Add(4)
 		z80.write(hl, byte(w>>4))
 		z80.Reg.A = z80.Reg.A&0xF0 | byte(w)&0x0F
 		z80.Reg.F = z80.Reg.F&FC | z80.Reg.A&(FS|FY|FX) | parity[z80.Reg.A]
@@ -103,7 +103,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 		addr := z80.nextWord()
 		z80.Reg.setRR(opcode&0b00110000>>4, uint16(z80.read(addr))|uint16(z80.read(addr+1))<<8)
 	case ld_a_r:
-		z80.addContention(z80.Reg.IR(), 1)
+		z80.TC.Add(1)
 		z80.Reg.A = z80.Reg.R
 		z80.Reg.F = z80.Reg.F&FC | z80.Reg.A&FS
 		if z80.Reg.A == 0 {
@@ -113,10 +113,10 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FP
 		}
 	case ld_r_a:
-		z80.addContention(z80.Reg.IR(), 1)
+		z80.TC.Add(1)
 		z80.Reg.R = z80.Reg.A
 	case ld_a_i:
-		z80.addContention(z80.Reg.IR(), 1)
+		z80.TC.Add(1)
 		z80.Reg.A = z80.Reg.I
 		z80.Reg.F = z80.Reg.F&FC | z80.Reg.A&FS
 		if z80.Reg.A == 0 {
@@ -126,7 +126,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FP
 		}
 	case ld_i_a:
-		z80.addContention(z80.Reg.IR(), 1)
+		z80.TC.Add(1)
 		z80.Reg.I = z80.Reg.A
 	case ldi, ldir, ldd, lddr:
 		hl := z80.Reg.HL()
@@ -134,7 +134,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 		bc := z80.Reg.BC() - 1
 		n := z80.read(hl)
 		z80.write(de, n)
-		z80.addContention(de, 2)
+		z80.TC.Add(2)
 		if opcode == ldi || opcode == ldir {
 			z80.Reg.setHL(hl + 1)
 			z80.Reg.setDE(de + 1)
@@ -163,7 +163,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 		}
 		z80.Reg.setBC(bc)
 		n := z80.read(hl)
-		z80.addContention(hl, 5)
+		z80.TC.Add(5)
 		test := z80.Reg.A - n
 		z80.Reg.F = z80.Reg.F&FC | FN | test&FS
 		if test == 0 {
@@ -177,10 +177,10 @@ func (z80 *Z80) prefixED(opcode byte) {
 		z80.Reg.F |= FY&(n<<4) | FX&n
 		if (opcode == cpir || opcode == cpdr) && bc != 0 && test != 0 {
 			z80.Reg.PC -= 2
-			z80.addContention(hl, 5)
+			z80.TC.Add(5)
 		}
 	case ini, inir, ind, indr:
-		z80.addContention(z80.Reg.IR(), 1)
+		z80.TC.Add(1)
 		hl := z80.Reg.HL()
 		n := z80.readBus(z80.Reg.B, z80.Reg.C)
 		z80.write(hl, n)
@@ -195,10 +195,10 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FZ
 		} else if opcode == inir || opcode == indr {
 			z80.Reg.PC -= 2
-			z80.addContention(hl, 5)
+			z80.TC.Add(5)
 		}
 	case outi, otir, outd, otdr:
-		z80.addContention(z80.Reg.IR(), 1)
+		z80.TC.Add(1)
 		hl := z80.Reg.HL()
 		z80.Reg.B -= 1
 		z80.writeBus(z80.Reg.B, z80.Reg.C, z80.read(hl))
@@ -212,7 +212,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FZ
 		} else if opcode == otir || opcode == otdr {
 			z80.Reg.PC -= 2
-			z80.addContention(z80.Reg.BC(), 5)
+			z80.TC.Add(5)
 		}
 	}
 }
