@@ -101,11 +101,11 @@ func (r *registers) rr(reg byte) uint16 {
 func (r *registers) setRR(reg byte, value uint16) {
 	switch reg {
 	case rBC:
-		r.setBC(value)
+		r.SetBC(value)
 	case rDE:
-		r.setDE(value)
+		r.SetDE(value)
 	case rHL:
-		r.setHL(value)
+		r.SetHL(value)
 	case rSP:
 		r.SP = value
 	}
@@ -117,7 +117,7 @@ func (r *registers) BC() uint16 {
 }
 
 // Sets the BC register value.
-func (r *registers) setBC(nn uint16) {
+func (r *registers) SetBC(nn uint16) {
 	r.B, r.C = byte(nn>>8), byte(nn)
 }
 
@@ -127,7 +127,7 @@ func (r *registers) DE() uint16 {
 }
 
 // Sets the DE register value.
-func (r *registers) setDE(nn uint16) {
+func (r *registers) SetDE(nn uint16) {
 	r.D, r.E = byte(nn>>8), byte(nn)
 }
 
@@ -144,7 +144,7 @@ func (r *registers) HL() uint16 {
 }
 
 // Sets the HL register value, respecting operation may be prefixed.
-func (r *registers) setHL(value uint16) {
+func (r *registers) SetHL(value uint16) {
 	h, l := byte(value>>8), byte(value)
 	switch r.prefix {
 	case useIX:

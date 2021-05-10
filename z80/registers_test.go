@@ -32,9 +32,9 @@ func Test_getRR(t *testing.T) {
 
 func Test_setRR(t *testing.T) {
 	r := newRegisters()
-	r.setBC(0x1122)
-	r.setDE(0x3344)
-	r.setHL(0x5566)
+	r.SetBC(0x1122)
+	r.SetDE(0x3344)
+	r.SetHL(0x5566)
 
 	assert.Equal(t, byte(0x11), r.B)
 	assert.Equal(t, byte(0x22), r.C)

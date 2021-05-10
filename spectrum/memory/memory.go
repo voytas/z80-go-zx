@@ -3,6 +3,7 @@ package memory
 import (
 	"io/ioutil"
 
+	"github.com/voytas/z80-go-zx/spectrum/machine"
 	"github.com/voytas/z80-go-zx/z80"
 )
 
@@ -12,8 +13,8 @@ const (
 	mode128k = 2
 )
 
-// Represents 16k memory bank
-type Bank [0x4000]byte
+type Bank [0x4000]byte     // Represents 16k memory bank
+var contendedStates []byte // contented states table
 
 type Memory struct {
 	Screen     *Bank         // current screen bank
@@ -44,7 +45,7 @@ func NewMem48k(romPath string) (*Memory, error) {
 	m.pgDisabled = true
 	m.Screen = &m.banks[5]
 
-	buildContentionIndex(mode48k)
+	contendedStates = machine.ZX48k.ContentionTable
 
 	return m, nil
 }
@@ -70,7 +71,7 @@ func NewMem128k(rom1Path, rom2Path string) (*Memory, error) {
 
 	m.Screen = m.active[1]
 
-	buildContentionIndex(mode128k)
+	contendedStates = machine.ZX128k.ContentionTable
 
 	return m, nil
 }
@@ -85,8 +86,8 @@ func (m *Memory) Read(addr uint16) byte {
 func (m *Memory) Write(addr uint16, value byte) {
 	if addr >= 0x4000 && addr <= 0xFFFF {
 		*m.Cells[addr] = value
+		m.addContention(addr)
 	}
-	m.addContention(addr)
 }
 
 // Sets the paging mode for 128k model
@@ -176,4 +177,11 @@ func (m *Memory) load48ROM(romPath string) error {
 	}
 
 	return nil
+}
+
+// Add extra states if memory address is contended
+func (m *Memory) addContention(addr uint16) {
+	if addr >= 0x4000 && addr <= 0x7fff && m.TC.Current < len(contendedStates) {
+		m.TC.Add(int(contendedStates[m.TC.Current]))
+	}
 }

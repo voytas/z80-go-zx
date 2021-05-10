@@ -35,7 +35,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FC
 		}
 
-		z80.Reg.setHL(sum)
+		z80.Reg.SetHL(sum)
 	case sbc_hl_bc, sbc_hl_de, sbc_hl_hl, sbc_hl_sp:
 		z80.TC.Add(7)
 		hl := z80.Reg.HL()
@@ -54,11 +54,11 @@ func (z80 *Z80) prefixED(opcode byte) {
 		if sub > hl {
 			z80.Reg.F |= FC
 		}
-		z80.Reg.setHL(sub)
+		z80.Reg.SetHL(sub)
 	case rld:
+		z80.TC.Add(4)
 		hl := z80.Reg.HL()
 		w := (uint16(z80.Reg.A)<<8 | uint16(z80.read(hl))) << 4
-		z80.TC.Add(4)
 		z80.write(hl, byte(w)|z80.Reg.A&0x0F)
 		z80.Reg.A = z80.Reg.A&0xF0 | byte(w>>8)&0x0F
 		z80.Reg.F = z80.Reg.F&FC | z80.Reg.A&(FS|FY|FX) | parity[z80.Reg.A]
@@ -66,9 +66,9 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FZ
 		}
 	case rrd:
+		z80.TC.Add(4)
 		hl := z80.Reg.HL()
 		w := (uint16(z80.Reg.A)<<8 | uint16(z80.read(hl)))
-		z80.TC.Add(4)
 		z80.write(hl, byte(w>>4))
 		z80.Reg.A = z80.Reg.A&0xF0 | byte(w)&0x0F
 		z80.Reg.F = z80.Reg.F&FC | z80.Reg.A&(FS|FY|FX) | parity[z80.Reg.A]
@@ -136,13 +136,13 @@ func (z80 *Z80) prefixED(opcode byte) {
 		z80.write(de, n)
 		z80.TC.Add(2)
 		if opcode == ldi || opcode == ldir {
-			z80.Reg.setHL(hl + 1)
-			z80.Reg.setDE(de + 1)
+			z80.Reg.SetHL(hl + 1)
+			z80.Reg.SetDE(de + 1)
 		} else {
-			z80.Reg.setHL(hl - 1)
-			z80.Reg.setDE(de - 1)
+			z80.Reg.SetHL(hl - 1)
+			z80.Reg.SetDE(de - 1)
 		}
-		z80.Reg.setBC(bc)
+		z80.Reg.SetBC(bc)
 		z80.Reg.F = z80.Reg.F & (FS | FZ | FC)
 		n += z80.Reg.A
 		z80.Reg.F |= FY&(n<<4) | FX&n
@@ -157,11 +157,11 @@ func (z80 *Z80) prefixED(opcode byte) {
 		hl := z80.Reg.HL()
 		bc := z80.Reg.BC() - 1
 		if opcode == cpi || opcode == cpir {
-			z80.Reg.setHL(hl + 1)
+			z80.Reg.SetHL(hl + 1)
 		} else {
-			z80.Reg.setHL(hl - 1)
+			z80.Reg.SetHL(hl - 1)
 		}
-		z80.Reg.setBC(bc)
+		z80.Reg.SetBC(bc)
 		n := z80.read(hl)
 		z80.TC.Add(5)
 		test := z80.Reg.A - n
@@ -186,9 +186,9 @@ func (z80 *Z80) prefixED(opcode byte) {
 		z80.write(hl, n)
 		z80.Reg.B -= 1
 		if opcode == ini || opcode == inir {
-			z80.Reg.setHL(hl + 1)
+			z80.Reg.SetHL(hl + 1)
 		} else {
-			z80.Reg.setHL(hl - 1)
+			z80.Reg.SetHL(hl - 1)
 		}
 		z80.Reg.F = z80.Reg.F & ^FZ | FN
 		if z80.Reg.B == 0 {
@@ -203,9 +203,9 @@ func (z80 *Z80) prefixED(opcode byte) {
 		z80.Reg.B -= 1
 		z80.writeBus(z80.Reg.B, z80.Reg.C, z80.read(hl))
 		if opcode == outi || opcode == otir {
-			z80.Reg.setHL(hl + 1)
+			z80.Reg.SetHL(hl + 1)
 		} else {
-			z80.Reg.setHL(hl - 1)
+			z80.Reg.SetHL(hl - 1)
 		}
 		z80.Reg.F = z80.Reg.F & ^FZ | FN
 		if z80.Reg.B == 0 {

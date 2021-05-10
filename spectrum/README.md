@@ -1,23 +1,26 @@
 # ZX Spectrum Emulator
 
-Once I had working Z80 CPU emulator, I decided to try to create a very simple ZX Spectrum 48k emulator. This is just to exercise programming in go and have fun.
+This is my fun project that is basically a ZX Spectrum 48k / 128k emulator. It uses Z80 CPU emulator I created previously. I wanted to see how easy or difficult it is to create some basic emulator.
 
-I couldn't find any simple graphics library for go that will allow rendering just 2D pixels, so for now I am using OpenGL (some very old version, because it has been deprecated on macOS).
+Features implemented:
+* 48k and 128k models are supported
+* beeper support
+* sna, szx, tap and minimal tzx file support
+* work in progress on AY emulation
+* memory congestion
 
-All that information you can find [here](https://worldofspectrum.org/faq/reference/48kreference.htm)
+This emulator is just a proof of concept and learning exercise. Emulation may not be 100% accurate.
+
 
 ## Screen
-In terms of ZX Spectrum 48kB, screen is refreshed 50 times per second. Basically you just need a timer that will run every 20ms (50 * 20ms = 1s). However if you want to also emulate border effects, some more work is needed. Because emulation runs much faster than the real machine, we need to keep track of alle border colour changes in relation to T state and use that information when screen is rendered.
+I couldn't find any simple graphics library for go that will allow rendering just 2D pixels, so for now I am using OpenGL (some very old version, because it has been deprecated on macOS).
 
 ## Memory
-
+Memory paging for 128k model is implemented.
 
 ## Keyboard
-That is quite easy to emulate, there are 40 keys divided into 8 groups of 5 keys each. One thing worth mentioning is that some programs can listen to more than one group to detect 'any key' pressed scenario, for example:
-```assembly
-        ld c,#02    ; any key except A-G
-        in a,(c)
-```
+
 
 ## Beeper
-TODO:
+Using https://github.com/hajimehoshi/oto for playing sound.
+Seems to be working mostly ok, but there is some issue with longer sound generation, e.g. BEEP 10,1 would have hearable frequency changes for some reason. It needs some investigating, but in games is not causing issues.

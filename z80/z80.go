@@ -31,58 +31,59 @@ func NewZ80(mem memory.Memory) *Z80 {
 
 // Fetches the opcode and increments PC afterwards. The cost is 4T.
 func (z80 *Z80) fetch() byte {
-	z80.TC.Add(4)
 	b := z80.mem.Read(z80.Reg.PC)
 	z80.Reg.PC += 1
+	z80.TC.Add(4)
 	return b
 }
 
 // Reads 8 bit value from memory location specified by the current PC value
 // and increments PC afterwards. The cost is 3T.
 func (z80 *Z80) nextByte() byte {
-	z80.TC.Add(3)
 	b := z80.mem.Read(z80.Reg.PC)
 	z80.Reg.PC += 1
+	z80.TC.Add(3)
 	return b
 }
 
 // Reads 16 bit value from memory location specified by the current PC value
 // and increments PC afterwards. The cost is 2 * 3T.
 func (z80 *Z80) nextWord() uint16 {
-	z80.TC.Add(2 * 3)
 	w := uint16(z80.mem.Read(z80.Reg.PC)) | uint16(z80.mem.Read(z80.Reg.PC+1))<<8
 	z80.Reg.PC += 2
+	z80.TC.Add(2 * 3)
 	return w
 }
 
 // Reads 8 bit value from the memory address. Does not affect PC. The cost is 3T.
 func (z80 *Z80) read(addr uint16) byte {
+	b := z80.mem.Read(addr)
 	z80.TC.Add(3)
-	return z80.mem.Read(addr)
+	return b
 }
 
 // Writes 8 bit value to the memory address. The cost is 3T.
 func (z80 *Z80) write(addr uint16, value byte) {
-	z80.TC.Add(3)
 	z80.mem.Write(addr, value)
+	z80.TC.Add(3)
 }
 
 // Reads 8 bit value from the bus (IN port). The cost is 4T.
 func (z80 *Z80) readBus(hi, lo byte) byte {
-	z80.TC.Add(4)
+	b := byte(0xFF)
 	if z80.IOBus != nil {
-		return z80.IOBus.Read(hi, lo)
+		b = z80.IOBus.Read(hi, lo)
 	}
-
-	return 0xFF
+	z80.TC.Add(4)
+	return b
 }
 
 // Writes 8 bit value to the bus (OUT port). The cost is 4T.
 func (z80 *Z80) writeBus(hi, lo, data byte) {
-	z80.TC.Add(4)
 	if z80.IOBus != nil {
 		z80.IOBus.Write(hi, lo, data)
 	}
+	z80.TC.Add(4)
 }
 
 func (z80 *Z80) pushPC() {
@@ -139,8 +140,6 @@ func (z80 *Z80) Reset() {
 func (z80 *Z80) Run(limit int) {
 	z80.TC.limit(limit)
 	for !(z80.Reg.prefix == noPrefix && z80.TC.done()) {
-		//debugger.Debug(z80.reg.prefix, z80.reg.PC, z80.mem)
-
 		if z80.Trap != nil {
 			z80.Trap()
 		}
@@ -224,10 +223,10 @@ func (z80 *Z80) Run(limit int) {
 			z80.Reg.D, z80.Reg.E, z80.Reg.H, z80.Reg.L = z80.Reg.H, z80.Reg.L, z80.Reg.D, z80.Reg.E
 		case ex_sp_hl:
 			h, l := z80.Reg.r(rH), z80.Reg.r(rL)
-			x, y := z80.read(z80.Reg.SP+1), z80.read(z80.Reg.SP)
+			y, x := z80.read(z80.Reg.SP), z80.read(z80.Reg.SP+1)
 			z80.TC.Add(1)
-			z80.write(z80.Reg.SP, *l)
 			z80.write(z80.Reg.SP+1, *h)
+			z80.write(z80.Reg.SP, *l)
 			z80.TC.Add(2)
 			*h, *l = x, y
 		case add_a_n, add_a_a, add_a_b, add_a_c, add_a_d, add_a_e, add_a_h, add_a_l, add_a_hl:
@@ -301,7 +300,7 @@ func (z80 *Z80) Run(limit int) {
 				nn = z80.Reg.SP
 			}
 			sum := hl + nn
-			z80.Reg.setHL(sum)
+			z80.Reg.SetHL(sum)
 			z80.Reg.F = z80.Reg.F & ^(FH|FN|FC) | byte((hl^nn^sum)>>8)&FH | byte(sum>>8)&(FY|FX)
 			if sum < hl {
 				z80.Reg.F |= FC
@@ -525,13 +524,13 @@ func (z80 *Z80) Run(limit int) {
 			}
 		case inc_bc:
 			z80.TC.Add(2)
-			z80.Reg.setBC(z80.Reg.BC() + 1)
+			z80.Reg.SetBC(z80.Reg.BC() + 1)
 		case inc_de:
 			z80.TC.Add(2)
-			z80.Reg.setDE(z80.Reg.DE() + 1)
+			z80.Reg.SetDE(z80.Reg.DE() + 1)
 		case inc_hl:
 			z80.TC.Add(2)
-			z80.Reg.setHL(z80.Reg.HL() + 1)
+			z80.Reg.SetHL(z80.Reg.HL() + 1)
 		case inc_sp:
 			z80.TC.Add(2)
 			z80.Reg.SP += 1
@@ -571,13 +570,13 @@ func (z80 *Z80) Run(limit int) {
 			}
 		case dec_bc:
 			z80.TC.Add(2)
-			z80.Reg.setBC(z80.Reg.BC() - 1)
+			z80.Reg.SetBC(z80.Reg.BC() - 1)
 		case dec_de:
 			z80.TC.Add(2)
-			z80.Reg.setDE(z80.Reg.DE() - 1)
+			z80.Reg.SetDE(z80.Reg.DE() - 1)
 		case dec_hl:
 			z80.TC.Add(2)
-			z80.Reg.setHL(z80.Reg.HL() - 1)
+			z80.Reg.SetHL(z80.Reg.HL() - 1)
 		case dec_sp:
 			z80.TC.Add(2)
 			z80.Reg.SP -= 1

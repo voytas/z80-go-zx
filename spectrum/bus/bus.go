@@ -10,10 +10,11 @@ import (
 )
 
 type Bus struct {
-	tc     *z80.TCounter
-	beeper *sound.Beeper
-	ay     *sound.AY8910
-	mem    *memory.Memory
+	tc      *z80.TCounter
+	beeper  *sound.Beeper
+	ay      *sound.AY8910
+	mem     *memory.Memory
+	machine *machine.Machine
 }
 
 func NewBus(machine *machine.Machine, tc *z80.TCounter, mem *memory.Memory) (*Bus, error) {
@@ -23,14 +24,16 @@ func NewBus(machine *machine.Machine, tc *z80.TCounter, mem *memory.Memory) (*Bu
 	}
 
 	return &Bus{
-		beeper: beeper,
-		ay:     sound.NewAY8910(),
-		mem:    mem,
-		tc:     tc,
+		beeper:  beeper,
+		ay:      sound.NewAY8910(),
+		mem:     mem,
+		tc:      tc,
+		machine: machine,
 	}, nil
 }
 
 func (b *Bus) Read(hi, lo byte) byte {
+	b.addContention(hi, lo)
 	if lo == 0xFE {
 		return keyboard.GetKeyPortValue(hi)
 	}
@@ -38,6 +41,7 @@ func (b *Bus) Read(hi, lo byte) byte {
 }
 
 func (b *Bus) Write(hi, lo, data byte) {
+	b.addContention(hi, lo)
 	if hi&0x80 == 0 && lo&0x02 == 0 {
 		// Memory page select 128k (port 0x7FFD is decoded as: A15=0, A1=0
 		b.mem.PageMode(data)
@@ -51,5 +55,41 @@ func (b *Bus) Write(hi, lo, data byte) {
 		// ULA (port 0xFE is decoded as: A0=0)
 		screen.BorderColour(data, b.tc.Current)
 		b.beeper.Beep(data, b.tc.Total)
+	}
+}
+
+func (b *Bus) addContention(hi, lo byte) {
+	if b.tc.Current >= len(b.machine.ContentionTable) {
+		return
+	}
+
+	if lo&0x01 == 0 {
+		if hi >= 0x40 && hi <= 0x7F {
+			// C:1, C:3
+			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
+			b.tc.Add(1)
+			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
+			b.tc.Add(3)
+		} else {
+			// N:1, C:3
+			b.tc.Add(1)
+			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
+			b.tc.Add(3)
+		}
+	} else {
+		if hi >= 0x40 && hi <= 0x7F {
+			// C:1, C:1, C:1, C:1
+			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
+			b.tc.Add(1)
+			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
+			b.tc.Add(1)
+			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
+			b.tc.Add(1)
+			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
+			b.tc.Add(1)
+		} else {
+			// N:4
+			b.tc.Add(4)
+		}
 	}
 }
