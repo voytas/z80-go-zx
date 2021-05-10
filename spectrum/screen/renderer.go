@@ -2,6 +2,8 @@ package screen
 
 import (
 	"image"
+
+	"github.com/voytas/z80-go-zx/spectrum/memory"
 )
 
 var frame = 1                                            // current frame count
@@ -15,7 +17,7 @@ func init() {
 }
 
 // Renders the screen as RGBA image
-func Render(mem []byte) *image.RGBA {
+func Render(mem *memory.Bank) *image.RGBA {
 	// Top border
 	for pixel := 0; pixel < 4*width*BorderTop; pixel += 4 {
 		border := findBorderColour(pixelT[pixel/4])
@@ -45,8 +47,8 @@ func Render(mem []byte) *image.RGBA {
 
 		// Centre
 		for col := 0; col < 32; col++ {
-			attr := mem[0x5800+32*(line/8)+col]
-			cell := mem[addr+col]
+			attr := mem[0x5800+32*(line/8)+col-0x4000]
+			cell := mem[addr+col-0x4000]
 			for _, bit := range []byte{0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01} {
 				var colour []byte
 				flash := attr&0x80 != 0 && frame >= 32

@@ -26,14 +26,14 @@ const (
 // X and Y flags are undocumented.
 const (
 	fNONE byte = 0x00
-	fC    byte = 0x01
-	fN    byte = 0x02
-	fP    byte = 0x04
-	fX    byte = 0x08
-	fH    byte = 0x10
-	fY    byte = 0x20
-	fZ    byte = 0x40
-	fS    byte = 0x80
+	FC    byte = 0x01
+	FN    byte = 0x02
+	FP    byte = 0x04
+	FX    byte = 0x08
+	FH    byte = 0x10
+	FY    byte = 0x20
+	FZ    byte = 0x40
+	FS    byte = 0x80
 	fALL  byte = 0xFF
 )
 
@@ -101,11 +101,11 @@ func (r *registers) rr(reg byte) uint16 {
 func (r *registers) setRR(reg byte, value uint16) {
 	switch reg {
 	case rBC:
-		r.setBC(value)
+		r.SetBC(value)
 	case rDE:
-		r.setDE(value)
+		r.SetDE(value)
 	case rHL:
-		r.setHL(value)
+		r.SetHL(value)
 	case rSP:
 		r.SP = value
 	}
@@ -117,7 +117,7 @@ func (r *registers) BC() uint16 {
 }
 
 // Sets the BC register value.
-func (r *registers) setBC(nn uint16) {
+func (r *registers) SetBC(nn uint16) {
 	r.B, r.C = byte(nn>>8), byte(nn)
 }
 
@@ -127,7 +127,7 @@ func (r *registers) DE() uint16 {
 }
 
 // Sets the DE register value.
-func (r *registers) setDE(nn uint16) {
+func (r *registers) SetDE(nn uint16) {
 	r.D, r.E = byte(nn>>8), byte(nn)
 }
 
@@ -144,7 +144,7 @@ func (r *registers) HL() uint16 {
 }
 
 // Sets the HL register value, respecting operation may be prefixed.
-func (r *registers) setHL(value uint16) {
+func (r *registers) SetHL(value uint16) {
 	h, l := byte(value>>8), byte(value)
 	switch r.prefix {
 	case useIX:
@@ -159,4 +159,19 @@ func (r *registers) setHL(value uint16) {
 // Gets the virtual IR register value.
 func (r *registers) IR() uint16 {
 	return uint16(r.I)<<8 | uint16(r.R)
+}
+
+// Increments R register.
+func (r *registers) IncR() {
+	r.R = r.R&0x80 | (r.R+1)&0x7F
+}
+
+// Gets the IX register value.
+func (r *registers) IX() uint16 {
+	return uint16(r.IXH)<<8 | uint16(r.IXL)
+}
+
+// Gets the IY register value.
+func (r *registers) IY() uint16 {
+	return uint16(r.IYH)<<8 | uint16(r.IYL)
 }

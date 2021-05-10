@@ -12,7 +12,9 @@ var rootCmd = &cobra.Command{
 
 	Preliminary Z80 tests                    - prelim.com
 	Documented Z80 instruction set exerciser - zexdoc.com
-	All Z80 instruction set exerciser        - zexall.com`,
+	All Z80 instruction set exerciser        - zexall.com
+
+	or ZX Spectrum 48k/128k emulator.`,
 }
 
 func Execute() {

@@ -4,47 +4,44 @@ import (
 	"io"
 
 	"github.com/hajimehoshi/oto"
-	"github.com/voytas/z80-go-zx/spectrum/model"
 )
 
 type Beeper struct {
-	ear    byte
-	ctx    *oto.Context
-	player *oto.Player
-	lastT  int64 // last T state
-	lastA  byte  // last Amplitude
+	ear     byte
+	ctx     *oto.Context
+	player  *oto.Player
+	lastT   int64 // last T state
+	lastA   byte  // last Amplitude
+	samples chan byte
 }
 
 const (
-	amplitudeLo     = 0      // low amplitude value
-	amplitudeHi     = 255    // high amplitude value
-	maxDuration     = 214042 // BEEP x,-60
-	statesPerSample = 8
+	beeperAmplitudeLo     = 0      // low amplitude value
+	beeperAmplitudeHi     = 255    // high amplitude value
+	beeperMaxDuration     = 214042 // BEEP x,-60
+	beeperStatesPerSample = 8
 )
 
-var samples chan byte
-
 // Create a new instance of the Beeper
-func NewBeeper() (*Beeper, error) {
-	sampleRate := int(model.Current.Clock * 1000000 / statesPerSample)
+func NewBeeper(clock float32) (*Beeper, error) {
+	sampleRate := int(clock * 1000000 / beeperStatesPerSample)
 
 	ctx, err := oto.NewContext(sampleRate, 1, 1, 16384)
 	if err != nil {
 		return nil, err
 	}
 
-	beeper := &Beeper{
-		ctx:    ctx,
-		player: ctx.NewPlayer(),
+	b := &Beeper{
+		ctx:     ctx,
+		player:  ctx.NewPlayer(),
+		samples: make(chan byte, sampleRate),
 	}
 
-	samples = make(chan byte, sampleRate)
-
 	go func() {
-		_, _ = io.Copy(beeper.player, beeper)
+		_, _ = io.Copy(b.player, b)
 	}()
 
-	return beeper, nil
+	return b, nil
 }
 
 func (b *Beeper) Close() {
@@ -54,7 +51,7 @@ func (b *Beeper) Close() {
 func (b *Beeper) Read(buf []byte) (int, error) {
 	for i := 0; i < len(buf); i++ {
 		select {
-		case a := <-samples:
+		case a := <-b.samples:
 			buf[i] = a
 		default:
 			buf[i] = b.lastA
@@ -65,9 +62,9 @@ func (b *Beeper) Read(buf []byte) (int, error) {
 }
 
 // Process beeper change at T state
-func (b *Beeper) Beep(value byte, t int64) {
+func (b *Beeper) Beep(val byte, t int64) {
 	on := false
-	ear := value & 0x10
+	ear := val & 0x10
 	if b.ear != ear {
 		b.ear = ear
 		on = true
@@ -76,16 +73,16 @@ func (b *Beeper) Beep(value byte, t int64) {
 	if on {
 		duration := t - b.lastT
 		b.lastT = t
-		if duration > 0 && duration <= maxDuration {
-			if b.lastA == amplitudeLo {
-				b.lastA = amplitudeHi
+		if duration > 0 && duration <= beeperMaxDuration {
+			if b.lastA == beeperAmplitudeLo {
+				b.lastA = beeperAmplitudeHi
 			} else {
-				b.lastA = amplitudeLo
+				b.lastA = beeperAmplitudeLo
 			}
 
-			length := int(duration / statesPerSample)
+			length := int(duration / beeperStatesPerSample)
 			for i := 0; i < length; i++ {
-				samples <- b.lastA
+				b.samples <- b.lastA
 			}
 		}
 	}

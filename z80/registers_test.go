@@ -21,17 +21,20 @@ func Test_getR(t *testing.T) {
 func Test_getRR(t *testing.T) {
 	r := newRegisters()
 	r.B, r.C, r.D, r.E, r.H, r.L = 2, 3, 4, 5, 6, 7
+	r.IXH, r.IXL, r.IYH, r.IYL = 8, 9, 0xA, 0xB
 
 	assert.Equal(t, uint16(0x0203), r.BC())
 	assert.Equal(t, uint16(0x0405), r.DE())
 	assert.Equal(t, uint16(0x0607), r.HL())
+	assert.Equal(t, uint16(0x0809), r.IX())
+	assert.Equal(t, uint16(0x0A0B), r.IY())
 }
 
 func Test_setRR(t *testing.T) {
 	r := newRegisters()
-	r.setBC(0x1122)
-	r.setDE(0x3344)
-	r.setHL(0x5566)
+	r.SetBC(0x1122)
+	r.SetDE(0x3344)
+	r.SetHL(0x5566)
 
 	assert.Equal(t, byte(0x11), r.B)
 	assert.Equal(t, byte(0x22), r.C)
@@ -124,5 +127,30 @@ func Test_setReg(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func Test_IncR(t *testing.T) {
+	r := newRegisters()
+
+	for i := 0; i < 127; i++ {
+		r.IncR()
+		assert.EqualValues(t, i+1, r.R)
+	}
+
+	for i := 0; i < 127; i++ {
+		r.IncR()
+		assert.EqualValues(t, i, r.R)
+	}
+
+	r.R = 0x80
+	for i := 0; i < 127; i++ {
+		r.IncR()
+		assert.EqualValues(t, i+1+0x80, r.R)
+	}
+
+	for i := 0; i < 127; i++ {
+		r.IncR()
+		assert.EqualValues(t, i+0x80, r.R)
 	}
 }
