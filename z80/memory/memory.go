@@ -14,6 +14,9 @@ type BasicMemory struct {
 }
 
 func (m *BasicMemory) Read(addr uint16) byte {
+	if int(addr) >= len(m.Cells) {
+		return 0xFF
+	}
 	return m.Cells[addr]
 }
 

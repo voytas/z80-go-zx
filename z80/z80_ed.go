@@ -56,8 +56,8 @@ func (z80 *Z80) prefixED(opcode byte) {
 		}
 		z80.Reg.SetHL(sub)
 	case rld:
-		z80.TC.Add(4)
 		hl := z80.Reg.HL()
+		z80.readDelay(4, hl)
 		w := (uint16(z80.Reg.A)<<8 | uint16(z80.read(hl))) << 4
 		z80.write(hl, byte(w)|z80.Reg.A&0x0F)
 		z80.Reg.A = z80.Reg.A&0xF0 | byte(w>>8)&0x0F
@@ -66,8 +66,8 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FZ
 		}
 	case rrd:
-		z80.TC.Add(4)
 		hl := z80.Reg.HL()
+		z80.readDelay(4, hl)
 		w := (uint16(z80.Reg.A)<<8 | uint16(z80.read(hl)))
 		z80.write(hl, byte(w>>4))
 		z80.Reg.A = z80.Reg.A&0xF0 | byte(w)&0x0F
@@ -134,7 +134,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 		bc := z80.Reg.BC() - 1
 		n := z80.read(hl)
 		z80.write(de, n)
-		z80.TC.Add(2)
+		z80.readDelay(2, de)
 		if opcode == ldi || opcode == ldir {
 			z80.Reg.SetHL(hl + 1)
 			z80.Reg.SetDE(de + 1)
@@ -150,7 +150,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FP
 			if opcode == ldir || opcode == lddr {
 				z80.Reg.PC -= 2
-				z80.TC.Add(5)
+				z80.readDelay(5, de)
 			}
 		}
 	case cpi, cpir, cpd, cpdr:
@@ -163,7 +163,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 		}
 		z80.Reg.SetBC(bc)
 		n := z80.read(hl)
-		z80.TC.Add(5)
+		z80.readDelay(5, hl)
 		test := z80.Reg.A - n
 		z80.Reg.F = z80.Reg.F&FC | FN | test&FS
 		if test == 0 {
@@ -177,7 +177,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 		z80.Reg.F |= FY&(n<<4) | FX&n
 		if (opcode == cpir || opcode == cpdr) && bc != 0 && test != 0 {
 			z80.Reg.PC -= 2
-			z80.TC.Add(5)
+			z80.readDelay(5, hl)
 		}
 	case ini, inir, ind, indr:
 		z80.TC.Add(1)
@@ -195,7 +195,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FZ
 		} else if opcode == inir || opcode == indr {
 			z80.Reg.PC -= 2
-			z80.TC.Add(5)
+			z80.readDelay(5, hl)
 		}
 	case outi, otir, outd, otdr:
 		z80.TC.Add(1)
@@ -212,7 +212,7 @@ func (z80 *Z80) prefixED(opcode byte) {
 			z80.Reg.F |= FZ
 		} else if opcode == otir || opcode == otdr {
 			z80.Reg.PC -= 2
-			z80.TC.Add(5)
+			z80.readDelay(5, hl)
 		}
 	}
 }

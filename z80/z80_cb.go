@@ -3,25 +3,30 @@ package z80
 // Handles opcodes with CB prefix
 func (z80 *Z80) prefixCB() {
 	const HL = 0b110
-	var v byte
+	var v, offset, opcode byte
 	var hl uint16
 
-	opcode := z80.fetch()
-	var offset byte
 	if z80.Reg.prefix != noPrefix {
-		offset = opcode
+		offset = z80.nextByte()
+		opcode = z80.nextByte()
+		z80.readDelay(2, z80.Reg.PC-1)
+
+	} else {
 		opcode = z80.fetch()
 	}
+
 	reg := opcode & 0b00000111
 	if reg == HL {
 		hl = z80.getHLOffset(offset)
 		v = z80.read(hl)
+		z80.readDelay(1, hl)
 	} else {
 		if z80.Reg.prefix == noPrefix {
 			v = *z80.Reg.raw[reg]
 		} else {
 			hl = z80.getHLOffset(offset)
 			v = z80.read(hl)
+			z80.readDelay(1, hl)
 		}
 	}
 
@@ -31,7 +36,6 @@ func (z80 *Z80) prefixCB() {
 			*z80.Reg.raw[reg] = v
 		}
 		if reg == HL || z80.Reg.prefix != noPrefix {
-			z80.TC.Add(1)
 			z80.write(hl, v)
 		}
 		if flags {
@@ -88,7 +92,6 @@ func (z80 *Z80) prefixCB() {
 			if reg == HL {
 				// Might not be 100%, this undocumented behaviour is not clear, but it passses test
 				z80.Reg.F |= FS&test | (FY|FX)&byte(hl>>8)
-				z80.TC.Add(1)
 			} else {
 				z80.Reg.F |= FS&test | (FY|FX)&v
 			}
