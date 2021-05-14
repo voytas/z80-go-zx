@@ -277,15 +277,6 @@ const (
 	bit_b byte = 0b01000000
 	res_b byte = 0b10000000
 	set_b byte = 0b11000000
-
-	bit_0 byte = 0b00000000
-	bit_1 byte = 0b00001000
-	bit_2 byte = 0b00010000
-	bit_3 byte = 0b00011000
-	bit_4 byte = 0b00100000
-	bit_5 byte = 0b00101000
-	bit_6 byte = 0b00110000
-	bit_7 byte = 0b00111000
 )
 
 // ED prefixed opcodes

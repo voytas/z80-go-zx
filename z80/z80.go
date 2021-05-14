@@ -83,11 +83,12 @@ func (z80 *Z80) writeBus(hi, lo, data byte) {
 	z80.TC.Add(4)
 }
 
+// Writes PC to stack. The cost is 2 * 3T.
 func (z80 *Z80) pushPC() {
 	z80.Reg.SP -= 1
-	z80.mem.Write(z80.Reg.SP, byte(z80.Reg.PC>>8))
+	z80.write(z80.Reg.SP, byte(z80.Reg.PC>>8))
 	z80.Reg.SP -= 1
-	z80.mem.Write(z80.Reg.SP, byte(z80.Reg.PC))
+	z80.write(z80.Reg.SP, byte(z80.Reg.PC))
 }
 
 // Emulates maskable interrupt (INT)
@@ -101,12 +102,12 @@ func (z80 *Z80) INT(data byte) {
 	case 0, 1:
 		z80.pushPC()
 		z80.Reg.PC = 0x38 // RST 38h
-		z80.TC.Add(13)
+		z80.TC.Add(7)
 	case 2:
 		z80.pushPC()
 		addr := uint16(z80.Reg.I)<<8 + uint16(data)
 		z80.Reg.PC = uint16(z80.read(addr+1))<<8 | uint16(z80.read(addr))
-		z80.TC.Add(19)
+		z80.TC.Add(7)
 	}
 	z80.Reg.IncR()
 }
@@ -117,7 +118,7 @@ func (z80 *Z80) NMI() {
 	z80.iff2, z80.iff1 = z80.iff1, false
 	z80.pushPC()
 	z80.Reg.PC = 0x66
-	z80.TC.Add(11)
+	z80.TC.Add(5)
 	z80.Reg.IncR()
 }
 

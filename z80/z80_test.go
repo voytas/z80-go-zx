@@ -7,6 +7,17 @@ import (
 	"github.com/voytas/z80-go-zx/z80/memory"
 )
 
+const (
+	bit_0 byte = 0b00000000
+	bit_1 byte = 0b00001000
+	bit_2 byte = 0b00010000
+	bit_3 byte = 0b00011000
+	bit_4 byte = 0b00100000
+	bit_5 byte = 0b00101000
+	bit_6 byte = 0b00110000
+	bit_7 byte = 0b00111000
+)
+
 type TestIOBus struct {
 	read  func(hi, lo byte) byte
 	write func(hi, lo, data byte)

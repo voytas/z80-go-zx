@@ -16,7 +16,7 @@ This emulator is just a proof of concept and learning exercise. Emulation may no
 I couldn't find any simple graphics library for go that will allow rendering just 2D pixels, so for now I am using OpenGL (some very old version, because it has been deprecated on macOS).
 
 ## Memory
-Memory paging for 128k model is implemented.
+Memory paging for 128k model is implemented. Contended memory implemented using this page https://sinclair.wiki.zxnet.co.uk/wiki/Contended_memory rather than https://worldofspectrum.org/faq/reference/48kreference.htm.
 
 ## Keyboard
 
