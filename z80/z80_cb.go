@@ -9,7 +9,7 @@ func (z80 *Z80) prefixCB() {
 	if z80.Reg.prefix != noPrefix {
 		offset = z80.nextByte()
 		opcode = z80.nextByte()
-		z80.readDelay(2, z80.Reg.PC-1)
+		z80.delay(2, z80.Reg.PC-1)
 
 	} else {
 		opcode = z80.fetch()
@@ -19,14 +19,14 @@ func (z80 *Z80) prefixCB() {
 	if reg == HL {
 		hl = z80.getHLOffset(offset)
 		v = z80.read(hl)
-		z80.readDelay(1, hl)
+		z80.delay(1, hl)
 	} else {
 		if z80.Reg.prefix == noPrefix {
 			v = *z80.Reg.raw[reg]
 		} else {
 			hl = z80.getHLOffset(offset)
 			v = z80.read(hl)
-			z80.readDelay(1, hl)
+			z80.delay(1, hl)
 		}
 	}
 
@@ -90,7 +90,7 @@ func (z80 *Z80) prefixCB() {
 				z80.Reg.F |= FZ | FP
 			}
 			if reg == HL {
-				// Might not be 100%, this undocumented behaviour is not clear, but it passses test
+				// Might not be 100% accurate, this undocumented behaviour is not clear, but it passses test
 				z80.Reg.F |= FS&test | (FY|FX)&byte(hl>>8)
 			} else {
 				z80.Reg.F |= FS&test | (FY|FX)&v

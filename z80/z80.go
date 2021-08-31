@@ -22,6 +22,7 @@ type Z80 struct {
 	Trap             func()        // traps to execute on PC address
 }
 
+// Creates a new instance of the Z80 emulator.
 func NewZ80(mem memory.Memory) *Z80 {
 	z80 := &Z80{}
 	z80.mem = mem
@@ -70,8 +71,9 @@ func (z80 *Z80) readBus(hi, lo byte) byte {
 	b := byte(0xFF)
 	if z80.IOBus != nil {
 		b = z80.IOBus.Read(hi, lo)
+	} else {
+		z80.TC.Add(4)
 	}
-	z80.TC.Add(4)
 	return b
 }
 
@@ -79,8 +81,9 @@ func (z80 *Z80) readBus(hi, lo byte) byte {
 func (z80 *Z80) writeBus(hi, lo, data byte) {
 	if z80.IOBus != nil {
 		z80.IOBus.Write(hi, lo, data)
+	} else {
+		z80.TC.Add(4)
 	}
-	z80.TC.Add(4)
 }
 
 // Writes PC to stack. The cost is 2 * 3T.
@@ -134,7 +137,7 @@ func (z80 *Z80) Reset() {
 }
 
 // Executes the instructions until maximum number of T states is reached.
-// (tLimit equal to 0 specifies unlimited number of T states to execute)
+// (limit equal to 0 specifies unlimited number of T states to execute)
 func (z80 *Z80) Run(limit int) {
 	z80.TC.limit(limit)
 	for !(z80.Reg.prefix == noPrefix && z80.TC.done()) {
@@ -222,10 +225,10 @@ func (z80 *Z80) Run(limit int) {
 		case ex_sp_hl:
 			h, l := z80.Reg.r(rH), z80.Reg.r(rL)
 			y, x := z80.read(z80.Reg.SP), z80.read(z80.Reg.SP+1)
-			z80.TC.Add(1)
+			z80.delay(1, z80.Reg.SP+1)
 			z80.write(z80.Reg.SP, *l)
 			z80.write(z80.Reg.SP+1, *h)
-			z80.writeDelay(2, z80.Reg.SP+1, *h)
+			z80.delay(2, z80.Reg.SP+1)
 			*h, *l = x, y
 		case add_a_n, add_a_a, add_a_b, add_a_c, add_a_d, add_a_e, add_a_h, add_a_l, add_a_hl:
 			a := z80.Reg.A
@@ -236,7 +239,7 @@ func (z80 *Z80) Run(limit int) {
 			case add_a_hl:
 				hl := z80.getHL()
 				if z80.Reg.prefix != noPrefix {
-					z80.readDelay(5, z80.Reg.PC-1)
+					z80.delay(5, z80.Reg.PC-1)
 				}
 				n = z80.read(hl)
 			default:
@@ -262,7 +265,7 @@ func (z80 *Z80) Run(limit int) {
 			case adc_a_hl:
 				hl := z80.getHL()
 				if z80.Reg.prefix != noPrefix {
-					z80.readDelay(5, z80.Reg.PC-1)
+					z80.delay(5, z80.Reg.PC-1)
 				}
 				n = z80.read(hl)
 			default:
@@ -284,7 +287,7 @@ func (z80 *Z80) Run(limit int) {
 			}
 			z80.Reg.A = sum_b
 		case add_hl_bc, add_hl_de, add_hl_hl, add_hl_sp:
-			z80.TC.Add(7)
+			z80.delay(7, z80.Reg.IR())
 			hl := z80.Reg.HL()
 			var nn uint16
 			switch opcode {
@@ -312,7 +315,7 @@ func (z80 *Z80) Run(limit int) {
 			case sub_hl:
 				hl := z80.getHL()
 				if z80.Reg.prefix != noPrefix {
-					z80.readDelay(5, z80.Reg.PC-1)
+					z80.delay(5, z80.Reg.PC-1)
 				}
 				n = z80.read(hl)
 			default:
@@ -337,7 +340,7 @@ func (z80 *Z80) Run(limit int) {
 			case cp_hl:
 				hl := z80.getHL()
 				if z80.Reg.prefix != noPrefix {
-					z80.readDelay(5, z80.Reg.PC-1)
+					z80.delay(5, z80.Reg.PC-1)
 				}
 				n = z80.read(hl)
 			default:
@@ -362,7 +365,7 @@ func (z80 *Z80) Run(limit int) {
 			case sbc_a_hl:
 				hl := z80.getHL()
 				if z80.Reg.prefix != noPrefix {
-					z80.readDelay(5, z80.Reg.PC-1)
+					z80.delay(5, z80.Reg.PC-1)
 				}
 				n = z80.read(hl)
 			default:
@@ -390,7 +393,7 @@ func (z80 *Z80) Run(limit int) {
 			case and_hl:
 				hl := z80.getHL()
 				if z80.Reg.prefix != noPrefix {
-					z80.readDelay(5, z80.Reg.PC-1)
+					z80.delay(5, z80.Reg.PC-1)
 				}
 				n = z80.read(hl)
 			default:
@@ -409,7 +412,7 @@ func (z80 *Z80) Run(limit int) {
 			case or_hl:
 				hl := z80.getHL()
 				if z80.Reg.prefix != noPrefix {
-					z80.readDelay(5, z80.Reg.PC-1)
+					z80.delay(5, z80.Reg.PC-1)
 				}
 				n = z80.read(hl)
 			default:
@@ -428,7 +431,7 @@ func (z80 *Z80) Run(limit int) {
 			case xor_hl:
 				hl := z80.getHL()
 				if z80.Reg.prefix != noPrefix {
-					z80.readDelay(5, z80.Reg.PC-1)
+					z80.delay(5, z80.Reg.PC-1)
 				}
 				n = z80.read(hl)
 			default:
@@ -463,7 +466,7 @@ func (z80 *Z80) Run(limit int) {
 		case ld_sp_nn:
 			z80.Reg.SP = z80.nextWord()
 		case ld_sp_hl:
-			z80.TC.Add(2)
+			z80.delay(2, z80.Reg.IR())
 			z80.Reg.SP = z80.Reg.HL()
 		case ld_hl_mm:
 			addr := z80.nextWord()
@@ -479,7 +482,7 @@ func (z80 *Z80) Run(limit int) {
 			hl := z80.getHL()
 			n := z80.nextByte()
 			if z80.Reg.prefix != noPrefix {
-				z80.readDelay(2, z80.Reg.PC-1)
+				z80.delay(2, z80.Reg.PC-1)
 			}
 			z80.write(hl, n)
 		case ld_mm_a:
@@ -497,13 +500,13 @@ func (z80 *Z80) Run(limit int) {
 		case ld_a_hl, ld_b_hl, ld_c_hl, ld_d_hl, ld_e_hl, ld_h_hl, ld_l_hl:
 			hl := z80.getHL()
 			if z80.Reg.prefix != noPrefix {
-				z80.readDelay(5, z80.Reg.PC-1)
+				z80.delay(5, z80.Reg.PC-1)
 			}
 			*z80.Reg.raw[opcode&0b00111000>>3] = z80.read(hl)
 		case ld_hl_a, ld_hl_b, ld_hl_c, ld_hl_d, ld_hl_e, ld_hl_h, ld_hl_l:
 			hl := z80.getHL()
 			if z80.Reg.prefix != noPrefix {
-				z80.readDelay(5, z80.Reg.PC-1)
+				z80.delay(5, z80.Reg.PC-1)
 			}
 			z80.write(hl, *z80.Reg.raw[opcode&0b00000111])
 		case inc_a, inc_b, inc_c, inc_d, inc_e, inc_h, inc_l:
@@ -521,24 +524,24 @@ func (z80 *Z80) Run(limit int) {
 				z80.Reg.F |= FZ
 			}
 		case inc_bc:
-			z80.TC.Add(2)
+			z80.delay(2, z80.Reg.IR())
 			z80.Reg.SetBC(z80.Reg.BC() + 1)
 		case inc_de:
-			z80.TC.Add(2)
+			z80.delay(2, z80.Reg.IR())
 			z80.Reg.SetDE(z80.Reg.DE() + 1)
 		case inc_hl:
-			z80.TC.Add(2)
+			z80.delay(2, z80.Reg.IR())
 			z80.Reg.SetHL(z80.Reg.HL() + 1)
 		case inc_sp:
-			z80.TC.Add(2)
+			z80.delay(2, z80.Reg.IR())
 			z80.Reg.SP += 1
 		case inc_mhl:
-			addr := z80.getHL()
+			hl := z80.getHL()
 			if z80.Reg.prefix != noPrefix {
-				z80.readDelay(5, z80.Reg.PC-1)
+				z80.delay(5, z80.Reg.PC-1)
 			}
-			b := z80.read(addr)
-			z80.readDelay(1, addr)
+			b := z80.read(hl)
+			z80.delay(1, hl)
 			z80.Reg.F &= FC
 			if b == 0x7F {
 				z80.Reg.F |= FP
@@ -551,7 +554,7 @@ func (z80 *Z80) Run(limit int) {
 				z80.Reg.F |= FZ
 			}
 			z80.Reg.F |= b & (FS | FY | FX)
-			z80.write(addr, b)
+			z80.write(hl, b)
 		case dec_a, dec_b, dec_c, dec_d, dec_e, dec_h, dec_l:
 			r := z80.Reg.r(opcode & 0b00111000 >> 3)
 			z80.Reg.F = z80.Reg.F&FC | FN
@@ -567,24 +570,24 @@ func (z80 *Z80) Run(limit int) {
 				z80.Reg.F |= FZ
 			}
 		case dec_bc:
-			z80.TC.Add(2)
+			z80.delay(2, z80.Reg.IR())
 			z80.Reg.SetBC(z80.Reg.BC() - 1)
 		case dec_de:
-			z80.TC.Add(2)
+			z80.delay(2, z80.Reg.IR())
 			z80.Reg.SetDE(z80.Reg.DE() - 1)
 		case dec_hl:
-			z80.TC.Add(2)
+			z80.delay(2, z80.Reg.IR())
 			z80.Reg.SetHL(z80.Reg.HL() - 1)
 		case dec_sp:
-			z80.TC.Add(2)
+			z80.delay(2, z80.Reg.IR())
 			z80.Reg.SP -= 1
 		case dec_mhl:
-			addr := z80.getHL()
+			hl := z80.getHL()
 			if z80.Reg.prefix != noPrefix {
-				z80.readDelay(5, z80.Reg.PC-1)
+				z80.delay(5, z80.Reg.PC-1)
 			}
-			b := z80.read(addr)
-			z80.readDelay(1, addr)
+			b := z80.read(hl)
+			z80.delay(1, hl)
 			z80.Reg.F = z80.Reg.F&FC | FN
 			if b == 0x80 {
 				z80.Reg.F |= FP
@@ -597,10 +600,10 @@ func (z80 *Z80) Run(limit int) {
 				z80.Reg.F |= FZ
 			}
 			z80.Reg.F |= b & (FS | FY | FX)
-			z80.write(addr, b)
+			z80.write(hl, b)
 		case jr_o:
 			o := z80.nextByte()
-			z80.readDelay(5, z80.Reg.PC-1)
+			z80.delay(5, z80.Reg.PC-1)
 			if o&0x80 == 0 {
 				z80.Reg.PC += uint16(o)
 			} else {
@@ -609,7 +612,7 @@ func (z80 *Z80) Run(limit int) {
 		case jr_z_o:
 			o := z80.nextByte()
 			if z80.Reg.F&FZ == FZ {
-				z80.readDelay(5, z80.Reg.PC-1)
+				z80.delay(5, z80.Reg.PC-1)
 				if o&0x80 == 0 {
 					z80.Reg.PC += uint16(o)
 				} else {
@@ -619,7 +622,7 @@ func (z80 *Z80) Run(limit int) {
 		case jr_nz_o:
 			o := z80.nextByte()
 			if z80.Reg.F&FZ == 0 {
-				z80.readDelay(5, z80.Reg.PC-1)
+				z80.delay(5, z80.Reg.PC-1)
 				if o&0x80 == 0 {
 					z80.Reg.PC += uint16(o)
 				} else {
@@ -629,7 +632,7 @@ func (z80 *Z80) Run(limit int) {
 		case jr_c:
 			o := z80.nextByte()
 			if z80.Reg.F&FC == FC {
-				z80.readDelay(5, z80.Reg.PC-1)
+				z80.delay(5, z80.Reg.PC-1)
 				if o&0x80 == 0 {
 					z80.Reg.PC += uint16(o)
 				} else {
@@ -639,7 +642,7 @@ func (z80 *Z80) Run(limit int) {
 		case jr_nc_o:
 			o := z80.nextByte()
 			if z80.Reg.F&FC == 0 {
-				z80.readDelay(5, z80.Reg.PC-1)
+				z80.delay(5, z80.Reg.PC-1)
 				if o&0x80 == 0 {
 					z80.Reg.PC += uint16(o)
 				} else {
@@ -647,11 +650,11 @@ func (z80 *Z80) Run(limit int) {
 				}
 			}
 		case djnz:
-			z80.TC.Add(1)
+			z80.delay(1, z80.Reg.IR())
 			o := z80.nextByte()
 			z80.Reg.B -= 1
 			if z80.Reg.B != 0 {
-				z80.readDelay(5, z80.Reg.PC-1)
+				z80.delay(5, z80.Reg.PC-1)
 				if o&0x80 == 0 {
 					z80.Reg.PC += uint16(o)
 				} else {
@@ -669,7 +672,7 @@ func (z80 *Z80) Run(limit int) {
 			z80.Reg.PC = z80.Reg.HL()
 		case call_nn:
 			pc := z80.nextWord()
-			z80.TC.Add(1)
+			z80.delay(1, z80.Reg.PC-1)
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, byte(z80.Reg.PC>>8))
 			z80.Reg.SP -= 1
@@ -678,7 +681,7 @@ func (z80 *Z80) Run(limit int) {
 		case call_c_nn, call_m_nn, call_nc_nn, call_nz_nn, call_p_nn, call_pe_nn, call_po_nn, call_z_nn:
 			pc := z80.nextWord()
 			if z80.shouldJump(opcode) {
-				z80.readDelay(1, z80.Reg.PC-1)
+				z80.delay(1, z80.Reg.PC-1)
 				z80.Reg.SP -= 1
 				z80.write(z80.Reg.SP, byte(z80.Reg.PC>>8))
 				z80.Reg.SP -= 1
@@ -689,38 +692,38 @@ func (z80 *Z80) Run(limit int) {
 			z80.Reg.PC = uint16(z80.read(z80.Reg.SP+1))<<8 | uint16(z80.read(z80.Reg.SP))
 			z80.Reg.SP += 2
 		case ret_c, ret_m, ret_nc, ret_nz, ret_p, ret_pe, ret_po, ret_z:
-			z80.TC.Add(1)
+			z80.delay(1, z80.Reg.IR())
 			if z80.shouldJump(opcode) {
 				z80.Reg.PC = uint16(z80.read(z80.Reg.SP+1))<<8 | uint16(z80.read(z80.Reg.SP))
 				z80.Reg.SP += 2
 			}
 		case rst_00h, rst_08h, rst_10h, rst_18h, rst_20h, rst_28h, rst_30h, rst_38h:
-			z80.TC.Add(1)
+			z80.delay(1, z80.Reg.IR())
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, byte(z80.Reg.PC>>8))
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, byte(z80.Reg.PC))
 			z80.Reg.PC = uint16(8 * ((opcode & 0b00111000) >> 3))
 		case push_af:
-			z80.TC.Add(1)
+			z80.delay(1, z80.Reg.IR())
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, z80.Reg.A)
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, z80.Reg.F)
 		case push_bc:
-			z80.TC.Add(1)
+			z80.delay(1, z80.Reg.IR())
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, z80.Reg.B)
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, z80.Reg.C)
 		case push_de:
-			z80.TC.Add(1)
+			z80.delay(1, z80.Reg.IR())
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, z80.Reg.D)
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, z80.Reg.E)
 		case push_hl:
-			z80.TC.Add(1)
+			z80.delay(1, z80.Reg.IR())
 			z80.Reg.SP -= 1
 			z80.write(z80.Reg.SP, *z80.Reg.r(rH))
 			z80.Reg.SP -= 1
@@ -757,6 +760,7 @@ func (z80 *Z80) Run(limit int) {
 			continue
 		}
 		z80.Reg.prefix = noPrefix
+		//log.Println(fmt.Sprintf("OP: %X T: %v", opcode, z80.TC.Current))
 	}
 }
 
@@ -804,18 +808,10 @@ func (z80 *Z80) getHLOffset(offset byte) uint16 {
 	}
 }
 
-// Handles memory read contention which involves repeated reads
-func (z80 *Z80) readDelay(count int, addr uint16) {
+// Handles memory read contention which may require repeated memory access
+func (z80 *Z80) delay(count int, addr uint16) {
 	for i := 0; i < count; i++ {
 		z80.mem.Read(addr)
-		z80.TC.Add(1)
-	}
-}
-
-// Handles memory write contention which involves repeated writes
-func (z80 *Z80) writeDelay(count int, addr uint16, value byte) {
-	for i := 0; i < count; i++ {
-		z80.mem.Write(addr, value)
 		z80.TC.Add(1)
 	}
 }

@@ -60,36 +60,36 @@ func (b *Bus) Write(hi, lo, data byte) {
 
 func (b *Bus) addContention(hi, lo byte) {
 	if b.tc.Current >= len(b.machine.ContentionTable) {
+		b.tc.Add(4) // no contended, just 4 T states
 		return
 	}
 
-	if lo&0x01 == 0 {
-		if hi >= 0x40 && hi <= 0x7F {
-			// C:1, C:3
-			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
-			b.tc.Add(1)
-			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
-			b.tc.Add(3)
-		} else {
-			// N:1, C:3
-			b.tc.Add(1)
-			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
-			b.tc.Add(3)
+	getContention := func() int {
+		if len(b.machine.ContentionTable) < b.tc.Current {
+			return int(b.machine.ContentionTable[b.tc.Current])
 		}
-	} else {
-		if hi >= 0x40 && hi <= 0x7F {
-			// C:1, C:1, C:1, C:1
-			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
-			b.tc.Add(1)
-			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
-			b.tc.Add(1)
-			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
-			b.tc.Add(1)
-			b.tc.Add(int(b.machine.ContentionTable[b.tc.Current]))
-			b.tc.Add(1)
-		} else {
-			// N:4
-			b.tc.Add(4)
-		}
+		return 0
+	}
+
+	hb := hi >= 0x40 && hi <= 0x7F
+	lb := lo&0x01 == 0x01
+	switch {
+	case hb && lb:
+		// C:1, C:1, C:1, C:1
+		b.tc.Add(getContention() + 1)
+		b.tc.Add(getContention() + 1)
+		b.tc.Add(getContention() + 1)
+		b.tc.Add(getContention() + 1)
+	case hb && !lb:
+		// C:1, C:3
+		b.tc.Add(getContention() + 1)
+		b.tc.Add(getContention() + 3)
+	case !hb && lb:
+		// N:4
+		b.tc.Add(4)
+	case !hb && !lb:
+		// N:1, C:3
+		b.tc.Add(1)
+		b.tc.Add(getContention() + 3)
 	}
 }

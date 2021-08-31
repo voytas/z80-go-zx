@@ -106,23 +106,43 @@ func createEmulator(m *machine.Machine, fileToLoad string) (*Emulator, error) {
 	// Initialise tape loader
 	tape := &tape.Tape{}
 
-	// Initialise CPU trap
-	cpu.Trap = func() {
-		if cpu.Reg.PC == 0x056A { // LD_BYTES trap to handle fast tape loading
-			tape.Load(cpu, mem)
-		}
-	}
-
 	emu := &Emulator{
 		mem: mem,
 		bus: bus,
 		z80: cpu,
 	}
 
+	tapeAutoRun := false
+
+	// Initialise CPU trap
+	cpu.Trap = func() {
+		switch cpu.Reg.PC {
+		case 0x056A: // LD_BYTES trap to handle fast tape loading
+			tape.Load(cpu, mem)
+		case 0x12A9: // MAIN_EXEC main execution loop
+			if tapeAutoRun {
+				tapeAutoRun = false
+				go func() {
+					// Simulate LOAD "" + ENTER
+					const delay = 50
+					keyboard.KeyDownUp(keyboard.KEY_J, delay)
+					keyboard.KeyDown(keyboard.KEY_SYMBOL, delay)
+					keyboard.KeyDownUp(keyboard.KEY_P, delay)
+					keyboard.KeyUp(keyboard.KEY_SYMBOL, delay)
+					keyboard.KeyDown(keyboard.KEY_SYMBOL, delay)
+					keyboard.KeyDownUp(keyboard.KEY_P, delay)
+					keyboard.KeyUp(keyboard.KEY_SYMBOL, delay)
+					keyboard.KeyDownUp(keyboard.KEY_ENTER, delay)
+				}()
+			}
+		}
+	}
+
 	// Load TAP, SNA or SZX file if specified
 	if fileToLoad != "" {
 		var err error
 		if tape.IsTape(fileToLoad) {
+			tapeAutoRun = true
 			err = tape.LoadFile(fileToLoad)
 		} else {
 			err = snapshot.LoadFile(fileToLoad, emu.z80, mem)

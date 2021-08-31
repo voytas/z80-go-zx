@@ -1942,6 +1942,7 @@ func Test_IN_A_n(t *testing.T) {
 	z80.Reset()
 	z80.IOBus = &TestIOBus{
 		read: func(hi, lo byte) byte {
+			z80.TC.Add(4)
 			if hi == 0x23 && lo == 0x01 {
 				return 0xA5
 			}
@@ -1968,6 +1969,7 @@ func Test_IN_R_C(t *testing.T) {
 	z80.Reg.F = fNONE
 	z80.IOBus = &TestIOBus{
 		read: func(hi, lo byte) byte {
+			z80.TC.Add(4)
 			if hi == 0x01 && lo == 0x23 {
 				return 0
 			}
@@ -1987,6 +1989,7 @@ func Test_OUT_n_A(t *testing.T) {
 	z80 := NewZ80(mem)
 	z80.IOBus = &TestIOBus{
 		write: func(hi, lo, data byte) {
+			z80.TC.Add(4)
 			assert.Equal(t, byte(0x23), hi)
 			assert.Equal(t, byte(0x01), lo)
 			assert.Equal(t, byte(0x23), data)
@@ -2001,6 +2004,7 @@ func Test_OUT_C_R(t *testing.T) {
 	z80 := NewZ80(mem)
 	z80.IOBus = &TestIOBus{
 		write: func(hi, lo, data byte) {
+			z80.TC.Add(4)
 			assert.Equal(t, byte(0x22), hi)
 			assert.Equal(t, byte(0x11), lo)
 			assert.Equal(t, byte(0x33), data)
@@ -2454,6 +2458,7 @@ func Test_INI(t *testing.T) {
 	z80.Reg.F = FC
 	z80.IOBus = &TestIOBus{
 		read: func(hi, lo byte) byte {
+			z80.TC.Add(4)
 			if hi == 0x01 && lo == 0x34 {
 				return 0x5E
 			}
@@ -2477,6 +2482,7 @@ func Test_INIR(t *testing.T) {
 	z80.Reg.F = FC
 	z80.IOBus = &TestIOBus{
 		read: func(hi, lo byte) byte {
+			z80.TC.Add(4)
 			if lo == 0x34 {
 				return hi + 0x20
 			}
@@ -2504,6 +2510,7 @@ func Test_OUTI(t *testing.T) {
 	z80.Reg.F = FC
 	z80.IOBus = &TestIOBus{
 		write: func(hi, lo, data byte) {
+			z80.TC.Add(4)
 			assert.Equal(t, byte(0), hi)
 			assert.Equal(t, byte(0x34), lo)
 			assert.Equal(t, byte(0x87), data)
@@ -2525,6 +2532,7 @@ func Test_OTIR(t *testing.T) {
 	z80.Reg.F = FC
 	z80.IOBus = &TestIOBus{
 		write: func(hi, lo, data byte) {
+			z80.TC.Add(4)
 			assert.Equal(t, byte(0x34), lo)
 			assert.Equal(t, byte(0x87+0x03-hi), data)
 		},
@@ -2633,6 +2641,7 @@ func Test_IND(t *testing.T) {
 	z80.Reg.F = FC
 	z80.IOBus = &TestIOBus{
 		read: func(hi, lo byte) byte {
+			z80.TC.Add(4)
 			if hi == 0x01 && lo == 0x34 {
 				return 0x5E
 			}
@@ -2656,6 +2665,7 @@ func Test_INDR(t *testing.T) {
 	z80.Reg.F = FC
 	z80.IOBus = &TestIOBus{
 		read: func(hi, lo byte) byte {
+			z80.TC.Add(4)
 			if lo == 0x34 {
 				return hi + 0x20
 			}
@@ -2683,6 +2693,7 @@ func Test_OUTD(t *testing.T) {
 	z80.Reg.F = FC
 	z80.IOBus = &TestIOBus{
 		write: func(hi, lo, data byte) {
+			z80.TC.Add(4)
 			assert.Equal(t, byte(0), hi)
 			assert.Equal(t, byte(0x34), lo)
 			assert.Equal(t, byte(0x87), data)
@@ -2704,6 +2715,7 @@ func Test_OTDR(t *testing.T) {
 	z80.Reg.F = FC
 	z80.IOBus = &TestIOBus{
 		write: func(hi, lo, data byte) {
+			z80.TC.Add(4)
 			assert.Equal(t, byte(0x34), lo)
 			assert.Equal(t, byte(0x8A-(0x03-hi)), data)
 		},

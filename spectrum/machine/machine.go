@@ -26,7 +26,7 @@ var ZX128k = &Machine{
 // Builds the contention table using starting contention state
 // and number of T states per line
 func buildContentionIndex(start, states int) []byte {
-	cs := make([]byte, start+192*states+192)
+	cs := make([]byte, start+192*states)
 	delays := []byte{6, 5, 4, 3, 2, 1, 0, 0}
 
 	for line := 0; line < 192; line++ {

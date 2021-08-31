@@ -1,17 +1,22 @@
 # Z80 CPU Emulator
-This is just my fun project to see how to write some CPU emulator and also idea to learn go. My first computer was Sinclair ZX Spectrum 48k and hence my first assembler programs were written for the Z80 CPU which I most familiar with.
+This is a fun project I created to see how to write a CPU emulator and also to learn golang.
+My first computer was Sinclair ZX Spectrum 48k so I decided to go for the Z80 CPU which I am quite familiar with.
 
-I tried to implement all documented features and as many as possible undocumented ones.
+The Z80 CPU emulates documented features and also as many as possible undocumented ones.
 
-Now, once I have working Z80 emulator, I decided to go a bit further and see how can I emulate my favourite [ZX Spectrum computer](spectrum/README.md).
+Having working Z80 emulator, out of the curiosity I have created simple [ZX Spectrum emulator](spectrum/README.md).
+
+The goal of this project is purely learning few things, not to create perfectly working emulator. This is work in progress, although I may not be updating it on regular basis.
 
 ## Testing
-The implementation passes both zexdoc and zexall tests. These tests were written for CP/M and required a little bootstrapping in order to execute them (some basic BDOS functions that output the text to screen).
+Initial test was done using zexdoc/zexall instruction set exerciser (both pass). These tests (e.g. COM programs) are designed to run on CP/M system and required basic bootstrapping in order to execute them using emulator (some basic BDOS functions that output the test results to screen). You can find it in [exerciser](exerciser) folder.
 
-In the exerciser folder there is a small command line utility that can be used to execute the tests:
+You can execute tests using command line:
 
 `go run ./main.go exercise ./exerciser/exercises/zexall.com`
 
+This test is not exhaustive, but good for checking the basic CPU implementation.
+
 ## Dasm
-There is a very basic disassembler in the dasm folder. I used it during debugging and testing to output
+There is a very basic disassembler in the [dasm](dasm) folder. I used it during debugging and testing to output
 the actual instruction being executed.
