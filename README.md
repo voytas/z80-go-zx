@@ -4,9 +4,10 @@ My first computer was Sinclair ZX Spectrum 48k so I decided to go for the Z80 CP
 
 The Z80 CPU emulates documented features and also as many as possible undocumented ones.
 
-Having working Z80 emulator, out of the curiosity I have created simple [ZX Spectrum emulator](spectrum/README.md).
+Having working Z80 emulator, I have created simple [ZX Spectrum emulator](spectrum/README.md).
 
-The goal of this project is purely learning few things, not to create perfectly working emulator. This is work in progress, although I may not be updating it on regular basis.
+The goal of this project is to have some fun and learn few things, not to create perfectly working feature rich emulator.
+This is work in progress, although I may not be updating it on regular basis.
 
 ## Testing
 Initial test was done using zexdoc/zexall instruction set exerciser (both pass). These tests (e.g. COM programs) are designed to run on CP/M system and required basic bootstrapping in order to execute them using emulator (some basic BDOS functions that output the test results to screen). You can find it in [exerciser](exerciser) folder.
