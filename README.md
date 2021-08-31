@@ -19,5 +19,5 @@ You can execute tests using command line:
 This test is not exhaustive, but good for checking the basic CPU implementation.
 
 ## Dasm
-There is a very basic disassembler in the [dasm](dasm) folder. I used it during debugging and testing to output
+There is a very basic disassembler in the [dasm](z80/dasm) folder. I used it during debugging and testing to output
 the actual instruction being executed.
