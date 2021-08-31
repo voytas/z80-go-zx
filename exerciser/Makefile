@@ -1,0 +1,2 @@
+boot:
+	sjasmplus boot.asm
